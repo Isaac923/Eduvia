@@ -76,11 +76,11 @@ WSGI_APPLICATION = 'EDUVIA.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+        'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'EduviaBD',
-        'USER': 'admin',
-        'PASSWORD': 'superadmin25',
+        'NAME': 'BDEduvia',
+        'USER': 'postgres',
+        'PASSWORD': '1234',
         'HOST': 'localhost',  # o una IP/remoto si es otra máquina
         'PORT': '5432',       # puerto por defecto de PostgreSQL
     }
