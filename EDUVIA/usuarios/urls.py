@@ -6,5 +6,6 @@ app_name = 'usuarios'
 
 urlpatterns = [
     path('', vista_login.as_view(), name='login'),
-    path('dashboard/', views.dashboard, name='dashboard'),  
+    path('dashboard/', views.dashboard, name='dashboard'), 
+    path('logout/', views.logout_view, name='logout'),
 ]

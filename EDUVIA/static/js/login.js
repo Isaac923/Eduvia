@@ -1,4 +1,58 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Detector de mensajes de cierre de sesión en la URL
+    function checkForLogoutMessage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const logoutParam = urlParams.get('logout');
+        
+        if (logoutParam === 'success') {
+            Swal.fire({
+                title: 'Sesión Cerrada',
+                text: 'Has cerrado sesión correctamente.',
+                icon: 'success',
+                confirmButtonColor: '#1a3a6e'
+            });
+            
+            // Limpiar el parámetro de la URL sin recargar la página
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+    
+    // Verificar mensajes de Django
+    function checkDjangoMessages() {
+        // Esta función será llamada desde el HTML con los mensajes de Django
+        if (typeof djangoMessages !== 'undefined' && djangoMessages.length > 0) {
+            djangoMessages.forEach(message => {
+                // Verificar si es un mensaje de cierre de sesión
+                if (message.text.toLowerCase().includes('sesión') && 
+                    (message.text.toLowerCase().includes('cerrada') || 
+                     message.text.toLowerCase().includes('cerrado'))) {
+                    
+                    Swal.fire({
+                        title: 'Sesión Cerrada',
+                        text: 'Has cerrado sesión correctamente.',
+                        icon: 'success',
+                        confirmButtonColor: '#1a3a6e'
+                    });
+                } else {
+                    // Para otros tipos de mensajes
+                    Swal.fire({
+                        title: message.title || (message.tags === 'error' ? 'Error' : 
+                               message.tags === 'success' ? 'Éxito' : 'Información'),
+                        text: message.text,
+                        icon: message.tags === 'error' ? 'error' : 
+                              message.tags === 'success' ? 'success' : 'info',
+                        confirmButtonColor: '#1a3a6e'
+                    });
+                }
+            });
+        }
+    }
+    
+    // Ejecutar verificaciones de mensajes
+    checkForLogoutMessage();
+    checkDjangoMessages();
+    
     // Selector de tipo de usuario
     const selectorBtns = document.querySelectorAll('.selector-btn');
     const loginForms = document.querySelectorAll('.login-form');
@@ -212,3 +266,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+

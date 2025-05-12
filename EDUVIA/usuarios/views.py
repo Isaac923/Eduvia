@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.views import View
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
+from django.contrib.auth import logout
 
 class vista_login(View):
     def get(self, request):
@@ -15,6 +17,13 @@ class vista_login(View):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user_type = request.POST.get('userType', 'funcionario')  # Obtener el tipo de usuario
+        
+        # Verificar si el usuario existe antes de autenticar
+        user_exists = User.objects.filter(username=username).exists()
+        
+        if not user_exists:
+            messages.error(request, "El usuario no existe en el sistema.")
+            return render(request, 'Login.html')
         
         # Autenticar al usuario
         user = authenticate(request, username=username, password=password)
@@ -29,25 +38,30 @@ class vista_login(View):
             elif user_type == 'funcionario':
                 # Por ahora, no permitimos acceso a funcionarios
                 messages.error(request, "Acceso solo para administradores en este momento.")
-                return redirect('usuarios:login')
+                return render(request, 'Login.html')
             else:
                 # Si el tipo de usuario no coincide con los permisos
                 if user_type == 'administrador':
                     messages.error(request, "No tienes permisos de administrador.")
                 else:
                     messages.error(request, "No tienes permisos de funcionario.")
-                return redirect('usuarios:login')
+                return render(request, 'Login.html')
         else:
             # Si las credenciales son incorrectas
-            messages.error(request, "Nombre de usuario o contraseña incorrectos.")
-            return redirect('usuarios:login')
-        
-        # Función para verificar si el usuario es administrador
+            messages.error(request, "Contraseña incorrecta. Por favor, intente nuevamente.")
+            return render(request, 'Login.html')
+
+# Función para verificar si el usuario es administrador
 def is_admin(user):
     return user.is_superuser
 
 @login_required
 @user_passes_test(is_admin)  # Solo permite acceso a administradores
 def dashboard(request):
-    
     return render(request, 'dashboard.html')
+
+def logout_view(request):
+    # Cerrar la sesión del usuario
+    logout(request)
+    messages.info(request, "Has cerrado sesión correctamente.")
+    return redirect('usuarios:login')  # Redirige a la página de inicio de sesión
