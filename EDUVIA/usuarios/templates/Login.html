@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUVIA - Iniciar Sesión</title>
+    {% load static %}
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    <!-- CSS específico para el login -->
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    
+    <!-- Script para recarga automática al volver a la página -->
+    <script>
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Fondo con animación -->
+        <div class="background">
+            <div class="shape shape1"></div>
+            <div class="shape shape2"></div>
+            <div class="shape shape3"></div>
+        </div>
+        
+        <!-- Enlace al sitio web principal -->
+        <div class="website-link">
+            <a href="https://cechaminade.cl/" target="_blank">
+                <i class="fas fa-globe"></i>
+                <span>Sitio web oficial</span>
+            </a>
+        </div>
+
+        <!-- Contenedor principal -->
+        <div class="main-container">
+            <!-- Panel izquierdo: Información -->
+            <div class="info-panel">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>EDUVIA</h1>
+                </div>
+                <h2>Sistema de Gestión Educativa</h2>
+                <p>Bienvenido a la plataforma integral para la gestión educativa de Casa Estudio Chaminade.</p>
+                
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Gestión de Estudiantes</h3>
+                            <p>Administración completa de perfiles y expedientes académicos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Control Académico</h3>
+                            <p>Seguimiento de calificaciones y rendimiento escolar.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h3>Reportes y Estadísticas</h3>
+                            <p>Análisis detallado para la toma de decisiones.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Panel derecho: Formulario de login -->
+            <div class="login-panel">
+                <div class="login-container">
+                    <h2>Iniciar Sesión</h2>
+                    <p>Ingrese sus credenciales para acceder al sistema</p>
+                    
+                    <!-- Selector de tipo de usuario -->
+                    <div class="user-type-selector">
+                        <div class="selector-container">
+                            <button type="button" class="selector-btn active" data-user-type="funcionario">
+                                <i class="fas fa-user-tie"></i>
+                                <span>Funcionario</span>
+                            </button>
+                            <button type="button" class="selector-btn" data-user-type="administrador">
+                                <i class="fas fa-user-shield"></i>
+                                <span>Administrador</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Formulario para Funcionario (RUT) -->
+                    <form method="post" action="{% url 'usuarios:login' %}" id="funcionarioForm" class="login-form active">
+                        {% csrf_token %}
+                        <input type="hidden" name="userType" value="funcionario">
+                        
+                        <div class="form-group">
+                            <label for="rut">RUT</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-id-card"></i>
+                                <input type="text" id="rut" name="username" required placeholder="Ej: 12.345.678-9" maxlength="12">
+                            </div>
+                            <small>Formato: 12.345.678-9 (con puntos)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password-funcionario">Contraseña</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="password-funcionario" name="password" required autocomplete="current-password" placeholder="Ingrese su contraseña">
+                                <button type="button" class="toggle-password" tabindex="-1">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            Iniciar Sesión
+                        </button>
+                    </form>
+                    
+                    <!-- Formulario para Administrador (Username) -->
+                    <form method="post" action="{% url 'usuarios:login' %}" id="administradorForm" class="login-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="userType" value="administrador">
+                        
+                        <div class="form-group">
+                            <label for="username">Nombre de Usuario</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="username" name="username" required autocomplete="username" placeholder="Ingrese su nombre de usuario">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password-admin">Contraseña</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="password-admin" name="password" required autocomplete="current-password" placeholder="Ingrese su contraseña">
+                                <button type="button" class="toggle-password" tabindex="-1">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn">
+                            Iniciar Sesión
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="footer">
+                    &copy; {% now "Y" %} Casa Estudio Chaminade - Todos los derechos reservados
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    
+    <!-- Script para pasar mensajes de Django a JavaScript -->
+
+    
+    <!-- JavaScript específico para el login -->
+    <script src="{% static 'js/login.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bienvenido - EDUVIA{% endblock %}
+
+{% block breadcrumbs %}
+    <li class="active">Inicio</li>
+{% endblock %}
+
+{% block content %}
+    <!-- Tarjeta de bienvenida personalizada -->
+    <div class="welcome-card">
+        <div class="welcome-content">
+            <h2>¡Bienvenido a EDUVIA!</h2>
+            <p>Sistema de Gestión Educativa para Casa Estudio Chaminade</p>
+            <p class="welcome-description">
+                Este sistema te permitirá gestionar de manera eficiente todos los aspectos relacionados 
+                con la administración educativa de Casa Estudio Chaminade. Utiliza el menú lateral 
+                para navegar entre las diferentes secciones del sistema.
+            </p>
+            <div class="welcome-actions">
+                <button class="btn btn-primary" onclick="return false;">
+                    <i class="fas fa-book"></i>
+                    Ver Manual de Usuario
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tarjetas explicativas de funcionalidades -->
+    <h3 class="section-title">¿Qué puedes hacer en EDUVIA?</h3>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h4>Gestión de Estudiantes</h4>
+            <p>Registra nuevos estudiantes, gestiona matrículas, controla la asistencia y realiza seguimiento académico.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h4>Gestión de Profesores</h4>
+            <p>Administra la información de los profesores, asigna cursos y gestiona horarios de clases.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <h4>Gestión Académica</h4>
+            <p>Crea y administra cursos, registra calificaciones y genera informes académicos.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-file-medical"></i>
+            </div>
+            <h4>Fichas de Intervención</h4>
+            <p>Crea y gestiona fichas de intervención para el seguimiento personalizado de estudiantes.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-user-cog"></i>
+            </div>
+            <h4>Administración de Usuarios</h4>
+            <p>Gestiona los usuarios del sistema y asigna permisos según los roles correspondientes.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h4>Reportes y Estadísticas</h4>
+            <p>Genera informes detallados y visualiza estadísticas para la toma de decisiones.</p>
+        </div>
+    </div>
+    
+    <!-- Mensaje de ayuda -->
+    <div class="help-card">
+        <div class="help-icon">
+            <i class="fas fa-question-circle"></i>
+        </div>
+        <div class="help-content">
+            <h4>¿Necesitas ayuda?</h4>
+            <p>Si tienes dudas sobre cómo utilizar el sistema, puedes consultar el manual de usuario o contactar al soporte técnico.</p>
+            <button class="btn btn-outline" onclick="return false;">
+                <i class="fas fa-headset"></i>
+                Contactar Soporte
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        /* Solución definitiva para el problema del sidebar */
+        
+        /* Estilos para el sidebar */
+        .sidebar {
+            position: fixed !important;
+            z-index: 1000 !important;
+        }
+        
+        /* Estilos para el contenido principal */
+        .main-content {
+            position: absolute !important;
+            left: 260px !important; /* Ancho del sidebar expandido */
+            width: calc(100% - 260px) !important;
+            padding: 1rem !important;
+            box-sizing: border-box !important;
+            transition: left 0.3s ease, width 0.3s ease !important;
+        }
+        
+        /* Cuando el sidebar está colapsado */
+        .main-content.expanded {
+            left: 70px !important; /* Ancho del sidebar colapsado */
+            width: calc(100% - 70px) !important;
+        }
+        
+        /* Asegurar que el contenido se ajuste correctamente */
+        .page-content {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            overflow-x: hidden !important;
+        }
+        
+        /* Tarjeta de bienvenida */
+        .welcome-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .welcome-content {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .welcome-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+            color: #1a3a6e;
+            font-weight: 700;
+        }
+        
+        .welcome-content p {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .welcome-description {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+        
+        .welcome-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .welcome-image {
+            flex: 0 0 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 100%;
+        }
+        
+        .welcome-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Título de sección */
+        .section-title {
+            font-size: 1.5rem;
+            color: #1a3a6e;
+            margin: 2rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e0e0e0;
+            font-weight: 600;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Tarjetas de funcionalidades */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 180px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: rgba(26, 58, 110, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: #1a3a6e;
+            font-size: 1.5rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            background-color: #1a3a6e;
+            color: white;
+        }
+        
+        .feature-card h4 {
+            margin: 0 0 0.8rem;
+            font-size: 1.2rem;
+            color: #1a3a6e;
+            font-weight: 600;
+        }
+        
+        .feature-card p {
+            margin: 0;
+            color: #2c3e50;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+        
+        /* Tarjeta de ayuda */
+        .help-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .help-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(243, 156, 18, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f39c12;
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        
+        .help-content {
+            flex: 1;
+        }
+        
+        .help-content h4 {
+            margin: 0 0 0.5rem;
+            font-size: 1.3rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .help-content p {
+            margin: 0 0 1rem;
+            color: #2c3e50;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        /* Botones */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: #1a3a6e;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #15305d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid #1a3a6e;
+            color: #1a3a6e;
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(26, 58, 110, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .main-content {
+                left: 0 !important;
+                width: 100% !important;
+                padding-top: 4rem !important;
+            }
+            
+            .features-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .welcome-card {
+                flex-direction: column;
+                padding: 1.2rem;
+            }
+            
+            .welcome-content h2 {
+                font-size: 1.6rem;
+            }
+            
+            .welcome-content p,
+            .welcome-description {
+                font-size: 0.95rem;
+            }
+            
+            .welcome-image {
+                order: -1;
+                margin-bottom: 1.2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-card {
+                padding: 1.2rem;
+                min-height: auto;
+            }
+            
+            .feature-card h4 {
+                font-size: 1.1rem;
+            }
+            
+            .feature-card p {
+                font-size: 0.9rem;
+            }
+            
+            .help-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 1.2rem;
+            }
+            
+            .help-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .help-content h4 {
+                font-size: 1.2rem;
+            }
+            
+            .help-content p {
+                font-size: 0.95rem;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Página de bienvenida cargada');
+        
+        // Desactivar todos los botones para la demo
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Esta funcionalidad estará disponible próximamente');
+            });
+        });
+        
+        // Función para asegurar que el contenido sea visible
+        function fixContentPosition() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content');
+            
+            if (sidebar && mainContent) {
+                // Forzar la posición correcta del contenido principal
+                if (sidebar.classList.contains('collapsed')) {
+                    mainContent.style.left = '70px';
+                    mainContent.style.width = 'calc(100% - 70px)';
+                } else {
+                    mainContent.style.left = '260px';
+                    mainContent.style.width = 'calc(100% - 260px)';
+                }
+                
+                // En dispositivos móviles
+                if (window.innerWidth <= 992) {
+                    mainContent.style.left = '0';
+                    mainContent.style.width = '100%';
+                }
+            }
+        }
+        
+        // Ejecutar al cargar
+        fixContentPosition();
+        
+        // Ejecutar cuando cambie el tamaño de la ventana
+        window.addEventListener('resize', fixContentPosition);
+        
+        // Observar cambios en el sidebar (expandir/colapsar)
+        const sidebarObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class') {
+                    fixContentPosition();
+                }
+            });
+        });
+        
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebarObserver.observe(sidebar, { attributes: true });
+        }
+        
+        // Verificar periódicamente la posición correcta (como medida adicional)
+        setInterval(fixContentPosition, 1000);
+    });
+     // Pasar los mensajes de Django a JavaScript
+    var djangoMessages = [
+        {% for message in messages %}
+            {
+                message: "{{ message }}",
+                tags: "{{ message.tags }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    // Pasar información del usuario
+    var currentUser = {
+        name: "{{ request.user.get_full_name|default:request.user.username|escapejs }}"
+    };
+    
+    // Cargar el script de login para manejar los mensajes
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar si hay mensajes para mostrar
+        if (typeof djangoMessages !== 'undefined' && djangoMessages.length > 0) {
+            // Verificar si ya se mostró el mensaje
+            const messagesShown = sessionStorage.getItem('messagesShown');
+            
+            if (!messagesShown) {
+                djangoMessages.forEach(function(message) {
+                    let icon = 'info';
+                    let title = '';
+                    
+                    // Determinar el tipo de icono y título
+                    if (message.tags.includes('success')) {
+                        icon = 'success';
+                        title = `Bienvenido a EDUVIA, ${currentUser.name}`;
+                    } else if (message.tags.includes('error')) {
+                        icon = 'error';
+                        title = 'Error';
+                    } else if (message.tags.includes('warning')) {
+                        icon = 'warning';
+                        title = 'Advertencia';
+                    } else {
+                        title = 'Información';
+                    }
+                    
+                    Swal.fire({
+                        title: title,
+                        text: message.message,
+                        icon: icon,
+                        confirmButtonColor: '#1a3a6e',
+                        confirmButtonText: 'Entendido'
+                    });
+                });
+                
+                // Marcar que los mensajes ya se mostraron
+                sessionStorage.setItem('messagesShown', 'true');
+            }
+        }
+    });
+</script>
+{% endblock %}

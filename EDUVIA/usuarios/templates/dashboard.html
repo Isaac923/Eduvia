@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}EDUVIA - Inicio{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+<div class="dashboard-container">
+    <!-- Sección de bienvenida -->
+    <div class="welcome-section">
+        <div class="welcome-card">
+            <div class="welcome-content">
+                <h1>¡Bienvenido a EDUVIA, {{ request.user.first_name }}!</h1>
+                <p>Sistema de Gestión Educativa de Casa Estudio Chaminade</p>
+                
+                {% if request.user.is_superuser %}
+                <div class="welcome-message">
+                    <p>Como administrador, tienes acceso a todas las funcionalidades del sistema. Utiliza el menú lateral para navegar entre las diferentes secciones.</p>
+                </div>
+                {% elif request.user.groups.all.0.name == 'Profesores' %}
+                <div class="welcome-message">
+                    <p>Como profesor, puedes gestionar tus cursos, registrar asistencia, calificaciones y comunicarte con estudiantes y apoderados.</p>
+                </div>
+                {% elif request.user.groups.all.0.name == 'Apoderados' %}
+                <div class="welcome-message">
+                    <p>Como apoderado, puedes realizar seguimiento académico de tus estudiantes, revisar calificaciones, asistencia y comunicarte con profesores.</p>
+                </div>
+                {% else %}
+                <div class="welcome-message">
+                    <p>Desde aquí podrás acceder a todas las funcionalidades del sistema según tu rol y permisos.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Descripción del sistema -->
+    <div class="system-overview">
+        <h2>¿Qué es EDUVIA?</h2>
+        <div class="overview-content">
+            <div class="overview-text">
+                <p>EDUVIA es un sistema integral de gestión educativa diseñado para optimizar los procesos administrativos y académicos de Casa Estudio Chaminade. Nuestra plataforma facilita la comunicación entre todos los miembros de la comunidad educativa y proporciona herramientas para mejorar la experiencia de aprendizaje.</p>
+                
+                <div class="key-features">
+                    <div class="feature">
+                        <i class="fas fa-users"></i>
+                        <h4>Gestión de Usuarios</h4>
+                        <p>Administración centralizada de perfiles para estudiantes, profesores, apoderados y personal administrativo.</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-book"></i>
+                        <h4>Gestión Académica</h4>
+                        <p>Control de cursos, asignaturas, calificaciones y asistencia en un solo lugar.</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>Reportes y Estadísticas</h4>
+                        <p>Generación de informes detallados para análisis y toma de decisiones.</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-comments"></i>
+                        <h4>Comunicación</h4>
+                        <p>Canales directos entre profesores, estudiantes y apoderados para una comunidad más conectada.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Guía rápida -->
+    <div class="quick-guide">
+        <h2>¿Qué puedo hacer en EDUVIA?</h2>
+        <p>Explora las principales funcionalidades disponibles según tu rol:</p>
+        
+        <div class="guide-cards">
+            {% if request.user.is_superuser %}
+            <!-- Tarjetas para administradores -->
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Gestión de Usuarios</h3>
+                <p>Crear, editar y administrar cuentas de usuarios del sistema.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Usuarios <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h3>Profesores</h3>
+                <p>Gestionar información, asignaciones y evaluación de profesores.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Profesores <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h3>Estudiantes</h3>
+                <p>Administrar registros, matrículas y seguimiento académico.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Estudiantes <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3>Cursos y Asignaturas</h3>
+                <p>Configurar y administrar la estructura académica del establecimiento.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Cursos <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h3>Calendario Escolar</h3>
+                <p>Gestionar eventos, fechas importantes y planificación anual.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Calendario <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3>Informes y Estadísticas</h3>
+                <p>Acceder a datos analíticos para la toma de decisiones.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Informes <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+            
+            {% elif request.user.groups.all.0.name == 'Profesores' %}
+            <!-- Tarjetas para profesores -->
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-chalkboard"></i>
+                </div>
+                <h3>Mis Cursos</h3>
+                <p>Accede a los cursos que impartes y gestiona sus contenidos.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Mis Cursos <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h3>Control de Asistencia</h3>
+                <p>Registra y gestiona la asistencia de tus estudiantes.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Asistencia <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+            
+            <div class="guide-card">
+                <div class="card-icon">
+                    <i class="fas fa-pen"></i>
+                </div>
+                <h3>Registro de Notas</h3>
+                <p>Ingresa y gestiona las calificaciones de tus estudiantes.</p>
+                <div class="card-actions">
+                    <span class="card-link">Ir a Calificaciones <i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>            
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Script para la animación de entrada (sin funcionalidad de botones) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Solo animación de entrada para las secciones
+        const sections = document.querySelectorAll('.welcome-section, .system-overview, .quick-guide, .help-section');
+        
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        sections.forEach(section => {
+            section.classList.add('fade-in');
+            observer.observe(section);
+        });
+    });
+</script>
+{% endblock %}
