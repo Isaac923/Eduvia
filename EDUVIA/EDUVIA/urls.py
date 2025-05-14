@@ -21,6 +21,12 @@ from django.conf.urls.static import static
 from . import views  # Importamos las vistas del proyecto principal
 
 urlpatterns = [
+    path('admin/', admin.site.urls),  # Add this line for admin access
     path('', include('usuarios.urls')),  # Incluye las URLs de la app usuarios
-    
+    path('alumnos/', include('alumnos.urls')),  # Incluye las URLs de la app alumnos
+    path('cursos/', include('cursos.urls')),  # Incluye las URLs de la app cursos
 ]
+
+# Add this if you're using media files
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

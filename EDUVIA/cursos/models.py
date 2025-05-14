@@ -1,0 +1,45 @@
+from django.db import models
+from alumnos.models import Alumno
+
+# Lista predefinida de asignaturas
+ASIGNATURAS_CHOICES = (
+    ('matematicas', 'Matemáticas'),
+    ('lenguaje', 'Lenguaje y Comunicación'),
+    ('ciencias', 'Ciencias Naturales'),
+    ('historia', 'Historia y Geografía'),
+    ('ingles', 'Inglés'),
+    ('educacion_fisica', 'Educación Física'),
+    ('artes', 'Artes Visuales'),
+    ('musica', 'Música'),
+    ('tecnologia', 'Tecnología'),
+    ('religion', 'Religión'),
+    ('orientacion', 'Orientación'),
+    ('otro', 'Otra Asignatura'),
+)
+
+class Curso(models.Model):
+    NIVEL_CHOICES = (
+        (1, 'Nivel 1'),
+        (2, 'Nivel 2'),
+        (3, 'Nivel 3'),
+    )
+    
+    LETRA_CHOICES = (
+        ('a', 'Diurna (A)'),
+        ('b', 'Vespertina (B)'),
+    )
+    
+    nivel = models.IntegerField(choices=NIVEL_CHOICES)
+    letra = models.CharField(max_length=1, choices=LETRA_CHOICES)
+    asignatura = models.CharField(max_length=100, choices=ASIGNATURAS_CHOICES, blank=True, null=True)
+    alumnos = models.ManyToManyField(Alumno, related_name='cursos', blank=True)
+    # docente = models.ForeignKey('usuarios.docente', on_delete=models.CASCADE)  # Esta relación se implementará en el futuro
+    
+    class Meta:
+        verbose_name = 'Curso'
+        verbose_name_plural = 'Cursos'
+        # Cambiamos la restricción unique_together para incluir asignatura
+        unique_together = ('nivel', 'letra', 'asignatura')
+    
+    def __str__(self):
+        return f"{self.nivel}° {self.letra.upper()}"

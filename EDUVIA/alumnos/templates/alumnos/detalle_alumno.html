@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}Detalles del Alumno{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2 style="color: #303f9f;">Detalles del Alumno</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'alumnos:lista_alumnos' %}" class="btn" style="background-color: #5c6bc0; color: white;">
+                <i class="fas fa-arrow-left"></i> Volver a la Lista
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Información principal del alumno -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background-color: #5c6bc0; color: white;">
+                    <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Información Personal</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Nombre Completo:</div>
+                        <div class="col-md-8">{{ alumno.nombre }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">ID:</div>
+                        <div class="col-md-8">{{ alumno.id }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Fecha de Nacimiento:</div>
+                        <div class="col-md-8">{{ alumno.fecha_nacimiento }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Edad:</div>
+                        <div class="col-md-8">{{ alumno.edad }} años</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Sexo:</div>
+                        <div class="col-md-8">
+                            {% if alumno.sexo == 'M' %}Masculino{% else %}Femenino{% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Nivel:</div>
+                        <div class="col-md-8">{{ alumno.nivel }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Jornada:</div>
+                        <div class="col-md-8">{{ alumno.jornada|title }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Estado:</div>
+                        <div class="col-md-8">
+                            <span class="badge {% if alumno.activo %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if alumno.activo %}Activo{% else %}Inactivo{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de contacto -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background-color: #26a69a; color: white;">
+                    <h5 class="mb-0"><i class="fas fa-address-card me-2"></i>Información de Contacto</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Dirección:</div>
+                        <div class="col-md-8">{{ alumno.direccion }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Teléfono:</div>
+                        <div class="col-md-8">{{ alumno.telefono|default:"No registrado" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Correo Electrónico:</div>
+                        <div class="col-md-8">{{ alumno.correo_electronico|default:"No registrado" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información académica -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background-color: #ff9800; color: white;">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Información Académica</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Fecha de Ingreso:</div>
+                        <div class="col-md-8">{{ alumno.fecha_ingreso }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Religión:</div>
+                        <div class="col-md-8">{{ alumno.religion }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Cursos Asignados:</div>
+                        <div class="col-md-8">
+                            {% if cursos %}
+                                <ul class="list-group">
+                                    {% for curso in cursos %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ curso }}
+                                            <span class="badge bg-primary rounded-pill">
+                                                {{ curso.asignatura|default:"Sin asignatura" }}
+                                            </span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <span class="text-muted">No está asignado a ningún curso</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del apoderado -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background-color: #ec407a; color: white;">
+                    <h5 class="mb-0"><i class="fas fa-user-friends me-2"></i>Información del Apoderado</h5>
+                </div>
+                <div class="card-body">
+                    {% if alumno.apoderado %}
+                        <div class="row mb-3">
+                            <div class="col-md-5 fw-bold">Tipo:</div>
+                            <div class="col-md-7">
+                                {% if alumno.apoderado.es_institucion %}Institución{% else %}Persona{% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 fw-bold">Nombre:</div>
+                            <div class="col-md-7">{{ alumno.apoderado.nombre }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 fw-bold">Parentezco:</div>
+                            <div class="col-md-7">{{ alumno.apoderado.parentezco }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 fw-bold">Teléfono:</div>
+                            <div class="col-md-7">{{ alumno.apoderado.telefono }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 fw-bold">Correo:</div>
+                            <div class="col-md-7">{{ alumno.apoderado.correo|default:"No registrado" }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-5 fw-bold">Dirección:</div>
+                            <div class="col-md-7">{{ alumno.apoderado.direccion|default:"No registrada" }}</div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <p>Este alumno no tiene apoderado registrado.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="card shadow-sm">
+                <div class="card-header" style="background-color: #5c6bc0; color: white;">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Acciones</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'alumnos:editar_alumnos' id=alumno.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-1"></i> Editar Alumno
+                        </a>
+                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#cambiarEstadoModal">
+                            <i class="fas fa-exchange-alt me-1"></i> Cambiar Estado
+                        </button>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#eliminarAlumnoModal">
+                            <i class="fas fa-trash-alt me-1"></i> Eliminar Alumno
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para cambiar estado -->
+<div class="modal fade" id="cambiarEstadoModal" tabindex="-1" aria-labelledby="cambiarEstadoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #5c6bc0; color: white;">
+                <h5 class="modal-title" id="cambiarEstadoModalLabel">Cambiar Estado del Alumno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white;"></button>
+            </div>
+            <form action="{% url 'alumnos:cambiar_estado_alumno' id=alumno.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Seleccione el estado que desea establecer para <strong>{{ alumno.nombre }}</strong>:</p>
+                    
+                    <div class="mb-4">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="nuevo_estado" id="estadoActivo" value="activo" {% if alumno.activo %}checked{% endif %}>
+                            <label class="form-check-label d-flex align-items-center" for="estadoActivo">
+                                <div class="ms-2">
+                                    <div class="fw-bold">Activo</div>
+                                    <div class="text-muted small">El alumno estará activo y disponible en el sistema.</div>
+                                </div>
+                                <span class="ms-auto badge bg-success">Activo</span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="nuevo_estado" id="estadoInactivo" value="inactivo" {% if not alumno.activo %}checked{% endif %}>
+                            <label class="form-check-label d-flex align-items-center" for="estadoInactivo">
+                                <div class="ms-2">
+                                    <div class="fw-bold">Inactivo</div>
+                                    <div class="text-muted small">El alumno estará inactivo y no disponible en el sistema.</div>
+                                </div>
+                                <span class="ms-auto badge bg-danger">Inactivo</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: #26a69a; border-color: #26a69a;">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para eliminar alumno -->
+<div class="modal fade" id="eliminarAlumnoModal" tabindex="-1" aria-labelledby="eliminarAlumnoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="eliminarAlumnoModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white;"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea eliminar al alumno <strong>{{ alumno.nombre }}</strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Esta acción no se puede deshacer. Se eliminarán todos los datos asociados al alumno.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{% url 'alumnos:eliminar_alumno' id=alumno.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Eliminar Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

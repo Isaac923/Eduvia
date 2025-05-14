@@ -1,0 +1,815 @@
+{% extends "base.html" %}
+{% block title %}Lista de Alumnos{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2 style="color: #303f9f;">Lista de Alumnos</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'alumnos:crear_alumno' %}" class="btn" style="background-color: #26a69a; color: white;">
+                <i class="fas fa-plus"></i> Nuevo Alumno
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Asegúrate de que los selectores de filtro tengan los IDs correctos -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 mb-3" id="filtro-form">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" name="nombre" id="nombre-busqueda" class="form-control" placeholder="Buscar por nombre..."
+                            value="{{ nombre_busqueda }}">
+                        <button type="submit" class="btn" style="background-color: #5c6bc0; color: white;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <label class="input-group-text" for="courseFilter"
+                            style="background-color: #5c6bc0; color: white;">Nivel</label>
+                        <select class="form-select" id="courseFilter" name="nivel">
+                            <option value="todos" {% if nivel_filter == 'todos' %}selected{% endif %}>Todos los niveles
+                            </option>
+                            {% for nivel in niveles %}
+                            <option value="{{ nivel }}" {% if nivel_filter == nivel %}selected{% endif %}>{{ nivel }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <label class="input-group-text" for="statusFilter" style="background-color: #5c6bc0; color: white;">Estado</label>
+                        <select class="form-select" id="statusFilter" name="estado">
+                            <option value="todos" {% if estado_filter == 'todos' %}selected{% endif %}>Todos</option>
+                            <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>Activo</option>
+                            <option value="inactivo" {% if estado_filter == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Añadir este script para coordinar los filtros -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const courseFilter = document.getElementById('courseFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const filtroForm = document.getElementById('filtro-form');
+            
+            // Cuando cambia el filtro de nivel
+            courseFilter.addEventListener('change', function() {
+                // Si se selecciona un nivel específico y el estado no está explícitamente en "inactivo",
+                // establecer el estado en "activo"
+                if (this.value !== 'todos' && statusFilter.value !== 'inactivo') {
+                    statusFilter.value = 'activo';
+                }
+                
+                // Enviar el formulario para aplicar los filtros
+                filtroForm.submit();
+            });
+            
+            // Cuando cambia el filtro de estado
+            statusFilter.addEventListener('change', function() {
+                // Enviar el formulario para aplicar los filtros
+                filtroForm.submit();
+            });
+        });
+    </script>
+    
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead style="background-color: #5c6bc0; color: white;">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Edad</th>
+                            <th>Nivel</th>
+                            <th>Jornada</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alumno in alumnos %}
+                        <tr class="alumno-row" data-id="{{ alumno.id }}" data-nombre="{{ alumno.nombre_completo }}"
+                            data-edad="{{ alumno.edad }}" data-nivel="{{ alumno.nivel }}"
+                            data-jornada="{{ alumno.jornada }}" data-direccion="{{ alumno.direccion }}"
+                            data-telefono="{{ alumno.telefono|default:'No registrado' }}"
+                            data-email="{{ alumno.correo_electronico|default:'No registrado' }}"
+                            data-religion="{{ alumno.religion }}" data-fecha_ingreso="{{ alumno.fecha_ingreso }}"
+                            data-edit-url="{% url 'alumnos:editar_alumnos' pk=alumno.id %}"
+                            data-delete-url="{% url 'alumnos:eliminar_alumno' pk=alumno.id %}"
+                            data-fecha-nacimiento="{{ alumno.fecha_nacimiento }}"
+                            data-sexo="{{ alumno.get_sexo_display }}"
+                            data-rut="{{ alumno.rut }}"
+                            data-estado-civil="{{ alumno.get_estado_civil_display }}"
+                            data-ultimo-curso="{{ alumno.ultimo_curso_aprobado|default:'No registrado' }}"
+                            data-curso-repetido="{{ alumno.curso_repetido }}"
+                            data-programa-pie="{{ alumno.programa_pie }}"
+                            data-profesional-apoyo="{{ alumno.get_profesional_apoyo_display|default:'Ninguno' }}"
+                            data-informe-psicosocial="{{ alumno.informe_psicosocial }}"
+                            data-situacion-laboral="{{ alumno.get_situacion_laboral_display }}"
+                            data-contacto-emergencia-nombre="{{ alumno.contacto_emergencia_nombre|default:'No registrado' }}"
+                            data-contacto-emergencia-parentezco="{{ alumno.contacto_emergencia_parentezco|default:'No registrado' }}"
+                            data-contacto-emergencia-telefono="{{ alumno.contacto_emergencia_telefono|default:'No registrado' }}"
+                            data-apoderado-id="{{ alumno.apoderado.id|default:'' }}"
+                            data-apoderado-nombre="{{ alumno.apoderado.nombre|default:'No registrado' }}"
+                            data-apoderado-parentezco="{{ alumno.apoderado.parentezco|default:'No registrado' }}"
+                            data-apoderado-telefono="{{ alumno.apoderado.telefono|default:'No registrado' }}"
+                            data-apoderado-correo="{{ alumno.apoderado.correo|default:'No registrado' }}"
+                            data-apoderado-direccion="{{ alumno.apoderado.direccion|default:'No registrado' }}"
+                            data-apoderado-es-institucion="{{ alumno.apoderado.es_institucion|default:'false' }}"
+                            data-estado="{% if alumno.activo %}activo{% else %}inactivo{% endif %}">
+                            <td>{{ alumno.id }}</td>
+                            <td>{{ alumno.nombre_completo }}</td>
+                            <td>{{ alumno.edad }}</td>
+                            <td>{{ alumno.nivel }}</td>
+                            <td>{{ alumno.jornada }}</td>
+                            <td class="text-center">
+                                {% if alumno.activo %}
+                                    <span class="badge bg-success rounded-pill px-3 py-2">
+                                        <i class="fas fa-check-circle me-1"></i> Activo
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger rounded-pill px-3 py-2">
+                                        <i class="fas fa-times-circle me-1"></i> Inactivo
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm ver-alumno-detallado" style="background-color: #5c6bc0; color: white;"
+                                        data-alumno-id="{{ alumno.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <!-- <button class="btn btn-sm view-apoderado" style="background-color: #26a69a; color: white;"
+                                        data-bs-toggle="modal" data-bs-target="#verApoderadoModal">
+                                        <i class="fas fa-user-friends"></i>
+                                    </button> -->
+                                    <button class="btn btn-sm toggle-estado" style="background-color: #ff9800; color: white;"
+                                        data-id="{{ alumno.id }}"
+                                        data-nombre="{{ alumno.nombre_completo }}"
+                                        data-estado="{% if alumno.activo %}Activo{% else %}Inactivo{% endif %}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#estadoModal">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center" style="color: #78909c;">No hay alumnos registrados. /
+                                Alumno no encontrado.</td>
+                        </tr>
+                        {% endfor %}
+                        <tr id="no-results-row" style="display: none;">
+                            <td colspan="7" class="text-center" style="color: #78909c;">No se encontraron resultados.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalles Alumno (Antiguo - lo mantenemos por compatibilidad) -->
+<div class="modal fade" id="alumnoModal" tabindex="-1" aria-labelledby="alumnoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #5c6bc0; color: white;">
+                <h5 class="modal-title" id="alumnoModalLabel">Detalles del Alumno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    style="background-color: white;"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">ID:</div>
+                    <div class="col-md-8" id="modal-id"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Nombre:</div>
+                    <div class="col-md-8" id="modal-nombre"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Edad:</div>
+                    <div class="col-md-8" id="modal-edad"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Email:</div>
+                    <div class="col-md-8" id="modal-email"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Teléfono:</div>
+                    <div class="col-md-8" id="modal-telefono"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Nivel:</div>
+                    <div class="col-md-8" id="modal-nivel"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Jornada:</div>
+                    <div class="col-md-8" id="modal-jornada"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Dirección:</div>
+                    <div class="col-md-8" id="modal-direccion"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Religión:</div>
+                    <div class="col-md-8" id="modal-religion"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Fecha de ingreso:</div>
+                    <div class="col-md-8" id="modal-fecha-ingreso"></div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-md-4 fw-bold">Estado:</div>
+                    <div class="col-md-8">
+                        <span class="badge" id="modal-estado-badge"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="modal-edit-link" class="btn" style="background-color: #26a69a; color: white;">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <button type="button" class="btn delete-alumno" id="modal-delete-btn"
+                    style="background-color: #ec407a; color: white;">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalles Alumno -->
+<div class="modal fade" id="alumnoDetallesModal" tabindex="-1" aria-labelledby="alumnoDetallesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #5c6bc0; color: white;">
+                <h5 class="modal-title" id="alumnoDetallesModalLabel">Detalles del Alumno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white;"></button>
+            </div>
+            <div class="modal-body">
+                <div id="alumno-modal-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando detalles del alumno...</p>
+                </div>
+                
+                <div id="alumno-modal-content" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header" style="background-color: #5c6bc0; color: white;">
+                                    <h6 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Información Personal</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Nombre Completo:</h6>
+                                        <p id="alumno-nombre"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">RUT:</h6>
+                                        <p id="alumno-rut"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Fecha de Nacimiento:</h6>
+                                        <p id="alumno-fecha-nacimiento"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Edad:</h6>
+                                        <p id="alumno-edad"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Sexo:</h6>
+                                        <p id="alumno-sexo"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Estado Civil:</h6>
+                                        <p id="alumno-estado-civil"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header" style="background-color: #5c6bc0; color: white;">
+                                    <h6 class="mb-0"><i class="fas fa-school me-2"></i>Información Académica</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Nivel:</h6>
+                                        <p id="alumno-nivel"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Jornada:</h6>
+                                        <p id="alumno-jornada"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Fecha de Ingreso:</h6>
+                                        <p id="alumno-fecha-ingreso"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Último Curso Aprobado:</h6>
+                                        <p id="alumno-ultimo-curso"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Curso Repetido:</h6>
+                                        <p id="alumno-curso-repetido"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Estado:</h6>
+                                        <p id="alumno-estado"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header" style="background-color: #5c6bc0; color: white;">
+                                    <h6 class="mb-0"><i class="fas fa-home me-2"></i>Información de Contacto</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Dirección:</h6>
+                                        <p id="alumno-direccion"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Teléfono:</h6>
+                                        <p id="alumno-telefono"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Correo Electrónico:</h6>
+                                        <p id="alumno-email"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Religión:</h6>
+                                        <p id="alumno-religion"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Situación Laboral:</h6>
+                                        <p id="alumno-situacion-laboral"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header" style="background-color: #5c6bc0; color: white;">
+                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información Adicional</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Programa PIE:</h6>
+                                        <p id="alumno-programa-pie"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Profesional de Apoyo:</h6>
+                                        <p id="alumno-profesional-apoyo"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Informe Psicosocial:</h6>
+                                        <p id="alumno-informe-psicosocial"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Situación Laboral:</h6>
+                                        <p id="alumno-situacion-laboral"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="alumno-modal-error" class="alert alert-danger" style="display: none;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="alumno-error-message">Error al cargar los detalles del alumno.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <button type="button" class="btn btn-danger" id="eliminar-alumno-btn">
+                            <i class="fas fa-trash-alt me-1"></i> Eliminar Alumno
+                        </button>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cerrar</button>
+                        <a href="#" id="editar-alumno-link" class="btn" style="background-color: #26a69a; color: white;">
+                            <i class="fas fa-edit me-1"></i> Editar Alumno
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar/Agregar Apoderado -->
+<div class="modal fade" id="editarApoderadoModal" tabindex="-1" aria-labelledby="editarApoderadoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #26a69a; color: white;">
+                <h5 class="modal-title" id="editarApoderadoModalLabel">Editar Apoderado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    style="background-color: white;"></button>
+            </div>
+            <form id="form-apoderado" method="post">
+                {% csrf_token %}
+                <input type="hidden" id="alumno-id-apoderado" name="alumno_id">
+                <input type="hidden" id="apoderado-id" name="apoderado_id">
+                <div class="modal-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="esInstitucion" name="es_institucion" onchange="toggleParentezco()">
+                        <label class="form-check-label" for="esInstitucion">Es institución</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="input-nombre-apoderado" name="nombre" required>
+                    </div>
+                    <div class="mb-3" id="parentezco-container">
+                        <label class="form-label">Parentezco</label> <input type="text" class="form-control" id="input-parentezco" name="parentezco" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="input-telefono-apoderado" name="telefono" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Correo</label>
+                        <input type="email" class="form-control" id="input-correo-apoderado" name="correo">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <textarea class="form-control" id="input-direccion-apoderado" name="direccion"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para cambiar estado del alumno -->
+<div class="modal fade" id="estadoModal" tabindex="-1" aria-labelledby="estadoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #5c6bc0; color: white;">
+                <h5 class="modal-title" id="estadoModalLabel">Cambiar Estado del Alumno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white;"></button>
+            </div>
+            <div class="modal-body">
+                <p>Seleccione el estado que desea establecer para <strong id="estado-modal-nombre"></strong>:</p>
+                
+                <form id="estado-form" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" id="estado-alumno-id" name="alumno_id">
+                    
+                    <div class="mb-4">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="estado" id="estadoActivo" value="activo">
+                            <label class="form-check-label d-flex align-items-center" for="estadoActivo">
+                                <div class="ms-2">
+                                    <div class="fw-bold">Activo</div>
+                                    <div class="text-muted small">El alumno estará activo y disponible en el sistema.</div>
+                                </div>
+                                <span class="ms-auto badge bg-success">Activo</span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="estado" id="estadoInactivo" value="inactivo">
+                            <label class="form-check-label d-flex align-items-center" for="estadoInactivo">
+                                <div class="ms-2">
+                                    <div class="fw-bold">Inactivo</div>
+                                    <div class="text-muted small">El alumno estará inactivo y no disponible en el sistema.</div>
+                                </div>
+                                <span class="ms-auto badge bg-danger">Inactivo</span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="guardar-estado-btn" style="background-color: #26a69a; border-color: #26a69a;">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar alumno -->
+<div class="modal fade" id="confirmarEliminarAlumnoModal" tabindex="-1" aria-labelledby="confirmarEliminarAlumnoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmarEliminarAlumnoModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white;"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                    <h5>¿Estás seguro de que deseas eliminar este alumno?</h5>
+                    <p class="text-danger">Esta acción no se puede deshacer y eliminará permanentemente toda la información asociada al alumno.</p>
+                </div>
+                <div class="alert alert-warning">
+                    <strong>Alumno a eliminar:</strong> <span id="alumno-a-eliminar"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="form-eliminar-alumno" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Eliminar Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="delete-form" method="post" style="display: none;">{% csrf_token %}</form>
+<form id="delete-apoderado-form" method="post" style="display: none;">{% csrf_token %}</form>
+
+<script>
+    // Función para mostrar/ocultar el campo parentezco según el checkbox
+    function toggleParentezco() {
+        const esInstitucion = document.getElementById('esInstitucion').checked;
+        const parentezcoContainer = document.getElementById('parentezco-container');
+        const inputParentezco = document.getElementById('input-parentezco');
+    
+        if (esInstitucion) {
+            parentezcoContainer.style.display = 'none';
+            inputParentezco.required = false;
+        } else {
+            parentezcoContainer.style.display = 'block';
+            inputParentezco.required = true;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Modal de detalles del alumno
+        document.querySelectorAll('.ver-alumno-detallado').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const alumnoId = this.closest('tr').dataset.id;
+                cargarDetallesAlumno(alumnoId);
+            });
+        });
+
+        // 2. Modal de ver apoderado
+        document.querySelectorAll('.view-apoderado').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const row = this.closest('tr');
+                const alumnoId = row.dataset.id;
+                const apoderadoId = row.dataset.apoderadoId;
+                
+                // Guardar ID del alumno para el formulario
+                document.getElementById('alumno-id-apoderado').value = alumnoId;
+                
+                // Verificar si tiene apoderado
+                if (!apoderadoId) {
+                    // Mostrar mensaje de que no tiene apoderado
+                    document.getElementById('sin-apoderado').style.display = 'block';
+                    document.getElementById('info-apoderado').style.display = 'none';
+                    document.getElementById('btn-editar-apoderado').style.display = 'none';
+                    document.getElementById('btn-eliminar-apoderado').style.display = 'none';
+                } else {
+                    // Mostrar información del apoderado
+                    document.getElementById('sin-apoderado').style.display = 'none';
+                    document.getElementById('info-apoderado').style.display = 'block';
+                    document.getElementById('btn-editar-apoderado').style.display = 'block';
+                    document.getElementById('btn-eliminar-apoderado').style.display = 'block';
+                    
+                    // Llenar datos del apoderado
+                    document.getElementById('apoderado-id').value = apoderadoId;
+                    document.getElementById('apoderado-tipo').textContent = row.dataset.apoderadoEsInstitucion === 'true' ? 'Institución' : 'Persona';
+                    document.getElementById('apoderado-nombre').textContent = row.dataset.apoderadoNombre;
+                    document.getElementById('apoderado-parentezco').textContent = row.dataset.apoderadoParentezco;
+                    document.getElementById('apoderado-telefono').textContent = row.dataset.apoderadoTelefono;
+                    document.getElementById('apoderado-correo').textContent = row.dataset.apoderadoCorreo;
+                    document.getElementById('apoderado-direccion').textContent = row.dataset.apoderadoDireccion;
+                }
+                
+                // Mostrar el modal
+                const modal = new bootstrap.Modal(document.getElementById('verApoderadoModal'));
+                modal.show();
+            });
+        });
+
+        // 3. Botón para eliminar alumno
+        document.getElementById('eliminar-alumno-btn').addEventListener('click', function() {
+            const alumnoId = document.querySelector('#alumnoDetallesModal').getAttribute('data-alumno-id');
+            const alumnoNombre = document.getElementById('alumno-nombre').textContent;
+            
+            // Configurar el modal de confirmación
+            document.getElementById('alumno-a-eliminar').textContent = alumnoNombre;
+            document.getElementById('form-eliminar-alumno').action = `/alumnos/${alumnoId}/eliminar/`;
+            
+            // Cerrar el modal de detalles
+            const detallesModal = bootstrap.Modal.getInstance(document.getElementById('alumnoDetallesModal'));
+            detallesModal.hide();
+            
+            // Mostrar el modal de confirmación
+            const confirmarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarAlumnoModal'));
+            confirmarModal.show();
+        });
+
+        // Función para cargar los detalles del alumno
+        function cargarDetallesAlumno(alumnoId) {
+            // Mostrar el modal de detalles del alumno
+            const alumnoModal = document.getElementById('alumnoDetallesModal');
+            alumnoModal.setAttribute('data-alumno-id', alumnoId);
+            const alumnoModalInstance = new bootstrap.Modal(alumnoModal);
+            alumnoModalInstance.show();
+            
+            // Mostrar loading y ocultar contenido y errores
+            document.getElementById('alumno-modal-loading').style.display = 'block';
+            document.getElementById('alumno-modal-content').style.display = 'none';
+            document.getElementById('alumno-modal-error').style.display = 'none';
+            
+            try {
+                // Buscar la fila del alumno
+                const alumnoRow = document.querySelector(`.alumno-row[data-id="${alumnoId}"]`);
+                
+                if (!alumnoRow) {
+                    throw new Error('No se encontró información del alumno');
+                }
+                
+                // Actualizar enlaces
+                document.getElementById('editar-alumno-link').href = alumnoRow.dataset.editUrl;
+                
+                // Mostrar los detalles
+                mostrarDetallesAlumno(alumnoRow);
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarErrorAlumno('Error al cargar los detalles del alumno: ' + error.message);
+            } finally {
+                document.getElementById('alumno-modal-loading').style.display = 'none';
+            }
+        }
+
+        // Función para mostrar los detalles del alumno en el modal
+        function mostrarDetallesAlumno(alumnoRow) {
+            // Función auxiliar para establecer texto de forma segura
+            function setTextSafely(id, text) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = text || 'No disponible';
+                } else {
+                    console.warn(`Elemento con ID '${id}' no encontrado`);
+                }
+            }
+
+            // Función auxiliar para establecer HTML de forma segura
+            function setHtmlSafely(id, html) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.innerHTML = html;
+                } else {
+                    console.warn(`Elemento con ID '${id}' no encontrado`);
+                }
+            }
+
+            try {
+                // Información personal
+                setTextSafely('alumno-nombre', alumnoRow.dataset.nombre);
+                setTextSafely('alumno-rut', alumnoRow.dataset.rut);
+                setTextSafely('alumno-fecha-nacimiento', alumnoRow.dataset.fechaNacimiento);
+                setTextSafely('alumno-edad', alumnoRow.dataset.edad ? `${alumnoRow.dataset.edad} años` : null);
+                setTextSafely('alumno-sexo', alumnoRow.dataset.sexo);
+                setTextSafely('alumno-estado-civil', alumnoRow.dataset.estadoCivil);
+                
+                // Información académica
+                setTextSafely('alumno-nivel', alumnoRow.dataset.nivel);
+                setTextSafely('alumno-jornada', alumnoRow.dataset.jornada);
+                setTextSafely('alumno-fecha-ingreso', alumnoRow.dataset.fechaIngreso);
+                setTextSafely('alumno-ultimo-curso', alumnoRow.dataset.ultimoCurso);
+                setTextSafely('alumno-curso-repetido', alumnoRow.dataset.cursoRepetido);
+                
+                // Estado del alumno
+                const estadoHtml = alumnoRow.dataset.estado === 'activo' ? 
+                    '<span class="badge bg-success">Activo</span>' : 
+                    '<span class="badge bg-danger">Inactivo</span>';
+                setHtmlSafely('alumno-estado', estadoHtml);
+                
+                // Información de contacto
+                setTextSafely('alumno-direccion', alumnoRow.dataset.direccion);
+                setTextSafely('alumno-telefono', alumnoRow.dataset.telefono);
+                setTextSafely('alumno-email', alumnoRow.dataset.email);
+                setTextSafely('alumno-religion', alumnoRow.dataset.religion);
+                setTextSafely('alumno-situacion-laboral', alumnoRow.dataset.situacionLaboral);
+                
+                // Información PIE
+                setTextSafely('alumno-programa-pie', alumnoRow.dataset.programaPie);
+                setTextSafely('alumno-profesional-apoyo', alumnoRow.dataset.profesionalApoyo);
+                setTextSafely('alumno-informe-psicosocial', alumnoRow.dataset.informePsicosocial);
+                
+                // Contacto de emergencia
+                setTextSafely('alumno-contacto-emergencia-nombre', alumnoRow.dataset.contactoEmergenciaNombre);
+                setTextSafely('alumno-contacto-emergencia-parentezco', alumnoRow.dataset.contactoEmergenciaParentezco);
+                setTextSafely('alumno-contacto-emergencia-telefono', alumnoRow.dataset.contactoEmergenciaTelefono);
+                
+                // Mostrar el contenido
+                document.getElementById('alumno-modal-content').style.display = 'block';
+                
+                // Actualizar el título del modal
+                setTextSafely('alumnoDetallesModalLabel', `Detalles del Alumno: ${alumnoRow.dataset.nombre}`);
+            } catch (error) {
+                console.error('Error al mostrar detalles del alumno:', error);
+                mostrarErrorAlumno('Error al mostrar los detalles del alumno: ' + error.message);
+            }
+        }
+
+        // Función para mostrar errores en el modal de alumno
+        function mostrarErrorAlumno(mensaje) {
+            const errorElement = document.getElementById('alumno-modal-error');
+            document.getElementById('alumno-error-message').textContent = mensaje;
+            errorElement.style.display = 'block';
+        }
+
+        // Funcionalidad para cambiar estado del alumno
+        const toggleEstadoButtons = document.querySelectorAll('.toggle-estado');
+        const estadoForm = document.getElementById('estado-form');
+        const estadoAlumnoIdInput = document.getElementById('estado-alumno-id');
+        const estadoActivoRadio = document.getElementById('estadoActivo');
+        const estadoInactivoRadio = document.getElementById('estadoInactivo');
+        const estadoModalNombre = document.getElementById('estado-modal-nombre');
+        const guardarEstadoBtn = document.getElementById('guardar-estado-btn');
+
+        toggleEstadoButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Obtener datos del alumno
+                const alumnoId = this.getAttribute('data-id');
+                const alumnoNombre = this.getAttribute('data-nombre');
+                const alumnoEstado = this.getAttribute('data-estado');
+                
+                // Actualizar el modal con los datos
+                estadoAlumnoIdInput.value = alumnoId;
+                estadoModalNombre.textContent = alumnoNombre;
+                
+                // Seleccionar el radio button correspondiente al estado actual
+                if (alumnoEstado === 'inactivo') {
+                    estadoInactivoRadio.checked = true;
+                } else {
+                    estadoActivoRadio.checked = true;
+                }
+            });
+        });
+
+        // Guardar cambios de estado
+        guardarEstadoBtn.addEventListener('click', function() {
+            const alumnoId = estadoAlumnoIdInput.value;
+            const nuevoEstado = document.querySelector('input[name="estado"]:checked').value;
+            
+            // Configurar el formulario para enviar POST a la URL de cambio de estado
+            estadoForm.action = `/alumnos/${alumnoId}/cambiar-estado/`;
+            
+            // Añadir el nuevo estado como un campo oculto
+            let estadoInput = document.createElement('input');
+            estadoInput.type = 'hidden';
+            estadoInput.name = 'nuevo_estado';
+            estadoInput.value = nuevoEstado;
+            estadoForm.appendChild(estadoInput);
+            
+            // Cerrar el modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('estadoModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Enviar el formulario
+            estadoForm.submit();
+        });
+    });
+</script>
+ {% endblock %}
