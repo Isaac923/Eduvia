@@ -12,7 +12,7 @@
     --text-dark: #333333;
     --text-medium: #666666;
     --text-light: #999999;
-    --bg-light: #f8f9fa;
+    --bg-light: #f5f7fa;
     --bg-medium: #e9ecef;
     --bg-dark: #343a40;
     --white: #ffffff;
@@ -47,7 +47,7 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: var(--bg-light);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
     color: var(--text-dark);
     line-height: 1.6;
 }
@@ -567,7 +567,7 @@ button {
 .content-wrapper {
     flex: 1;
     padding: 20px;
-    background-color: var(--bg-light);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
 }
 
 /* Mensajes de alerta */
@@ -645,9 +645,10 @@ button {
 .content {
     background-color: var(--white);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
     padding: 20px;
     min-height: calc(100vh - var(--header-height) - var(--footer-height) - 40px);
+    border: 1px solid rgba(78, 115, 223, 0.1);
 }
 
 /* Footer */

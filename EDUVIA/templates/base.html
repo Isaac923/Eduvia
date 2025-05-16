@@ -33,7 +33,7 @@
                     <h4>Principal</h4>
                     <ul>
                         <li class="{% if active_menu == 'dashboard' %}active{% endif %}">
-                            <a href="{% url 'usuarios:dashboard' %}">
+                            <a href="{% url 'usuarios:inicio' %}">
                                 <i class="fas fa-home"></i>
                                 <span>Inicio</span>
                             </a>
@@ -51,7 +51,7 @@
                     <h4>Administración</h4>
                     <ul>
                         <li class="{% if active_menu == 'users' %}active{% endif %}">
-                            <a href="{#}">
+                            <a href="#">
                                 <i class="fas fa-users"></i>
                                 <span>Usuarios</span>
                             </a>
@@ -178,7 +178,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{% url 'usuarios:logout' %}">
+                            <a href="#">
                                 <i class="fas fa-sign-out-alt"></i>
                                 <span>Cerrar Sesión</span>
                             </a>

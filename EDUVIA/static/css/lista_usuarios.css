@@ -1,0 +1,319 @@
+:root {
+      --eduvia-primary: #303f9f;
+      --eduvia-primary-light: #5c6bc0;
+      --eduvia-primary-dark: #1a237e;
+      --eduvia-secondary: #26a69a;
+      --eduvia-accent: #ff9800;
+      --eduvia-success: #66bb6a;
+      --eduvia-danger: #ec407a;
+      --eduvia-info: #29b6f6;
+      --eduvia-warning: #ffa726;
+      --eduvia-text-dark: #37474f;
+      --eduvia-text-light: #78909c;
+      --eduvia-bg-card: #ffffff;
+      --eduvia-bg-page: #f5f7fa;
+      --eduvia-shadow-sm: 0 2px 5px rgba(0,0,0,0.05);
+      --eduvia-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --eduvia-shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --eduvia-transition: all 0.3s ease;
+    }
+
+    body {
+      background-color: var(--eduvia-bg-page);
+      color: var(--eduvia-text-dark);
+      font-family: 'Roboto', 'Segoe UI', sans-serif;
+    }
+
+    /* Contenedor principal */
+    .table-container {
+      width: 100%;
+      max-width: 100%;
+      padding: 1.5rem 1rem;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    /* Encabezado y título */
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding: 0 0.5rem;
+    }
+
+    .page-title {
+      margin: 0;
+      color: var(--eduvia-primary);
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .page-title i {
+      color: var(--eduvia-primary-light);
+    }
+
+    .btn-create-user {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, var(--eduvia-primary) 0%, var(--eduvia-primary-light) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: var(--eduvia-transition);
+      box-shadow: 0 3px 10px rgba(48, 63, 159, 0.2);
+    }
+    
+    .btn-create-user:hover {
+      background: linear-gradient(135deg, var(--eduvia-primary-light) 0%, var(--eduvia-primary) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(48, 63, 159, 0.3);
+    }
+    
+    .btn-create-user:active {
+      transform: translateY(0);
+    }
+
+    /* Tabla directa sin card */
+    .table-responsive {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--eduvia-shadow);
+      background: #fff;
+    }
+    
+    .user-table {
+      width: 100%;
+      margin-bottom: 0;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .user-table thead th {
+      background: linear-gradient(90deg, var(--eduvia-primary) 0%, var(--eduvia-primary-light) 100%);
+      color: #fff;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.9rem 0.75rem;
+      letter-spacing: 0.5px;
+      font-size: 0.85rem;
+      border: none;
+      position: relative;
+    }
+    
+    .user-table thead th:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .user-table tbody tr {
+      transition: var(--eduvia-transition);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .user-table tbody tr:hover {
+      background: rgba(92, 107, 192, 0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      z-index: 1;
+      position: relative;
+    }
+    
+    .user-table tbody tr td {
+      padding: 0.75rem;
+      vertical-align: middle;
+      border: none;
+    }
+
+    /* Estilos para la información de usuario */
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      border: 2px solid #fff;
+      transition: var(--eduvia-transition);
+    }
+    
+    .user-table tbody tr:hover .user-avatar {
+      transform: scale(1.1);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+    }
+    
+    .user-name {
+      font-weight: 600;
+      color: var(--eduvia-primary-dark);
+      font-size: 1rem;
+      transition: var(--eduvia-transition);
+    }
+    
+    .user-table tbody tr:hover .user-name {
+      color: var(--eduvia-primary);
+    }
+    
+    .user-id {
+      font-size: 0.8rem;
+      color: var(--eduvia-text-light);
+    }
+
+    /* Badges optimizados */
+    .badge-eduvia {
+      padding: 0.4em 0.8em;
+      border-radius: 5px;
+      font-weight: 500;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: var(--eduvia-transition);
+    }
+    
+    .user-table tbody tr:hover .badge-eduvia {
+      transform: scale(1.05);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    
+    .bg-eduvia-primary {
+      background: linear-gradient(135deg, var(--eduvia-primary) 0%, var(--eduvia-primary-light) 100%) !important;
+      color: #fff !important;
+    }
+    
+    .bg-eduvia-success {
+      background: linear-gradient(135deg, var(--eduvia-success) 0%, #81c784 100%) !important;
+      color: #fff !important;
+    }
+    
+    .bg-eduvia-danger {
+      background: linear-gradient(135deg, var(--eduvia-danger) 0%, #f48fb1 100%) !important;
+      color: #fff !important;
+    }
+
+    /* Mensaje cuando no hay usuarios */
+    .no-users {
+      text-align: center;
+      font-style: italic;
+      color: var(--eduvia-text-light);
+      padding: 2rem 0;
+      background: rgba(92, 107, 192, 0.03);
+    }
+    
+    .no-users:before {
+      content: '\f007';
+      font-family: 'Font Awesome 5 Free';
+      font-weight: 900;
+      display: block;
+      font-size: 2.5rem;
+      color: var(--eduvia-text-light);
+      margin-bottom: 0.75rem;
+      opacity: 0.3;
+    }
+
+    /* Paginación optimizada */
+    .pagination-container {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .showing-entries {
+      color: var(--eduvia-text-light);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .pagination {
+      justify-content: center !important;
+    }
+    
+    .pagination .page-item {
+      margin: 0 2px;
+    }
+    
+    .pagination .page-link {
+      border: none;
+      border-radius: 6px !important;
+      color: var(--eduvia-primary);
+      font-weight: 600;
+      padding: 0.4rem 0.7rem;
+      transition: var(--eduvia-transition);
+      box-shadow: var(--eduvia-shadow-sm);
+    }
+    
+    .pagination .page-link:hover {
+      background: var(--eduvia-primary-light);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 3px 8px rgba(92, 107, 192, 0.3);
+    }
+    
+    .pagination .page-item.active .page-link {
+      background: linear-gradient(135deg, var(--eduvia-primary) 0%, var(--eduvia-primary-light) 100%);
+      color: #fff;
+      box-shadow: 0 3px 8px rgba(92, 107, 192, 0.3);
+    }
+    
+    .pagination .page-item.disabled .page-link {
+      color: var(--eduvia-text-light);
+      background: #f5f5f5;
+      opacity: 0.7;
+    }
+
+    /* Animaciones */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .page-title {
+        font-size: 1.5rem;
+      }
+      
+      .btn-create-user {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      
+      .user-avatar {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+      }
+      
+      .user-name {
+        font-size: 0.95rem;
+      }
+    }

@@ -1,11 +1,9 @@
 from django.urls import path
-from .views import dashboard, vista_login
 from  . import views 
 
 app_name = 'usuarios'
 
 urlpatterns = [
-    path('', vista_login.as_view(), name='login'),
-    path('dashboard/', views.dashboard, name='dashboard'), 
-    path('logout/', views.logout_view, name='logout'),
+     path('', views.login_view, name='login'),
+    path('inicio/', views.inicio_view, name='inicio'),
 ]
