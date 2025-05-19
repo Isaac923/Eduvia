@@ -20,20 +20,21 @@
     <div class="search-filter-container">
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" class="form-control search-input" placeholder="Buscar por nombre, RUT o rol...">
+            <input type="text" class="form-control search-input" placeholder="Buscar por nombre, RUT o apellidos...">
         </div>
-        <select class="form-select filter-dropdown">
+        <select class="form-select filter-dropdown filter-rol">
             <option value="">Todos los roles</option>
-            <option value="admin">Administrador</option>
-            <option value="teacher">Profesor</option>
-            <option value="student">Estudiante</option>
-            <option value="staff">Personal</option>
+            {% regroup usuarios by get_rol_display as rol_list %}
+            {% for rol_group in rol_list %}
+                <option value="{{ rol_group.grouper.0 }}">{{ rol_group.grouper }}</option>
+            {% endfor %}
         </select>
-        <select class="form-select filter-dropdown">
+        <select class="form-select filter-dropdown filter-estado">
             <option value="">Todos los estados</option>
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo</option>
-            <option value="pending">Pendiente</option>
+            {% regroup usuarios by get_estado_display as estado_list %}
+            {% for estado_group in estado_list %}
+                <option value="{{ estado_group.grouper.0 }}">{{ estado_group.grouper }}</option>
+            {% endfor %}
         </select>
     </div>
     {% endif %}
@@ -57,7 +58,7 @@
                     <td>{{ usuario.rut }}</td>
                     <td>{{ usuario.nombres }}</td>
                     <td>{{ usuario.apellidos }}</td>
-                    <td>
+                    <td data-rol="{{ usuario.rol }}">
                         {% if usuario.rol == 'admin' %}
                             <span class="role-badge role-admin"><i class="fas fa-user-shield"></i> Administrador</span>
                         {% elif usuario.rol == 'teacher' %}
@@ -68,7 +69,7 @@
                             <span class="role-badge role-staff"><i class="fas fa-user"></i> Personal</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td data-estado="{{ usuario.estado }}">
                         {% if usuario.estado == 'active' %}
                             <span class="status-badge status-active">Activo</span>
                         {% elif usuario.estado == 'inactive' %}
@@ -79,10 +80,10 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="#" class="btn-action btn-view" data-tooltip="Ver detalles">
+                            <a href="{% url 'usuarios:detalle_usuario' usuario.id %}" class="btn-action btn-view" data-tooltip="Ver detalles">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="#" class="btn-action btn-edit" data-tooltip="Editar usuario">
+                            <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn-action btn-edit" data-tooltip="Editar usuario">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <button type="button" class="btn-action btn-delete" data-tooltip="Eliminar usuario" 
@@ -105,6 +106,17 @@
                 {% endfor %}
             </tbody>
         </table>
+        
+        <!-- Mensaje cuando no hay resultados de búsqueda -->
+        <div id="empty-results" style="display: none;" class="text-center py-4">
+            <div class="empty-state">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <p>No se encontraron usuarios que coincidan con los criterios de búsqueda.</p>
+                <button class="btn btn-outline-primary mt-2" onclick="resetFilters()">
+                    <i class="fas fa-undo"></i> Limpiar filtros
+                </button>
+            </div>
+        </div>
     </div>
     
     {% if usuarios %}
@@ -168,5 +180,58 @@
         </ul>
     </div>
     {% endif %}
-</div> 
+    
+    <!-- Modal de confirmación para eliminar usuario -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar al usuario <span id="userName"></span>?</p>
+                    <p class="text-danger">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="deleteForm" method="post" action="">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/lista_usuarios.js' %}"></script>
+<script>
+    // Función para resetear los filtros
+    function resetFilters() {
+        document.querySelector('.search-input').value = '';
+        document.querySelector('.filter-rol').value = '';
+        document.querySelector('.filter-estado').value = '';
+        
+        // Disparar el evento para actualizar la tabla
+        document.querySelector('.search-input').dispatchEvent(new Event('input'));
+    }
+    
+    // Configuración del modal de eliminación
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const userId = button.getAttribute('data-id');
+                const userName = button.getAttribute('data-nombre');
+                
+                document.getElementById('userName').textContent = userName;
+                document.getElementById('deleteForm').action = `/usuarios/eliminar/${userId}/`;
+            });
+        }
+    });
+</script>
 {% endblock %}

@@ -29,7 +29,14 @@ def inicio_view(request):
     return render(request, 'inicio.html')
 
 def lista_usuarios(request):
-    usuarios = Usuario.objects.all()
+    # Obtener todos los usuarios
+    usuarios_list = Usuario.objects.all()
+    
+    # Configurar paginación
+    paginator = Paginator(usuarios_list, 10)  # 10 usuarios por página
+    page_number = request.GET.get('page')
+    usuarios = paginator.get_page(page_number)
+    
     return render(request, 'usuarios/lista_usuarios.html', {'usuarios': usuarios})
 
 def nuevo_usuario(request):
