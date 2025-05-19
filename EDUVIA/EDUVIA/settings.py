@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'EDUVIA.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'DBEduvia',
+        'NAME': 'BDEduvia',
         'USER': 'postgres',
         'PASSWORD': '1234',
         'HOST': 'localhost',

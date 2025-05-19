@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -16,7 +17,7 @@
             <div class="sidebar-header">
                 <div class="logo">
                     <span class="logo-letter">E</span>
-                    <span class="logo-full">EDUVIA</span>
+                    <span class="logo-full">DUVIA</span>
                 </div>
             </div>
             
@@ -151,17 +152,14 @@
         </div>
     </div>
     
+    <!-- Indicador de sidebar (movido arriba) -->
+    <div class="sidebar-hint" id="sidebarHint">
+        <i class="fas fa-chevron-right"></i>
+        <span>Menú</span>
+    </div>
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Cerrar alertas
-            $('.close-alert').on('click', function() {
-                $(this).parent().fadeOut(300, function() {
-                    $(this).remove();
-                });
-            });
-        });
-    </script>
+    <script src="{% static 'js/base.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
