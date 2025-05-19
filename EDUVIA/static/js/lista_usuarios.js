@@ -1,60 +1,57 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Animación de entrada para las filas de usuarios
-    const userRows = document.querySelectorAll('.user-row');
-    userRows.forEach((row, index) => {
-      row.style.opacity = '0';
-      row.style.transform = 'translateY(20px)';
-      
-      setTimeout(() => {
-        row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        row.style.opacity = '1';
-        row.style.transform = 'translateY(0)';
-      }, 50 + (index * 30)); // Acelerado para mejor experiencia
-    });
-    
-    // Efecto hover para el botón de crear usuario
-    const createButton = document.querySelector('.btn-create-user');
-    if (createButton) {
-      createButton.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-2px)';
-      });
-      
-      createButton.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0)';
-      });
-      
-      // Efecto de pulsación al hacer clic
-      createButton.addEventListener('click', function() {
-        this.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-          this.style.transform = 'scale(1)';
-        }, 150);
-      });
-    }
-    
-    // Efecto para la paginación
-    const pageLinks = document.querySelectorAll('.pagination .page-link');
-    pageLinks.forEach(link => {
-      if (!link.parentElement.classList.contains('disabled') && 
-          !link.parentElement.classList.contains('active')) {
-        link.addEventListener('mouseenter', function() {
-          this.style.transform = 'translateY(-2px)';
+        // Configurar el modal de eliminación
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const userId = button.getAttribute('data-id');
+                const userName = button.getAttribute('data-nombre');
+                
+                document.getElementById('userName').textContent = userName;
+                document.getElementById('deleteForm').action = `/usuarios/eliminar/${userId}/`;
+            });
+        }
+        
+        // Animación para los elementos de la tabla
+        const tableRows = document.querySelectorAll('.user-table tbody tr');
+        tableRows.forEach((row, index) => {
+            row.style.animation = `fadeIn 0.3s ease-out forwards ${index * 0.05}s`;
+            row.style.opacity = '0';
         });
         
-        link.addEventListener('mouseleave', function() {
-          this.style.transform = 'translateY(0)';
+        // Búsqueda en tiempo real (solo si hay usuarios)
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const tableRows = document.querySelectorAll('.user-table tbody tr');
+                
+                tableRows.forEach(row => {
+                    // Ignorar la fila de estado vacío
+                    if (row.querySelector('.empty-state')) return;
+                    
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // Filtros de dropdown (solo si hay usuarios)
+        const filterDropdowns = document.querySelectorAll('.filter-dropdown');
+        filterDropdowns.forEach(dropdown => {
+            dropdown.addEventListener('change', function() {
+                // Aquí iría la lógica de filtrado
+                // Por ahora solo recargamos la página con el parámetro
+                const value = this.value;
+                if (value) {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set(this.getAttribute('name') || 'filter', value);
+                    window.location.href = currentUrl.toString();
+                }
+            });
         });
-      }
     });
-    
-    // Efecto de pulso para el título
-    const pageTitle = document.querySelector('.page-title i');
-    if (pageTitle) {
-      setInterval(() => {
-        pageTitle.style.animation = 'pulse 1.5s ease';
-        setTimeout(() => {
-          pageTitle.style.animation = 'none';
-        }, 1500);
-      }, 3000);
-    }
-  });

@@ -7,6 +7,8 @@
 --text-light: #6c757d;
 --bg-light: #f8f9fa;
 --bg-dark: #212529;
+--bg-gradient-start: #f5f7fa;
+--bg-gradient-end: #eef2f7;
 --sidebar-width: 250px;
 --sidebar-collapsed-width: 70px;
 --transition-speed: 0.3s;
@@ -21,7 +23,8 @@ box-sizing: border-box;
 body {
 font-family: 'Poppins', sans-serif;
 color: var(--text-color);
-background-color: var(--bg-light);
+background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+background-attachment: fixed;
 }
 
 /* App container */
@@ -246,6 +249,15 @@ background-color: var(--bg-light);
   padding: 2rem;
 }
 
+/* Contenedores de tarjetas y elementos */
+.card, .user-list-container, .welcome-card, .feature-card, .activity-card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: none;
+  overflow: hidden;
+}
+
 /* Messages/Alerts */
 .messages-container {
   margin-bottom: 1.5rem;
@@ -335,7 +347,7 @@ background-color: var(--bg-light);
 .sidebar-hint {
   position: fixed;
   left: 0;
-  top: 100px;
+  top: 70px; /* Cambiado de 100px a 70px */
   transform: none;
   background-color: var(--primary-color);
   color: white;
@@ -463,9 +475,9 @@ background-color: var(--bg-light);
   }
   
   .sidebar-hint {
-      bottom: 20px;
-      top: auto;
-      transform: none;
-  }
+    position: fixed;
+    left: 0;
+    top: 70px; /* Cambiado de 100px a 70px */
+    /* resto de propiedades... */
 }
- 
+}

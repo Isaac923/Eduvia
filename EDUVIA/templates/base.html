@@ -1,15 +1,18 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EDUVIA{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/css/base.css">
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -20,22 +23,16 @@
                     <span class="logo-full">DUVIA</span>
                 </div>
             </div>
-            
+
             <div class="sidebar-nav">
                 <!-- Módulo de Dashboard -->
                 <div class="nav-section">
                     <h4>Principal</h4>
                     <ul>
                         <li class="{% if request.path == '/' %}active{% endif %}">
-                            <a href="/">
+                            <a href="{% url 'usuarios:inicio' %}">
                                 <i class="fas fa-home"></i>
                                 <span>Inicio</span>
-                            </a>
-                        </li>
-                        <li class="{% if 'dashboard' in request.path %}active{% endif %}">
-                            <a href="/dashboard/">
-                                <i class="fas fa-tachometer-alt"></i>
-                                <span>Dashboard</span>
                             </a>
                         </li>
                         <li class="{% if 'calendario' in request.path %}active{% endif %}">
@@ -46,7 +43,7 @@
                         </li>
                     </ul>
                 </div>
-                
+
                 <!-- Módulo de Gestión Académica -->
                 <div class="nav-section">
                     <h4>Gestión Académica</h4>
@@ -77,7 +74,7 @@
                         </li>
                     </ul>
                 </div>
-                
+
                 <!-- Módulo de Evaluación -->
                 <div class="nav-section">
                     <h4>Evaluación</h4>
@@ -88,46 +85,32 @@
                                 <span>Calificaciones</span>
                             </a>
                         </li>
-                        <li class="{% if 'reportes' in request.path %}active{% endif %}">
-                            <a href="/reportes/">
-                                <i class="fas fa-chart-bar"></i>
-                                <span>Reportes</span>
-                            </a>
-                        </li>
                     </ul>
                 </div>
-                
+
                 <!-- Módulo de Administración -->
-                {% if request.user.is_staff %}
+                {% if request.user.is_superuser %}
                 <div class="nav-section">
                     <h4>Administración</h4>
                     <ul>
                         <li class="{% if 'usuarios' in request.path %}active{% endif %}">
-                            <a href="/usuarios/">
+                            <a href="{% url 'usuarios:lista_usuarios' %}">
                                 <i class="fas fa-users"></i>
                                 <span>Usuarios</span>
                             </a>
                         </li>
-                        <li class="{% if 'configuracion' in request.path %}active{% endif %}">
-                            <a href="/configuracion/">
-                                <i class="fas fa-cogs"></i>
-                                <span>Configuración</span>
+                        <!---  <li class="{% if 'reportes' in request.path %}active{% endif %}">
+                            <a href="/reportes/">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Reportes</span>
                             </a>
-                        </li>
+                        </li> -->
                     </ul>
                 </div>
                 {% endif %}
             </div>
-            
-            <div class="sidebar-footer">
-                <span class="version">v1.0.0</span>
-                <a href="/ayuda/" class="help-link">
-                    <i class="fas fa-question-circle"></i>
-                    <span>Ayuda</span>
-                </a>
-            </div>
         </div>
-        
+
         <!-- Contenido principal -->
         <div class="main-content">
             <div class="content-wrapper">
@@ -144,22 +127,23 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-                
+
                 <div class="content">
                     {% block content %}{% endblock %}
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Indicador de sidebar (movido arriba) -->
     <div class="sidebar-hint" id="sidebarHint">
         <i class="fas fa-chevron-right"></i>
         <span>Menú</span>
     </div>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'js/base.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
