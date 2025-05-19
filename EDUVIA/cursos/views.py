@@ -100,7 +100,7 @@ def obtener_detalles_curso(request, id):
         for alumno in curso.alumnos.all():
             alumnos_data.append({
                 'id': alumno.id,
-                'nombre': alumno.nombre,
+                'nombre': alumno.nombre_completo,
                 'nivel': alumno.nivel,
                 'activo': alumno.activo
             })
@@ -131,7 +131,7 @@ def filtrar_alumnos_por_nivel_letra(request):
     if nivel and letra:
         nivel_letra = f"{nivel}{letra.upper()}"
         alumnos = Alumno.objects.filter(nivel=nivel_letra, activo=True)
-        alumnos_data = [{'id': a.id, 'nombre': a.nombre} for a in alumnos]
+        alumnos_data = [{'id': a.id, 'nombre': a.nombre_completo} for a in alumnos]
     else:
         alumnos_data = []
 

@@ -265,7 +265,7 @@
         const letra = letraSelect.value;
 
         if (nivel && letra) {
-            fetch(`filtro-alumnos/?nivel=${nivel}&letra=${letra}`)
+            fetch(`{% url 'cursos:filtro_alumnos' %}?nivel=${nivel}&letra=${letra}`)
                 .then(response => response.json())
                 .then(data => {
                     alumnosSelect.innerHTML = ''; // Limpiar opciones

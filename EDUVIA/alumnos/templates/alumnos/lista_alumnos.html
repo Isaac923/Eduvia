@@ -99,7 +99,7 @@
                             <th>Edad</th>
                             <th>Nivel</th>
                             <th>Jornada</th>
-                            <th>Estado</th>
+                            <th class="text-center">Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -110,7 +110,7 @@
                             data-jornada="{{ alumno.jornada }}" data-direccion="{{ alumno.direccion }}"
                             data-telefono="{{ alumno.telefono|default:'No registrado' }}"
                             data-email="{{ alumno.correo_electronico|default:'No registrado' }}"
-                            data-religion="{{ alumno.religion }}" data-fecha_ingreso="{{ alumno.fecha_ingreso }}"
+                            data-religion="{{ alumno.religion }}" data-fecha-ingreso="{{ alumno.fecha_ingreso }}"
                             data-edit-url="{% url 'alumnos:editar_alumnos' pk=alumno.id %}"
                             data-delete-url="{% url 'alumnos:eliminar_alumno' pk=alumno.id %}"
                             data-fecha-nacimiento="{{ alumno.fecha_nacimiento }}"
@@ -141,11 +141,11 @@
                             <td>{{ alumno.jornada }}</td>
                             <td class="text-center">
                                 {% if alumno.activo %}
-                                    <span class="badge bg-success rounded-pill px-3 py-2">
+                                    <span style="color: #28a745; font-weight: bold; display: inline-block; width: 100%; text-align: center;">
                                         <i class="fas fa-check-circle me-1"></i> Activo
                                     </span>
                                 {% else %}
-                                    <span class="badge bg-danger rounded-pill px-3 py-2">
+                                    <span style="color: #dc3545; font-weight: bold; display: inline-block; width: 100%; text-align: center;">
                                         <i class="fas fa-times-circle me-1"></i> Inactivo
                                     </span>
                                 {% endif %}
@@ -241,7 +241,7 @@
                 <div class="row mb-2">
                     <div class="col-md-4 fw-bold">Estado:</div>
                     <div class="col-md-8">
-                        <span class="badge" id="modal-estado-badge"></span>
+                        <span id="modal-estado-badge"></span>
                     </div>
                 </div>
             </div>
@@ -394,10 +394,6 @@
                                         <h6 class="fw-bold text-muted">Informe Psicosocial:</h6>
                                         <p id="alumno-informe-psicosocial"></p>
                                     </div>
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Situación Laboral:</h6>
-                                        <p id="alumno-situacion-laboral"></p>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -498,7 +494,7 @@
                                     <div class="fw-bold">Activo</div>
                                     <div class="text-muted small">El alumno estará activo y disponible en el sistema.</div>
                                 </div>
-                                <span class="ms-auto badge bg-success">Activo</span>
+                                <span class="ms-auto" style="color: #28a745; font-weight: bold;">Activo</span>
                             </label>
                         </div>
                         
@@ -509,7 +505,7 @@
                                     <div class="fw-bold">Inactivo</div>
                                     <div class="text-muted small">El alumno estará inactivo y no disponible en el sistema.</div>
                                 </div>
-                                <span class="ms-auto badge bg-danger">Inactivo</span>
+                                <span class="ms-auto" style="color: #dc3545; font-weight: bold;">Inactivo</span>
                             </label>
                         </div>
                     </div>
@@ -682,7 +678,8 @@
             function setTextSafely(id, text) {
                 const element = document.getElementById(id);
                 if (element) {
-                    element.textContent = text || 'No disponible';
+                    // Verificar si el texto es undefined, null o vacío
+                    element.textContent = (text && text !== 'undefined' && text !== 'null') ? text : 'No disponible';
                 } else {
                     console.warn(`Elemento con ID '${id}' no encontrado`);
                 }
@@ -710,14 +707,17 @@
                 // Información académica
                 setTextSafely('alumno-nivel', alumnoRow.dataset.nivel);
                 setTextSafely('alumno-jornada', alumnoRow.dataset.jornada);
+                
+                // Corregir el acceso a la fecha de ingreso - usar camelCase para acceder al atributo data
                 setTextSafely('alumno-fecha-ingreso', alumnoRow.dataset.fechaIngreso);
+                
                 setTextSafely('alumno-ultimo-curso', alumnoRow.dataset.ultimoCurso);
                 setTextSafely('alumno-curso-repetido', alumnoRow.dataset.cursoRepetido);
                 
                 // Estado del alumno
                 const estadoHtml = alumnoRow.dataset.estado === 'activo' ? 
-                    '<span class="badge bg-success">Activo</span>' : 
-                    '<span class="badge bg-danger">Inactivo</span>';
+                    '<span style="color: #28a745; font-weight: bold;"><i class="fas fa-check-circle me-1"></i> Activo</span>' : 
+                    '<span style="color: #dc3545; font-weight: bold;"><i class="fas fa-times-circle me-1"></i> Inactivo</span>';
                 setHtmlSafely('alumno-estado', estadoHtml);
                 
                 // Información de contacto
@@ -812,4 +812,4 @@
         });
     });
 </script>
- {% endblock %}
+{% endblock %}
