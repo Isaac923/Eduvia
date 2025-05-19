@@ -3,202 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}EDUVIA - Sistema de Gestión Educativa{% endblock %}</title>
-    {% load static %}
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>{% block title %}EDUVIA{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Estilos base -->
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="/static/css/base.css">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
+        <div class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <span class="logo-letter">E</span>
                     <span class="logo-full">EDUVIA</span>
                 </div>
             </div>
-
-            <nav class="sidebar-nav">
+            
+            <div class="sidebar-nav">
+                <!-- Módulo de Dashboard -->
                 <div class="nav-section">
                     <h4>Principal</h4>
                     <ul>
-                        <li class="{% if active_menu == 'dashboard' %}active{% endif %}">
-                            <a href="{% url 'usuarios:inicio' %}">
+                        <li class="{% if request.path == '/' %}active{% endif %}">
+                            <a href="/">
                                 <i class="fas fa-home"></i>
                                 <span>Inicio</span>
                             </a>
                         </li>
-                        <li class="{% if active_menu == 'calendar' %}active{% endif %}">
-                            <a href="#">
+                        <li class="{% if 'dashboard' in request.path %}active{% endif %}">
+                            <a href="/dashboard/">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="{% if 'calendario' in request.path %}active{% endif %}">
+                            <a href="/calendario/">
                                 <i class="fas fa-calendar-alt"></i>
                                 <span>Calendario</span>
                             </a>
+                        </li>
                     </ul>
                 </div>
-
-                {% if request.user.is_superuser %}
+                
+                <!-- Módulo de Gestión Académica -->
                 <div class="nav-section">
-                    <h4>Administración</h4>
+                    <h4>Gestión Académica</h4>
                     <ul>
-                        <li class="{% if active_menu == 'users' %}active{% endif %}">
-                            <a href="#">
-                                <i class="fas fa-users"></i>
-                                <span>Usuarios</span>
-                            </a>
-                        </li>
-                        <li class="{% if active_menu == 'teachers' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <span>Profesores</span>
-                            </a>
-                        </li>
-                        <li class="{% if active_menu == 'students' %}active{% endif %}">
-                            <a href="{#}">
+                        <li class="{% if 'estudiantes' in request.path %}active{% endif %}">
+                            <a href="/estudiantes/">
                                 <i class="fas fa-user-graduate"></i>
                                 <span>Estudiantes</span>
                             </a>
                         </li>
-                        <li class="{% if active_menu == 'parents' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-user-friends"></i>
-                                <span>Apoderados</span>
+                        <li class="{% if 'profesores' in request.path %}active{% endif %}">
+                            <a href="/profesores/">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <span>Profesores</span>
                             </a>
                         </li>
-                    </ul>
-                </div>
-
-                <div class="nav-section">
-                    <h4>Académico</h4>
-                    <ul>
-                        <li class="{% if active_menu == 'courses' %}active{% endif %}">
-                            <a href="{#}">
+                        <li class="{% if 'cursos' in request.path %}active{% endif %}">
+                            <a href="/cursos/">
                                 <i class="fas fa-book"></i>
                                 <span>Cursos</span>
                             </a>
                         </li>
-                        <li class="{% if active_menu == 'subjects' %}active{% endif %}">
-                            <a href="{#}">
+                        <li class="{% if 'asignaturas' in request.path %}active{% endif %}">
+                            <a href="/asignaturas/">
                                 <i class="fas fa-book-open"></i>
                                 <span>Asignaturas</span>
                             </a>
                         </li>
-                        <li class="{% if active_menu == 'schedules' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-clock"></i>
-                                <span>Horarios</span>
-                            </a>
-                        </li>
-                        <li class="{% if active_menu == 'attendance' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-clipboard-check"></i>
-                                <span>Asistencia</span>
-                            </a>
-                        </li>
-                        <li class="{% if active_menu == 'grades' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-graduation-cap"></i>
+                    </ul>
+                </div>
+                
+                <!-- Módulo de Evaluación -->
+                <div class="nav-section">
+                    <h4>Evaluación</h4>
+                    <ul>
+                        <li class="{% if 'calificaciones' in request.path %}active{% endif %}">
+                            <a href="/calificaciones/">
+                                <i class="fas fa-star"></i>
                                 <span>Calificaciones</span>
+                            </a>
+                        </li>
+                        <li class="{% if 'reportes' in request.path %}active{% endif %}">
+                            <a href="/reportes/">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Reportes</span>
                             </a>
                         </li>
                     </ul>
                 </div>
-
+                
+                <!-- Módulo de Administración -->
+                {% if request.user.is_staff %}
                 <div class="nav-section">
-                    <h4>Reportes</h4>
+                    <h4>Administración</h4>
                     <ul>
-                        <li class="{% if active_menu == 'reports' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-chart-bar"></i>
-                                <span>Informes</span>
+                        <li class="{% if 'usuarios' in request.path %}active{% endif %}">
+                            <a href="/usuarios/">
+                                <i class="fas fa-users"></i>
+                                <span>Usuarios</span>
                             </a>
                         </li>
-                        <li class="{% if active_menu == 'statistics' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-chart-line"></i>
-                                <span>Estadísticas</span>
-                            </a>
-                        </li>
-                        <li class="{% if active_menu == 'exports' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-file-export"></i>
-                                <span>Exportaciones</span>
+                        <li class="{% if 'configuracion' in request.path %}active{% endif %}">
+                            <a href="/configuracion/">
+                                <i class="fas fa-cogs"></i>
+                                <span>Configuración</span>
                             </a>
                         </li>
                     </ul>
                 </div>
                 {% endif %}
-
-                <div class="nav-section">
-                    <h4>Docencia</h4>
-                    <ul>
-                        <li class="{% if active_menu == 'my_courses' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-chalkboard"></i>
-                                <span>Mis Cursos</span>
-                            </a>
-                        </li>
-                        <li class="{% if active_menu == 'attendance_management' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-clipboard-list"></i>
-                                <span>Control de Asistencia</span>
-                            </a>
-                        </li>
-                        <li class="{% if active_menu == 'grade_management' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-pen"></i>
-                                <span>Registro de Notas</span>
-                            </a>
-                        </li>
-                        <li class="{% if active_menu == 'resources' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-file-alt"></i>
-                                <span>Recursos Educativos</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="nav-section">
-                    <h4>Cuenta</h4>
-                    <ul>
-                        <li class="{% if active_menu == 'profile' %}active{% endif %}">
-                            <a href="{#}">
-                                <i class="fas fa-user-circle"></i>
-                                <span>Perfil</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Cerrar Sesión</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-        </aside>
-
+            </div>
+            
+            <div class="sidebar-footer">
+                <span class="version">v1.0.0</span>
+                <a href="/ayuda/" class="help-link">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Ayuda</span>
+                </a>
+            </div>
+        </div>
+        
         <!-- Contenido principal -->
-        <main class="main-content">
-            <header class="top-header">
-                <div class="header-left">
-                </div>
-                <div class="header-right">
-                    <div class="header-actions">
-                    </div>
-                </div>
-            </header>
-
+        <div class="main-content">
             <div class="content-wrapper">
                 {% if messages %}
                 <div class="messages-container">
@@ -206,33 +136,32 @@
                     <div class="alert alert-{{ message.tags }}">
                         <i class="fas fa-info-circle"></i>
                         <span>{{ message }}</span>
-                        <button class="close-alert"><i class="fas fa-times"></i></button>
+                        <button class="close-alert">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                     {% endfor %}
                 </div>
                 {% endif %}
-
+                
                 <div class="content">
                     {% block content %}{% endblock %}
                 </div>
             </div>
-
-            <footer class="main-footer">
-                <div class="footer-content">
-                    <p>&copy; {% now "Y" %} Casa Estudio Chaminade - EDUVIA. Todos los derechos reservados.</p>
-                    <div class="footer-links">
-                        <a href="{#}">Ayuda</a>
-                        <a href="{#}">Política de Privacidad</a>
-                        <a href="{#}">Términos de Uso</a>
-                        <a href="{#}">Contacto</a>
-                    </div>
-                </div>
-            </footer>
-        </main>
+        </div>
     </div>
-
-    <!-- Scripts base -->
-    <script src="{% static 'js/base.js' %}"></script>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Cerrar alertas
+            $('.close-alert').on('click', function() {
+                $(this).parent().fadeOut(300, function() {
+                    $(this).remove();
+                });
+            });
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

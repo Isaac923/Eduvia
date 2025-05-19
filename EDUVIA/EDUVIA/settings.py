@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-l51pa=*b7)qx9y(!a7k+lmfbub^_$%acprg&y0we4u%7u=k2vq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [' 192.168.1.169', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -76,15 +76,16 @@ WSGI_APPLICATION = 'EDUVIA.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-        'default': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'BDEduvia',
+        'NAME': 'DBEduvia',
         'USER': 'postgres',
         'PASSWORD': '1234',
-        'HOST': 'localhost',  # o una IP/remoto si es otra máquina
-        'PORT': '5432',       # puerto por defecto de PostgreSQL
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
+
 
 
 
