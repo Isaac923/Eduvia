@@ -16,26 +16,28 @@
     </div>
     
     {% if usuarios %}
-    <!-- Búsqueda y filtros - Solo se muestran si hay usuarios -->
-    <div class="search-filter-container">
+    <!-- Búsqueda y filtros - Versión compacta -->
+    <div class="search-filter-container compact-filters">
         <div class="search-box">
             <i class="fas fa-search"></i>
-            <input type="text" class="form-control search-input" placeholder="Buscar por nombre, RUT o apellidos...">
+            <input type="text" class="form-control search-input" placeholder="Buscar...">
         </div>
-        <select class="form-select filter-dropdown filter-rol">
-            <option value="">Todos los roles</option>
-            {% regroup usuarios by get_rol_display as rol_list %}
-            {% for rol_group in rol_list %}
-                <option value="{{ rol_group.grouper.0 }}">{{ rol_group.grouper }}</option>
-            {% endfor %}
-        </select>
-        <select class="form-select filter-dropdown filter-estado">
-            <option value="">Todos los estados</option>
-            {% regroup usuarios by get_estado_display as estado_list %}
-            {% for estado_group in estado_list %}
-                <option value="{{ estado_group.grouper.0 }}">{{ estado_group.grouper }}</option>
-            {% endfor %}
-        </select>
+        <div class="filter-group">
+            <select class="form-select filter-dropdown filter-rol">
+                <option value="">Rol</option>
+                {% regroup usuarios by get_rol_display as rol_list %}
+                {% for rol_group in rol_list %}
+                    <option value="{{ rol_group.grouper.0 }}">{{ rol_group.grouper }}</option>
+                {% endfor %}
+            </select>
+            <select class="form-select filter-dropdown filter-estado">
+                <option value="">Estado</option>
+                {% regroup usuarios by get_estado_display as estado_list %}
+                {% for estado_group in estado_list %}
+                    <option value="{{ estado_group.grouper.0 }}">{{ estado_group.grouper }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
     {% endif %}
     
@@ -80,14 +82,13 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="{% url 'usuarios:detalle_usuario' usuario.id %}" class="btn-action btn-view" data-tooltip="Ver detalles">
+                            <a href="#" class="btn-action btn-view">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn-action btn-edit" data-tooltip="Editar usuario">
+                            <a href="#" class="btn-action btn-edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button type="button" class="btn-action btn-delete" data-tooltip="Eliminar usuario" 
-                                    data-bs-toggle="modal" data-bs-target="#deleteModal" 
+                            <button type="button" class="btn-action btn-delete"
                                     data-id="{{ usuario.id }}" data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
@@ -181,25 +182,34 @@
     </div>
     {% endif %}
     
-    <!-- Modal de confirmación para eliminar usuario -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Modal de confirmación para eliminar usuario (estilo alerta) -->
+    <div class="delete-alert-modal" id="deleteModal" style="display: none;">
+        <div class="delete-alert-content">
+            <div class="delete-alert-header">
+                <h5><i class="fas fa-exclamation-triangle me-2"></i>Confirmar eliminación</h5>
+                <button type="button" class="delete-alert-close" onclick="closeDeleteModal()">×</button>
+            </div>
+            <div class="delete-alert-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-times fa-3x text-danger mb-3"></i>
+                    <p>¿Está seguro que desea eliminar al usuario?</p>
+                    <p class="fw-bold" id="userName">Nombre del Usuario</p>
                 </div>
-                <div class="modal-body">
-                    <p>¿Estás seguro de que deseas eliminar al usuario <span id="userName"></span>?</p>
-                    <p class="text-danger">Esta acción no se puede deshacer.</p>
+                <div class="delete-alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span>Esta acción no se puede deshacer.</span>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <form id="deleteForm" method="post" action="">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Eliminar</button>
-                    </form>
-                </div>
+            </div>
+            <div class="delete-alert-footer">
+                <button type="button" class="btn-cancel" onclick="closeDeleteModal()">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <form id="deleteForm" method="POST" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete-confirm">
+                        <i class="fas fa-trash-alt me-1"></i>Eliminar
+                    </button>
+                </form>
             </div>
         </div>
     </div>

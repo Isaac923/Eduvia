@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .models import Usuario  # Asegúrate de importar el modelo Usuario
+from django.core.paginator import Paginator 
 
 def login_view(request):
     if request.method == 'POST':
@@ -87,3 +88,23 @@ def nuevo_usuario(request):
     
     # Si es GET, simplemente mostramos el formulario
     return render(request, 'usuarios/nuevo_usuario.html')
+
+def eliminar_usuario(request, usuario_id):
+    # Obtener el usuario o devolver 404 si no existe
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    
+    if request.method == 'POST':
+        # Guardar el nombre para el mensaje de confirmación
+        nombre_completo = f"{usuario.nombres} {usuario.apellidos}"
+        
+        # Eliminar el usuario
+        usuario.delete()
+        
+        # Añadir mensaje de éxito
+        messages.success(request, f'El usuario {nombre_completo} ha sido eliminado correctamente.')
+        
+        # Redireccionar a la lista de usuarios
+        return redirect('usuarios:lista_usuarios')
+    
+    # Si no es POST, redireccionar a la lista (esto no debería ocurrir normalmente)
+    return redirect('usuarios:lista_usuarios')

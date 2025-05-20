@@ -332,62 +332,69 @@
 /* =========================================
    4. BÚSQUEDA Y FILTROS
    ========================================= */
-.search-filter-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.75rem;
-  flex-wrap: wrap;
-  background-color: var(--bg-light);
-  padding: 1rem;
-  border-radius: var(--radius-md);
+/* Estilos para el contenedor de búsqueda y filtros compacto */
+.search-filter-container.compact-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 15px;
 }
 
-.search-box {
-  flex-grow: 1;
-  position: relative;
-  min-width: 250px;
+.compact-filters .search-box {
+    flex: 1;
+    max-width: 250px;
+    position: relative;
 }
 
-.search-box i {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-light);
+.compact-filters .search-box i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
 }
 
-.search-input {
-  padding-left: 35px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  width: 100%;
-  height: 40px;
-  transition: var(--transition);
-  font-size: 0.95rem;
+.compact-filters .search-box .search-input {
+    padding-left: 30px;
+    height: 34px;
+    font-size: 0.9rem;
 }
 
-.search-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
-  outline: none;
+.compact-filters .filter-group {
+    display: flex;
+    gap: 8px;
 }
 
-.filter-dropdown {
-  min-width: 160px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  height: 40px;
-  padding: 0 12px;
-  transition: var(--transition);
-  font-size: 0.95rem;
-  color: var(--text-medium);
-  background-color: var(--white);
+.compact-filters .filter-dropdown {
+    width: auto;
+    min-width: 120px;
+    height: 34px;
+    font-size: 0.9rem;
+    padding: 0 8px;
 }
 
-.filter-dropdown:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
-  outline: none;
+/* Ajuste responsive */
+@media (max-width: 768px) {
+    .search-filter-container.compact-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .compact-filters .search-box {
+        max-width: 100%;
+        margin-bottom: 8px;
+    }
+    
+    .compact-filters .filter-group {
+        width: 100%;
+    }
+    
+    .compact-filters .filter-dropdown {
+        flex: 1;
+    }
 }
 
 /* =========================================
@@ -909,6 +916,98 @@
 .table-responsive::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+   /* Estilos para el modal de alerta de eliminación */
+    .delete-alert-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .delete-alert-content {
+        background-color: white;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        animation: fadeInDown 0.3s ease-out;
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .delete-alert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background-color: #dc3545;
+        color: white;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    
+    .delete-alert-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+    
+    .delete-alert-body {
+        padding: 20px;
+    }
+    
+    .delete-alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+    
+    .delete-alert-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 15px;
+        gap: 10px;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .btn-cancel {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .btn-delete-confirm {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
 
 
 
