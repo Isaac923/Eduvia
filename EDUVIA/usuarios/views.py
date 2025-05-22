@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from .models import Usuario  # Asegúrate de importar el modelo Usuario
 from django.core.paginator import Paginator 
+from django.views.decorators.csrf import csrf_exempt
 
 def login_view(request):
     if request.method == 'POST':
@@ -54,17 +55,22 @@ def nuevo_usuario(request):
         
         # Validar datos (validación básica)
         if not all([rut, nombres, apellidos, correo, rol]):
-            messages.error(request, 'Por favor, complete todos los campos obligatorios.')
-            return render(request, 'usuarios/nuevo_usuario.html')
+            # No usar messages.error aquí para evitar mensajes en la parte superior
+            return render(request, 'usuarios/nuevo_usuario.html', {
+                'error_campos': 'Por favor, complete todos los campos obligatorios.'
+            })
         
         # Verificar si ya existe un usuario con el mismo RUT o correo
         if Usuario.objects.filter(rut=rut).exists():
-            messages.error(request, f'Ya existe un usuario con el RUT {rut}.')
-            return render(request, 'usuarios/nuevo_usuario.html')
+            # En lugar de usar messages.error, pasamos el error directamente al contexto
+            return render(request, 'usuarios/nuevo_usuario.html', {
+                'error_rut': f'Ya existe un usuario con el RUT {rut}.'
+            })
         
         if Usuario.objects.filter(correo=correo).exists():
-            messages.error(request, f'Ya existe un usuario con el correo {correo}.')
-            return render(request, 'usuarios/nuevo_usuario.html')
+            return render(request, 'usuarios/nuevo_usuario.html', {
+                'error_correo': f'Ya existe un usuario con el correo {correo}.'
+            })
         
         # Crear nuevo usuario
         try:
@@ -83,13 +89,20 @@ def nuevo_usuario(request):
             messages.success(request, f'Usuario {nombres} {apellidos} creado exitosamente.')
             return redirect('usuarios:lista_usuarios')
         except Exception as e:
-            messages.error(request, f'Error al crear el usuario: {str(e)}')
-            return render(request, 'usuarios/nuevo_usuario.html')
+            return render(request, 'usuarios/nuevo_usuario.html', {
+                'error_general': f'Error al crear el usuario: {str(e)}'
+            })
     
     # Si es GET, simplemente mostramos el formulario
     return render(request, 'usuarios/nuevo_usuario.html')
 
+
+@csrf_exempt
 def eliminar_usuario(request, usuario_id):
+    """
+    Vista para eliminar un usuario.
+    Requiere confirmación a través de un modal.
+    """
     # Obtener el usuario o devolver 404 si no existe
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
@@ -97,14 +110,17 @@ def eliminar_usuario(request, usuario_id):
         # Guardar el nombre para el mensaje de confirmación
         nombre_completo = f"{usuario.nombres} {usuario.apellidos}"
         
-        # Eliminar el usuario
-        usuario.delete()
-        
-        # Añadir mensaje de éxito
-        messages.success(request, f'El usuario {nombre_completo} ha sido eliminado correctamente.')
+        try:
+            # Eliminar el usuario
+            usuario.delete()
+            # Mostrar mensaje de éxito
+            messages.success(request, f'El usuario {nombre_completo} ha sido eliminado correctamente.')
+        except Exception as e:
+            # En caso de error, mostrar mensaje de error
+            messages.error(request, f'Error al eliminar el usuario: {str(e)}')
         
         # Redireccionar a la lista de usuarios
         return redirect('usuarios:lista_usuarios')
     
-    # Si no es POST, redireccionar a la lista (esto no debería ocurrir normalmente)
+    # Si la solicitud no es POST, redireccionar a la lista de usuarios
     return redirect('usuarios:lista_usuarios')
