@@ -8,13 +8,14 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="form-container">
     <div class="form-header">
         <h2><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</h2>
         <p>Complete el formulario para registrar un nuevo usuario en el sistema.</p>
     </div>
 
-    <form method="post" class="eduvia-form" id="userForm">
+    <form method="post" class="eduvia-form" id="userForm" action="{% url 'usuarios:nuevo_usuario' %}">
         {% csrf_token %}
         <!-- Campo oculto para el estado, siempre inactivo por defecto -->
         <input type="hidden" name="estado" value="inactive">
@@ -27,19 +28,10 @@
                     <label for="rut">RUT <span class="required">*</span></label>
                     <div class="input-group">
                         <span class="input-icon"><i class="fas fa-id-card"></i></span>
-                        <input type="text" id="rut" name="rut" class="form-control {% if messages %}{% for message in messages %}{% if 'rut' in message.message %}is-invalid{% endif %}{% endfor %}{% endif %}" placeholder="Ej: 12345678-9" required maxlength="12">
+                        <input type="text" id="rut" name="rut" class="form-control" placeholder="Ej: 12345678-9" required maxlength="12">
                     </div>
                     <small class="form-text">Formato: 12345678-9 (8 dígitos + dígito verificador)</small>
                     <div class="invalid-feedback" id="rut-error"><i class="fas fa-exclamation-circle"></i>RUT inválido. Debe tener 8 dígitos más dígito verificador válido.</div>
-                    
-                    <!-- Mostrar mensajes de error del servidor relacionados con el RUT -->
-                    {% if messages %}
-                        {% for message in messages %}
-                            {% if 'rut' in message.message %}
-                                <div class="server-error"><i class="fas fa-exclamation-circle"></i>{{ message }}</div>
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
                 </div>
             </div>
             
@@ -80,18 +72,9 @@
                     <label for="correo">Correo Electrónico <span class="required">*</span></label>
                     <div class="input-group">
                         <span class="input-icon"><i class="fas fa-envelope"></i></span>
-                        <input type="email" id="correo" name="correo" class="form-control {% if messages %}{% for message in messages %}{% if 'correo' in message.message %}is-invalid{% endif %}{% endfor %}{% endif %}" placeholder="ejemplo@dominio.com" required>
+                        <input type="email" id="correo" name="correo" class="form-control" placeholder="ejemplo@dominio.com" required>
                     </div>
                     <div class="invalid-feedback" id="correo-error"><i class="fas fa-exclamation-circle"></i>Por favor ingrese un correo electrónico válido.</div>
-                    
-                    <!-- Mostrar mensajes de error del servidor relacionados con el correo -->
-                    {% if messages %}
-                        {% for message in messages %}
-                            {% if 'correo' in message.message %}
-                                <div class="server-error"><i class="fas fa-exclamation-circle"></i>{{ message }}</div>
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -102,19 +85,31 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Rol <span class="required">*</span></label>
-                    <div class="role-checklist">
-                        <label class="role-option" for="rol-usuario">
-                            <input type="radio" id="rol-usuario" name="rol" value="usuario">
-                            <i class="fas fa-user-tie role-icon"></i>
-                            <span class="role-label">Usuario</span>
-                        </label>
-                        <label class="role-option" for="rol-admin">
-                            <input type="radio" id="rol-admin" name="rol" value="admin">
-                            <i class="fas fa-user-shield role-icon"></i>
-                            <span class="role-label">Administrador</span>
-                        </label>
+                    <div class="role-selection">
+                        <div class="role-option">
+                            <input type="radio" id="rol-usuario" name="rol" value="usuario" class="role-input">
+                            <label for="rol-usuario" class="role-label">
+                                <div class="role-icon-container">
+                                    <i class="fas fa-user-tie role-icon"></i>
+                                </div>
+                                <span class="role-title">Usuario</span>
+                                <span class="role-description">Acceso estándar al sistema</span>
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" id="rol-admin" name="rol" value="admin" class="role-input">
+                            <label for="rol-admin" class="role-label">
+                                <div class="role-icon-container">
+                                    <i class="fas fa-user-shield role-icon"></i>
+                                </div>
+                                <span class="role-title">Administrador</span>
+                                <span class="role-description">Acceso completo al sistema</span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="invalid-feedback" id="rol-error"><i class="fas fa-exclamation-circle"></i>Debe seleccionar un rol para el usuario.</div>
+                    <div class="invalid-feedback" id="rol-error">
+                        <i class="fas fa-exclamation-circle"></i> Debe seleccionar un rol para el usuario
+                    </div>
                 </div>
             </div>
             
@@ -149,4 +144,6 @@
 
 {% block extra_js %}
 <script src="{% static 'js/lista_usuarios.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 {% endblock %}

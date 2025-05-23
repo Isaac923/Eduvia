@@ -241,7 +241,8 @@ background-attachment: fixed;
 }
 
 .main-content.full-width {
-  margin-left: 0;
+  margin-right: 15px;
+  margin-left: 15px;
   width: 100%;
 }
 
