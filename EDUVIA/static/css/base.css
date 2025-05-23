@@ -23,7 +23,7 @@ box-sizing: border-box;
 body {
 font-family: 'Poppins', sans-serif;
 color: var(--text-color);
-background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+background: linear-gradient(0deg, #f5f7fa 0%, #c3cfe2 100%);
 background-attachment: fixed;
 }
 
