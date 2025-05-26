@@ -666,3 +666,365 @@ function initializeUserList() {
     });
 
 
+document.addEventListener('DOMContentLoaded', function() {
+    const sectionHeaders = document.querySelectorAll('.section-header');
+
+    // Función para alternar sección
+    function toggleSection(header) {
+        const targetId = header.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+        const toggle = header.querySelector('.section-toggle');
+        
+        if (content.classList.contains('expanded')) {
+            // Contraer
+            content.classList.remove('expanded');
+            toggle.classList.remove('rotated');
+        } else {
+            // Expandir
+            content.classList.add('expanded');
+            toggle.classList.add('rotated');
+        }
+    }
+
+    // Event listeners para cada header de sección
+    sectionHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            toggleSection(this);
+        });
+    });
+
+    // Expandir la primera sección por defecto
+    const firstSection = document.querySelector('.section-header[data-target="personal-info"]');
+    if (firstSection) {
+        toggleSection(firstSection);
+    }
+});
+
+// Función para mostrar el modal de detalles - CORREGIDA
+function showDetailModal(button) {
+    const userData = {
+        id: button.getAttribute('data-id'),
+        rut: button.getAttribute('data-rut'),
+        nombres: button.getAttribute('data-nombres'),
+        apellidos: button.getAttribute('data-apellidos'),
+        correo: button.getAttribute('data-correo'),
+        telefono: button.getAttribute('data-telefono') || '',
+        rol: button.getAttribute('data-rol'),
+        estado: button.getAttribute('data-estado'),
+        funcion: button.getAttribute('data-funcion') || '',
+        fecha: button.getAttribute('data-fecha')
+    };
+    
+    // Guardar datos globalmente para el modal de edición
+    window.currentUserData = userData;
+    
+    // Llenar los datos en el modal de detalles
+    document.getElementById('detailUserName').textContent = `${userData.nombres} ${userData.apellidos}`;
+    document.getElementById('detailRut').textContent = userData.rut || '-';
+    document.getElementById('detailNombres').textContent = userData.nombres || '-';
+    document.getElementById('detailApellidos').textContent = userData.apellidos || '-';
+    document.getElementById('detailCorreo').textContent = userData.correo || '-';
+    document.getElementById('detailTelefono').textContent = userData.telefono || '-';
+    document.getElementById('detailFuncion').textContent = userData.funcion || '-';
+    document.getElementById('detailFechaRegistro').textContent = userData.fecha || '-';
+    
+    // Configurar el rol
+    const roleElement = document.getElementById('detailUserRole');
+    const stateElement = document.getElementById('detailEstado');
+    
+    // Configurar badge del rol
+    if (userData.rol === 'admin') {
+        roleElement.className = 'role-badge role-admin';
+        roleElement.innerHTML = '<i class="fas fa-user-shield"></i> Administrador';
+    } else if (userData.rol === 'usuario') {
+        roleElement.className = 'role-badge role-staff';
+        roleElement.innerHTML = '<i class="fas fa-user"></i> Usuario';
+    }
+    
+    // Configurar badge del estado
+    if (userData.estado === 'active') {
+        stateElement.className = 'status-badge status-active';
+        stateElement.textContent = 'Activo';
+    } else if (userData.estado === 'inactive') {
+        stateElement.className = 'status-badge status-inactive';
+        stateElement.textContent = 'Inactivo';
+    } else {
+        stateElement.className = 'status-badge status-pending';
+        stateElement.textContent = 'Pendiente';
+    }
+    
+    // Mostrar modal con animación
+    const modal = document.getElementById('detailModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Trigger de la animación de entrada
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+}
+
+// Función para cerrar el modal de detalles
+function closeDetailModal() {
+    const modal = document.getElementById('detailModal');
+    
+    // Remover animación
+    modal.classList.remove('show');
+    
+    // Esperar animación y ocultar
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        // Limpiar datos
+        window.currentUserData = null;
+        window.originalUserData = null;
+    }, 300);
+}
+
+// Función para editar usuario (placeholder)
+function editUser() {
+    if (window.currentDetailUserId) {
+        // Aquí puedes redirigir a la página de edición
+        // window.location.href = `/usuarios/editar/${window.currentDetailUserId}/`;
+        alert(`Función de edición para usuario ID: ${window.currentDetailUserId} (por implementar)`);
+    }
+}
+
+// Variables globales para edición
+let currentEditUserId = null;
+let originalEditData = {};
+
+// Función para abrir el modal de edición
+function openEditModal() {
+    if (!window.currentUserData) {
+        alert('No hay datos de usuario disponibles');
+        return;
+    }
+    
+    const userData = window.currentUserData;
+    currentEditUserId = userData.id;
+    
+    // Guardar datos originales
+    originalEditData = {...userData};
+    
+    // Llenar el formulario con los datos actuales
+    fillEditForm(userData);
+    
+    // Cerrar modal de detalles
+    closeDetailModal();
+    
+    // Mostrar modal de edición
+    const editModal = document.getElementById('editModal');
+    editModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Animación
+    setTimeout(() => {
+        editModal.classList.add('show');
+    }, 10);
+}
+
+// Función para llenar el formulario de edición
+function fillEditForm(userData) {
+    document.getElementById('editRut').value = userData.rut || '';
+    document.getElementById('editNombres').value = userData.nombres || '';
+    document.getElementById('editApellidos').value = userData.apellidos || '';
+    document.getElementById('editCorreo').value = userData.correo || '';
+    
+    // Formatear teléfono
+    let telefono = userData.telefono || '';
+    if (telefono && telefono !== '-' && telefono !== 'null') {
+        if (!telefono.startsWith('+56 9')) {
+            const cleanPhone = telefono.replace(/[^\d]/g, '');
+            if (cleanPhone.length >= 8) {
+                telefono = `+56 9 ${cleanPhone.slice(-8, -4)} ${cleanPhone.slice(-4)}`;
+            } else {
+                telefono = '+56 9 ';
+            }
+        }
+    } else {
+        telefono = '+56 9 ';
+    }
+    document.getElementById('editTelefono').value = telefono;
+    
+    document.getElementById('editRolSelect').value = userData.rol || 'usuario';
+    document.getElementById('editEstadoSelect').value = userData.estado || 'inactive';
+    document.getElementById('editFuncionInput').value = userData.funcion || '';
+    
+    // Configurar la acción del formulario
+    const form = document.getElementById('editUserForm');
+    form.action = `{% url 'usuarios:editar_usuario' 0 %}`.replace('0', userData.id);
+}
+
+// Función para cerrar el modal de edición
+function closeEditModal() {
+    const editModal = document.getElementById('editModal');
+    
+    editModal.classList.remove('show');
+    
+    setTimeout(() => {
+        editModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        // Limpiar datos
+        currentEditUserId = null;
+        originalEditData = {};
+        
+        // Limpiar errores de validación
+        clearEditValidationErrors();
+    }, 300);
+}
+
+// Función para limpiar errores de validación
+function clearEditValidationErrors() {
+    const errorElements = document.querySelectorAll('#editModal .invalid-feedback');
+    const inputElements = document.querySelectorAll('#editModal .form-control-edit');
+    
+    errorElements.forEach(error => {
+        error.style.display = 'none';
+    });
+    
+    inputElements.forEach(input => {
+        input.classList.remove('is-invalid', 'is-valid');
+    });
+}
+
+// Manejar el envío del formulario de edición
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editUserForm');
+    
+    if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validar formulario
+            if (!validateEditForm()) {
+                return;
+            }
+            
+            // Mostrar confirmación
+            if (confirm('¿Está seguro que desea guardar los cambios?')) {
+                submitEditForm();
+            }
+        });
+    }
+    
+    // Cerrar modal al hacer clic fuera
+    const editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('click', function(e) {
+            if (e.target === editModal) {
+                closeEditModal();
+            }
+        });
+    }
+    
+    // Cerrar con tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const editModal = document.getElementById('editModal');
+            if (editModal && editModal.style.display === 'flex') {
+                closeEditModal();
+            }
+        }
+    });
+});
+
+// Función para validar el formulario de edición
+function validateEditForm() {
+    let isValid = true;
+    
+    // Validar campos requeridos
+    const requiredFields = ['editRut', 'editNombres', 'editApellidos', 'editCorreo'];
+    
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        const value = field.value.trim();
+        
+        if (!value) {
+            showEditFieldError(fieldId, 'Este campo es requerido');
+            isValid = false;
+        } else {
+            hideEditFieldError(fieldId);
+        }
+    });
+    
+    // Validar email
+    const email = document.getElementById('editCorreo').value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !emailRegex.test(email)) {
+        showEditFieldError('editCorreo', 'Ingrese un correo electrónico válido');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+// Función para mostrar error en campo específico
+function showEditFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const errorElement = document.getElementById(fieldId.replace('edit', 'edit-').toLowerCase() + '-error');
+    
+    field.classList.add('is-invalid');
+    field.classList.remove('is-valid');
+    
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+// Función para ocultar error en campo específico
+function hideEditFieldError(fieldId) {
+    const field = document.getElementById(fieldId);
+    const errorElement = document.getElementById(fieldId.replace('edit', 'edit-').toLowerCase() + '-error');
+    
+    field.classList.remove('is-invalid');
+    field.classList.add('is-valid');
+    
+    if (errorElement) {
+        errorElement.style.display = 'none';
+    }
+}
+
+// Función para enviar el formulario de edición
+function submitEditForm() {
+    const form = document.getElementById('editUserForm');
+    const formData = new FormData(form);
+    
+    // Mostrar loading
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+    submitBtn.disabled = true;
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Usuario actualizado correctamente');
+            closeEditModal();
+            // Recargar la página para mostrar los cambios
+            window.location.reload();
+        } else {
+            alert('Error al actualizar usuario: ' + (data.message || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión. Por favor, intente nuevamente.');
+    })
+    .finally(() => {
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}

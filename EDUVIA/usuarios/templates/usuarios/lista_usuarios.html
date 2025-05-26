@@ -4,6 +4,7 @@
 {% block title %}Listado de Usuarios - EDUVIA{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/lista_usuarios.css' %}">
+
 {% endblock %}
 {% block content %}
 <div class="user-list-container">
@@ -14,6 +15,26 @@
             <i class="fas fa-plus-circle"></i> Nuevo Usuario
         </a>
     </div>
+    
+    <!-- Contenedor para alertas dinámicas -->
+    <div id="alertContainer"></div>
+
+    <!-- Alertas de Django Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="custom-alert alert-{{ message.tags }}" id="djangoAlert">
+                <div class="alert-content">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle alert-icon"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle alert-icon"></i>
+                    {% endif %}
+                    <span class="alert-message">{{ message }}</span>
+                </div>
+                <button type="button" class="alert-close" onclick="closeAlert(this)">×</button>
+            </div>
+        {% endfor %}
+    {% endif %}
     
     {% if usuarios %}
     <!-- Búsqueda y filtros - Versión compacta -->
@@ -82,14 +103,25 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <a href="#" class="btn-action btn-view">
+                            <button type="button" class="btn-action btn-view" 
+                                    data-id="{{ usuario.id }}"
+                                    data-rut="{{ usuario.rut|default:'' }}"
+                                    data-nombres="{{ usuario.nombres|default:'' }}"
+                                    data-apellidos="{{ usuario.apellidos|default:'' }}"
+                                    data-correo="{{ usuario.correo|default:'' }}"
+                                    data-telefono="{{ usuario.telefono|default:'' }}"
+                                    data-rol="{{ usuario.rol|default:'usuario' }}"
+                                    data-estado="{{ usuario.estado|default:'inactive' }}"
+                                    data-funcion="{{ usuario.funcion|default:'' }}"
+                                    data-fecha="{{ usuario.fecha_creacion|date:'d/m/Y H:i'|default:'-' }}"
+                                    onclick="showDetailModal(this)">
                                 <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn-action btn-edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
+                            </button>
                             <button type="button" class="btn-action btn-delete" 
-                                    data-id="{{ usuario.id }}" data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}">
+                                    data-id="{{ usuario.id }}" 
+                                    data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}"
+                                    data-rut="{{ usuario.rut }}"
+                                    onclick="showDeleteModal(this)">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
@@ -182,7 +214,7 @@
     </div>
     {% endif %}
     
-    <!-- Modal de confirmación para eliminar usuario (estilo alerta) -->
+    <!-- Modal de confirmación para eliminar usuario -->
     <div class="delete-alert-modal" id="deleteModal" style="display: none;">
         <div class="delete-alert-content">
             <div class="delete-alert-header">
@@ -194,23 +226,268 @@
                     <i class="fas fa-user-times fa-3x text-danger mb-3"></i>
                     <p>¿Está seguro que desea eliminar al usuario?</p>
                     <p class="fw-bold" id="userName">Nombre del Usuario</p>
+                    <p><strong>RUT:</strong> <span id="userRut"></span></p>
                 </div>
                 <div class="delete-alert-warning">
                     <i class="fas fa-exclamation-circle me-2"></i>
-                    <span>Esta acción no se puede deshacer.</span>
+                    <span>Esta acción no se puede deshacer. Todos los datos del usuario serán eliminados permanentemente.</span>
                 </div>
             </div>
             <div class="delete-alert-footer">
                 <button type="button" class="btn-cancel" onclick="closeDeleteModal()">
                     <i class="fas fa-times me-1"></i>Cancelar
                 </button>
-                <form id="deleteForm" method="POST" action="">
+                <form id="deleteForm" method="POST" action="" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn-delete-confirm">
-                        <i class="fas fa-trash-alt me-1"></i>Eliminar
+                        <i class="fas fa-trash-alt me-1"></i>Eliminar Usuario
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+    <!-- Modal de detalles/edición del usuario -->
+    <div class="detail-modal" id="detailModal" style="display: none;">
+        <div class="detail-modal-content">
+            <div class="detail-modal-header">
+                <h5 id="modalTitle"><i class="fas fa-user-circle me-2"></i>Detalles del Usuario</h5>
+                <button type="button" class="detail-modal-close" onclick="closeDetailModal()">×</button>
+            </div>
+            <div class="detail-modal-body">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle fa-3x text-primary"></i>
+                    <h4 id="detailUserName">Nombre del Usuario</h4>
+                    <span id="detailUserRole" class="role-badge">Rol</span>
+                </div>
+            
+                <form id="editUserForm" method="POST" style="display: none;">
+                    {% csrf_token %}
+                    <div class="detail-sections">
+                        <!-- Información Personal -->
+                        <div class="detail-section">
+                            <h6><i class="fas fa-user"></i> Información Personal</h6>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <label>RUT:</label>
+                                    <input type="text" id="editRut" name="rut" class="form-control-modal" maxlength="12">
+                                    <div class="invalid-feedback" id="edit-rut-error"></div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Nombres:</label>
+                                    <input type="text" id="editNombres" name="nombres" class="form-control-modal" required>
+                                    <div class="invalid-feedback" id="edit-nombres-error"></div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Apellidos:</label>
+                                    <input type="text" id="editApellidos" name="apellidos" class="form-control-modal" required>
+                                    <div class="invalid-feedback" id="edit-apellidos-error"></div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <!-- Información de Contacto -->
+                        <div class="detail-section">
+                            <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <label>Correo Electrónico:</label>
+                                    <input type="email" id="editCorreo" name="correo" class="form-control-modal" required>
+                                    <div class="invalid-feedback" id="edit-correo-error"></div>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Teléfono:</label>
+                                    <input type="tel" id="editTelefono" name="telefono" class="form-control-modal" maxlength="16">
+                                    <div class="invalid-feedback" id="edit-telefono-error"></div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <!-- Información del Sistema -->
+                        <div class="detail-section">
+                            <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <label>Rol:</label>
+                                    <select id="editRol" name="rol" class="form-control-modal" required>
+                                        <option value="usuario">Usuario</option>
+                                        <option value="admin">Administrador</option>
+                                    </select>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Estado:</label>
+                                    <select id="editEstado" name="estado" class="form-control-modal" required>
+                                        <option value="active">Activo</option>
+                                        <option value="inactive">Inactivo</option>
+                                        <option value="pending">Pendiente</option>
+                                    </select>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Función:</label>
+                                    <input type="text" id="editFuncion" name="funcion" class="form-control-modal">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            
+                <!-- Vista de solo lectura -->
+                <div id="readOnlyView" class="detail-sections">
+                    <!-- Información Personal -->
+                    <div class="detail-section">
+                        <h6><i class="fas fa-user"></i> Información Personal</h6>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>RUT:</label>
+                                <span id="detailRut">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Nombres:</label>
+                                <span id="detailNombres">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Apellidos:</label>
+                                <span id="detailApellidos">-</span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Información de Contacto -->
+                    <div class="detail-section">
+                        <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Correo Electrónico:</label>
+                                <span id="detailCorreo">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Teléfono:</label>
+                                <span id="detailTelefono">-</span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Información del Sistema -->
+                    <div class="detail-section">
+                        <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Estado:</label>
+                                <span id="detailEstado" class="status-badge">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Función:</label>
+                                <span id="detailFuncion">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Fecha de Registro:</label>
+                                <span id="detailFechaRegistro">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeDetailModal()">
+                    <i class="fas fa-times me-1"></i>Cerrar
+                </button>
+                <button type="button" class="btn-primary" id="editBtn" onclick="openEditModal()">
+                    <i class="fas fa-edit me-1"></i>Editar Usuario
+                </button>
+                <button type="button" class="btn-secondary" id="cancelBtn" onclick="cancelEdit()" style="display: none;">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn-success" id="saveBtn" onclick="saveUser()" style="display: none;">
+                    <i class="fas fa-save me-1"></i>Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de edición del usuario -->
+    <div class="edit-modal" id="editModal" style="display: none;">
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h5><i class="fas fa-user-edit me-2"></i>Editar Usuario</h5>
+                <button type="button" class="edit-modal-close" onclick="closeEditModal()">×</button>
+            </div>
+            <form id="editUserForm" method="POST">
+                {% csrf_token %}
+                <div class="edit-modal-body">
+                    <div class="edit-sections">
+                        <!-- Información Personal -->
+                        <div class="edit-section">
+                            <h6><i class="fas fa-user"></i> Información Personal</h6>
+                            <div class="edit-grid">
+                                <div class="edit-item">
+                                    <label for="editRut">RUT <span class="required">*</span></label>
+                                    <input type="text" id="editRut" name="rut" class="form-control-edit" maxlength="12" required>
+                                    <div class="invalid-feedback" id="edit-rut-error"></div>
+                                </div>
+                                <div class="edit-item">
+                                    <label for="editNombres">Nombres <span class="required">*</span></label>
+                                    <input type="text" id="editNombres" name="nombres" class="form-control-edit" required>
+                                    <div class="invalid-feedback" id="edit-nombres-error"></div>
+                                </div>
+                                <div class="edit-item">
+                                    <label for="editApellidos">Apellidos <span class="required">*</span></label>
+                                    <input type="text" id="editApellidos" name="apellidos" class="form-control-edit" required>
+                                    <div class="invalid-feedback" id="edit-apellidos-error"></div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <!-- Información de Contacto -->
+                        <div class="edit-section">
+                            <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
+                            <div class="edit-grid">
+                                <div class="edit-item">
+                                    <label for="editCorreo">Correo Electrónico <span class="required">*</span></label>
+                                    <input type="email" id="editCorreo" name="correo" class="form-control-edit" required>
+                                    <div class="invalid-feedback" id="edit-correo-error"></div>
+                                </div>
+                                <div class="edit-item">
+                                    <label for="editTelefono">Teléfono</label>
+                                    <input type="tel" id="editTelefono" name="telefono" class="form-control-edit" maxlength="16" value="+56 9 ">
+                                    <div class="invalid-feedback" id="edit-telefono-error"></div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <!-- Información del Sistema -->
+                        <div class="edit-section">
+                            <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
+                            <div class="edit-grid">
+                                <div class="edit-item">
+                                    <label for="editRolSelect">Rol <span class="required">*</span></label>
+                                    <select id="editRolSelect" name="rol" class="form-control-edit" required>
+                                        <option value="usuario">Usuario</option>
+                                        <option value="admin">Administrador</option>
+                                    </select>
+                                </div>
+                                <div class="edit-item">
+                                    <label for="editEstadoSelect">Estado <span class="required">*</span></label>
+                                    <select id="editEstadoSelect" name="estado" class="form-control-edit" required>
+                                        <option value="active">Activo</option>
+                                        <option value="inactive">Inactivo</option>
+                                        <option value="pending">Pendiente</option>
+                                    </select>
+                                </div>
+                                <div class="edit-item">
+                                    <label for="editFuncionInput">Función</label>
+                                    <input type="text" id="editFuncionInput" name="funcion" class="form-control-edit">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="edit-modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn-success">
+                        <i class="fas fa-save me-1"></i>Guardar Cambios
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -229,19 +506,80 @@
         document.querySelector('.search-input').dispatchEvent(new Event('input'));
     }
     
-    // Configuración del modal de eliminación
+    // Función para mostrar el modal de eliminación
+    function showDeleteModal(button) {
+        const userId = button.getAttribute('data-id');
+        const userName = button.getAttribute('data-nombre');
+        const userRut = button.getAttribute('data-rut');
+        
+        // Actualizar contenido del modal
+        document.getElementById('userName').textContent = userName;
+        document.getElementById('userRut').textContent = userRut;
+        
+        // Usar la URL correcta de Django
+        document.getElementById('deleteForm').action = "{% url 'usuarios:eliminar_usuario' 0 %}".replace('0', userId);
+        
+        // Mostrar modal
+        document.getElementById('deleteModal').style.display = 'flex';
+        
+        // Prevenir scroll del body
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Función para cerrar el modal
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+    
+    // Cerrar modal al hacer clic fuera de él
     document.addEventListener('DOMContentLoaded', function() {
-        const deleteModal = document.getElementById('deleteModal');
-        if (deleteModal) {
-            deleteModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const userId = button.getAttribute('data-id');
-                const userName = button.getAttribute('data-nombre');
-                
-                document.getElementById('userName').textContent = userName;
-                document.getElementById('deleteForm').action = `/usuarios/eliminar/${userId}/`;
-            });
-        }
+        const modal = document.getElementById('deleteModal');
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeDeleteModal();
+            }
+        });
+        
+        // Cerrar modal con tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDeleteModal();
+            }
+        });
+    });
+
+    // Función para cerrar alertas
+    function closeAlert(button) {
+        const alert = button.closest('.custom-alert');
+        alert.classList.add('fade-out');
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 300);
+    }
+
+    // Función para auto-cerrar una alerta específica
+    function autoCloseAlert(alertElement, delay = 2000) {
+        setTimeout(() => {
+            if (alertElement && alertElement.parentNode) {
+                const closeButton = alertElement.querySelector('.alert-close');
+                if (closeButton) {
+                    closeAlert(closeButton);
+                }
+            }
+        }, delay);
+    }
+
+    // Auto-cerrar alertas cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-cerrar todas las alertas después de 2 segundos
+        const allAlerts = document.querySelectorAll('.custom-alert');
+        allAlerts.forEach(alert => {
+            autoCloseAlert(alert, 2000);
+        });
     });
 </script>
 {% endblock %}
