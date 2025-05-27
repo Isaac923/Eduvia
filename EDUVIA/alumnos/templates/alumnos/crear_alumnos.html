@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% block title %}Crear Nuevo Alumno{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Crear Nuevo Alumno</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Datos de matrícula -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Datos de Matrícula</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.fecha_ingreso.id_for_label }}">{{ form.fecha_ingreso.label }}</label>
+                                            {{ form.fecha_ingreso }}
+                                            {% if form.fecha_ingreso.errors %}
+                                                <div class="text-danger">{{ form.fecha_ingreso.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Datos personales -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Datos Personales</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.primer_nombre.id_for_label }}">Primer Nombre</label>
+                                            {{ form.primer_nombre }}
+                                            {% if form.primer_nombre.errors %}
+                                                <div class="text-danger">{{ form.primer_nombre.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.segundo_nombre.id_for_label }}">Segundo Nombre</label>
+                                            {{ form.segundo_nombre }}
+                                            {% if form.segundo_nombre.errors %}
+                                                <div class="text-danger">{{ form.segundo_nombre.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.apellido_paterno.id_for_label }}">Apellido Paterno</label>
+                                            {{ form.apellido_paterno }}
+                                            {% if form.apellido_paterno.errors %}
+                                                <div class="text-danger">{{ form.apellido_paterno.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.apellido_materno.id_for_label }}">Apellido Materno</label>
+                                            {{ form.apellido_materno }}
+                                            {% if form.apellido_materno.errors %}
+                                                <div class="text-danger">{{ form.apellido_materno.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.rut.id_for_label }}">RUT</label>
+                                            {{ form.rut }}
+                                            {% if form.rut.errors %}
+                                                <div class="text-danger">{{ form.rut.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.fecha_nacimiento.id_for_label }}">Fecha de Nacimiento</label>
+                                            {{ form.fecha_nacimiento }}
+                                            {% if form.fecha_nacimiento.errors %}
+                                                <div class="text-danger">{{ form.fecha_nacimiento.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.sexo.id_for_label }}">Sexo</label>
+                                            {{ form.sexo }}
+                                            {% if form.sexo.errors %}
+                                                <div class="text-danger">{{ form.sexo.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.estado_civil.id_for_label }}">Estado Civil</label>
+                                            {{ form.estado_civil }}
+                                            {% if form.estado_civil.errors %}
+                                                <div class="text-danger">{{ form.estado_civil.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.telefono.id_for_label }}">Teléfono de Contacto</label>
+                                            {{ form.telefono }}
+                                            {% if form.telefono.errors %}
+                                                <div class="text-danger">{{ form.telefono.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.correo_electronico.id_for_label }}">Correo Electrónico</label>
+                                            {{ form.correo_electronico }}
+                                            {% if form.correo_electronico.errors %}
+                                                <div class="text-danger">{{ form.correo_electronico.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.religion.id_for_label }}">Religión</label>
+                                            {{ form.religion }}
+                                            {% if form.religion.errors %}
+                                                <div class="text-danger">{{ form.religion.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.direccion.id_for_label }}">Dirección</label>
+                                            {{ form.direccion }}
+                                            {% if form.direccion.errors %}
+                                                <div class="text-danger">{{ form.direccion.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Datos académicos -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Datos Académicos</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.numero_nivel.id_for_label }}">Nivel</label>
+                                            {{ form.numero_nivel }}
+                                            {% if form.numero_nivel.errors %}
+                                                <div class="text-danger">{{ form.numero_nivel.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.letra_nivel.id_for_label }}">Jornada</label>
+                                            {{ form.letra_nivel }}
+                                            {% if form.letra_nivel.errors %}
+                                                <div class="text-danger">{{ form.letra_nivel.errors }}</div>
+                                            {% endif %}
+                                            <small class="form-text text-muted">A = Diurna, B = Vespertina</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.ultimo_curso_aprobado.id_for_label }}">Último Curso Aprobado</label>
+                                            {{ form.ultimo_curso_aprobado }}
+                                            {% if form.ultimo_curso_aprobado.errors %}
+                                                <div class="text-danger">{{ form.ultimo_curso_aprobado.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.curso_repetido.id_for_label }}">¿Qué Curso Repitió?</label>
+                                            {{ form.curso_repetido }}
+                                            {% if form.curso_repetido.errors %}
+                                                <div class="text-danger">{{ form.curso_repetido.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.anio_repitencia.id_for_label }}">Año de la Repitencia</label>
+                                            {{ form.anio_repitencia }}
+                                            {% if form.anio_repitencia.errors %}
+                                                <div class="text-danger">{{ form.anio_repitencia.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Datos PIE -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Datos PIE</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.programa_pie.id_for_label }}">¿Ha estado en programa PIE?</label>
+                                            {{ form.programa_pie }}
+                                            {% if form.programa_pie.errors %}
+                                                <div class="text-danger">{{ form.programa_pie.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.profesional_apoyo.id_for_label }}">¿Qué profesional te ayudó en la sala de clases?</label>
+                                            {{ form.profesional_apoyo }}
+                                            {% if form.profesional_apoyo.errors %}
+                                                <div class="text-danger">{{ form.profesional_apoyo.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.informe_psicosocial.id_for_label }}">¿Cuenta con informe psicosocial?</label>
+                                            {{ form.informe_psicosocial }}
+                                            {% if form.informe_psicosocial.errors %}
+                                                <div class="text-danger">{{ form.informe_psicosocial.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.situacion_laboral.id_for_label }}">Situación Laboral</label>
+                                            {{ form.situacion_laboral }}
+                                            {% if form.situacion_laboral.errors %}
+                                                <div class="text-danger">{{ form.situacion_laboral.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Contacto de Emergencia -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Contacto de Emergencia</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.contacto_emergencia_nombre.id_for_label }}">Nombre del Contacto</label>
+                                            {{ form.contacto_emergencia_nombre }}
+                                            {% if form.contacto_emergencia_nombre.errors %}
+                                                <div class="text-danger">{{ form.contacto_emergencia_nombre.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.contacto_emergencia_parentezco.id_for_label }}">Parentezco</label>
+                                            {{ form.contacto_emergencia_parentezco }}
+                                            {% if form.contacto_emergencia_parentezco.errors %}
+                                                <div class="text-danger">{{ form.contacto_emergencia_parentezco.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.contacto_emergencia_telefono.id_for_label }}">Teléfono</label>
+                                            {{ form.contacto_emergencia_telefono }}
+                                            {% if form.contacto_emergencia_telefono.errors %}
+                                                <div class="text-danger">{{ form.contacto_emergencia_telefono.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- En la sección donde quieras mostrar el campo activo -->
+                        <div class="form-group">
+                            <label for="{{ form.activo.id_for_label }}">{{ form.activo.label }}</label>
+                            {{ form.activo }}
+                            {% if form.activo.help_text %}
+                                <small class="form-text text-muted">{{ form.activo.help_text }}</small>
+                            {% endif %}
+                            {% if form.activo.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.activo.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'alumnos:lista_alumnos' %}" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Crear Alumno</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
