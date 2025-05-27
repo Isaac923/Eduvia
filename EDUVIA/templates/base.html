@@ -7,9 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}EDUVIA{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- Google Fonts - Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/css/base.css">
     {% block extra_css %}{% endblock %}
 </head>
@@ -49,8 +64,8 @@
                 <div class="nav-section">
                     <h4>Gestión Académica</h4>
                     <ul>
-                        <li class="{% if 'estudiantes' in request.path %}active{% endif %}">
-                            <a href="/estudiantes/">
+                        <li class="{% if request.resolver_match.namespace == 'alumnos' %}active{% endif %}">
+                            <a href="{% url 'alumnos:lista_alumnos' %}">
                                 <i class="fas fa-user-graduate"></i>
                                 <span>Estudiantes</span>
                             </a>
@@ -61,14 +76,14 @@
                                 <span>Profesores</span>
                             </a>
                         </li>
-                        <li class="{% if 'cursos' in request.path %}active{% endif %}">
-                            <a href="/cursos/">
+                        <li class="{% if request.resolver_match.url_name == 'gestion_cursos' or request.resolver_match.url_name == 'crear_curso' or request.resolver_match.url_name == 'editar_curso' or request.resolver_match.url_name == 'detalle_curso' or request.resolver_match.url_name == 'eliminar_curso' %}active{% endif %}">
+                            <a href="{% url 'cursos:gestion_cursos' %}">
                                 <i class="fas fa-book"></i>
                                 <span>Cursos</span>
                             </a>
                         </li>
-                        <li class="{% if 'asignaturas' in request.path %}active{% endif %}">
-                            <a href="/asignaturas/">
+                        <li class="{% if request.resolver_match.url_name == 'gestion_asignaturas' or request.resolver_match.url_name == 'crear_asignatura' or request.resolver_match.url_name == 'editar_asignatura' or request.resolver_match.url_name == 'eliminar_asignatura' %}active{% endif %}">
+                            <a href="{% url 'cursos:gestion_asignaturas' %}">
                                 <i class="fas fa-book-open"></i>
                                 <span>Asignaturas</span>
                             </a>
@@ -115,17 +130,17 @@
         <!-- Contenido principal -->
         <div class="main-content">
             <div class="content-wrapper">
+                <!-- ELIMINAR O COMENTAR ESTA SECCIÓN SI EXISTE -->
+                <!--
                 {% if messages %}
-                <div class="messages-container">
                     {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                     {% endfor %}
-                </div>
                 {% endif %}
-
+                -->
                 <div class="content">
                     {% block content %}{% csrf_token %}
                     <div class="user-list-container">
@@ -143,7 +158,13 @@
         <span>Menú</span>
     </div>
 
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap 5 JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- Custom JS -->
     <script src="{% static 'js/base.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>

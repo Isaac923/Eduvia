@@ -18,9 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from . import views  # Importamos las vistas del proyecto principal
+from . import views  # Acá se importan las vistas del proyecto principal
 
 urlpatterns = [
-    path('', include('usuarios.urls')),  # Incluye las URLs de la app usuarios
-    
+    path('admin/', admin.site.urls),  # la wea de admin
+    path('', include('usuarios.urls')),  # URLs de la app usuarios
+    path('alumnos/', include('alumnos.urls')),  # URLs de la app alumnos
+    path('cursos/', include('cursos.urls')),  # URLs de la app cursos
+   # path('asistencias/', include('asistencias.urls')), # URLs de la app asistencias
 ]
+
+# Add this if you're using media files
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
