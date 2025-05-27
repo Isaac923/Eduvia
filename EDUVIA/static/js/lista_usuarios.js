@@ -43,19 +43,6 @@ function initializeNewUserForm() {
         });
     }
 
-    // Eliminar validación en tiempo real de nombres y apellidos
-    // if (nombresInput) {
-    //     nombresInput.addEventListener('input', function() {
-    //         validateName(this, 'Nombres');
-    //     });
-    // }
-
-    // if (apellidosInput) {
-    //     apellidosInput.addEventListener('input', function() {
-    //         validateName(this, 'Apellidos');
-    //     });
-    // }
-
     // Validación del rol
     rolInputs.forEach(input => {
         input.addEventListener('change', function() {
@@ -80,16 +67,14 @@ function initializeNewUserForm() {
         });
     }
 
-    // Función para formatear RUT automáticamente (CORREGIDA)
+    // Función para formatear RUT automáticamente
     function formatRUT(input) {
         let value = input.value.replace(/[^\dkK]/g, '');
         
         if (value.length > 1) {
-            // Separar cuerpo y dígito verificador
             const body = value.slice(0, -1);
             const dv = value.slice(-1);
             
-            // Formatear el cuerpo con puntos
             let formattedBody = '';
             for (let i = body.length - 1, j = 0; i >= 0; i--, j++) {
                 if (j > 0 && j % 3 === 0) {
@@ -104,7 +89,7 @@ function initializeNewUserForm() {
         input.value = value.toUpperCase();
     }
 
-    // Función para validar RUT chileno (CORREGIDA)
+    // Función para validar RUT chileno
     function validateRUT(input) {
         const rutWithFormat = input.value;
         const rut = rutWithFormat.replace(/\./g, '').replace('-', '');
@@ -120,7 +105,6 @@ function initializeNewUserForm() {
             return false;
         }
 
-        // Validar formato y dígito verificador
         const isValid = validateRUTFormat(rut);
         
         if (!isValid) {
@@ -157,22 +141,18 @@ function initializeNewUserForm() {
     function formatPhone(input) {
         let value = input.value.replace(/[^\d]/g, '');
         
-        // Remover prefijo 56 si está presente
         if (value.length >= 2 && value.substring(0, 2) === '56') {
             value = value.substring(2);
         }
         
-        // Remover 9 inicial si está presente
         if (value.length >= 1 && value.substring(0, 1) === '9') {
             value = value.substring(1);
         }
         
-        // Limitar a 8 dígitos
         if (value.length > 8) {
             value = value.substring(0, 8);
         }
         
-        // Formatear con espacio
         if (value.length >= 4) {
             value = value.substring(0, 4) + ' ' + value.substring(4);
         }
@@ -228,14 +208,12 @@ function initializeNewUserForm() {
         const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
         const errorElement = document.getElementById(`${input.id}-error`);
         
-        // Si el campo está vacío
         if (value.length === 0) {
             input.classList.remove('is-invalid', 'is-valid');
             if (errorElement) errorElement.style.display = 'none';
             return false;
         }
 
-        // Validar solo letras
         if (!nameRegex.test(value)) {
             input.classList.add('is-invalid');
             input.classList.remove('is-valid');
@@ -246,7 +224,6 @@ function initializeNewUserForm() {
             return false;
         }
 
-        // Validar longitud mínima
         if (value.length < 2) {
             input.classList.add('is-invalid');
             input.classList.remove('is-valid');
@@ -257,7 +234,6 @@ function initializeNewUserForm() {
             return false;
         }
 
-        // Si pasa todas las validaciones, marcar en verde
         input.classList.remove('is-invalid');
         input.classList.add('is-valid');
         if (errorElement) errorElement.style.display = 'none';
@@ -269,7 +245,6 @@ function initializeNewUserForm() {
         const rolCheckboxes = document.querySelectorAll('input[name="rol"]');
         const rolError = document.getElementById('rol-error');
         
-        // Verificar si al menos un checkbox está seleccionado
         const selectedRole = Array.from(rolCheckboxes).some(checkbox => checkbox.checked);
         
         if (!selectedRole) {
@@ -309,12 +284,10 @@ function initializeNewUserForm() {
     function validateForm() {
         let isValid = true;
         
-        // Validar campos requeridos
         if (!validateRUT(rutInput)) isValid = false;
         if (!validateEmail(correoInput)) isValid = false;
         if (!validateRole()) isValid = false;
         
-        // Validar teléfono si tiene contenido
         if (telefonoInput && telefonoInput.value.length > 6) {
             if (!validatePhone(telefonoInput)) isValid = false;
         }
@@ -341,7 +314,6 @@ function initializeNewUserForm() {
         const correo = correoInput.value;
         const selectedRoleInput = document.querySelector('input[name="rol"]:checked');
         
-        // Verificar que hay un rol seleccionado
         if (!selectedRoleInput) {
             showAlert('error', 'Error', 'Debe seleccionar un rol para el usuario.');
             return;
@@ -387,9 +359,8 @@ function initializeNewUserForm() {
         });
     }
 
-    // Función para enviar el formulario (CORREGIDA)
+    // Función para enviar el formulario
     function submitForm() {
-        // Mostrar loading
         Swal.fire({
             title: 'Creando usuario...',
             html: '<i class="fas fa-spinner fa-spin"></i> Por favor espere mientras se procesa la información',
@@ -402,16 +373,12 @@ function initializeNewUserForm() {
             }
         });
 
-        // Crear FormData para enviar
         const formData = new FormData(form);
-
-        // Agregar el valor del rol seleccionado al FormData
         const selectedRoleInput = document.querySelector('input[name="rol"]:checked');
         if (selectedRoleInput) {
             formData.append('rol', selectedRoleInput.value);
         }
 
-        // Enviar formulario con fetch
         fetch(form.action, {
             method: 'POST',
             body: formData,
@@ -425,7 +392,6 @@ function initializeNewUserForm() {
             Swal.close();
 
             if (data.success) {
-                // Usuario creado exitosamente
                 Swal.fire({
                     icon: 'success',
                     title: '¡Usuario creado!',
@@ -436,7 +402,6 @@ function initializeNewUserForm() {
                     window.location.href = data.redirect_url || '/usuarios/';
                 });
             } else {
-                // Manejar errores
                 if (data.error_type === 'user_exists') {
                     showUserExistsAlert(data);
                 } else if (data.errors) {
@@ -482,10 +447,8 @@ function initializeNewUserForm() {
             }
         }).then((result) => {
             if (result.dismiss === Swal.DismissReason.cancel) {
-                // Ir a la lista de usuarios
                 window.location.href = '/usuarios/';
             }
-            // Si hace clic en "Corregir datos", se queda en el formulario
         });
     }
 
@@ -499,11 +462,7 @@ function initializeNewUserForm() {
         Swal.fire({
             icon: 'error',
             title: 'Errores en el formulario',
-            html: `
-                <div class="alert-content">
-                    ${errorMessages}
-                </div>
-            `,
+            html: `<div class="alert-content">${errorMessages}</div>`,
             confirmButtonColor: '#dc3545',
             confirmButtonText: 'Corregir'
         });
@@ -541,82 +500,6 @@ function showAlert(type, title, message) {
 
 // Función para inicializar funcionalidades de lista de usuarios
 function initializeUserList() {
-    // Aquí puedes agregar funcionalidades para la lista de usuarios
-    // como confirmaciones de eliminación, cambios de estado, etc.
-    
-    // Ejemplo: Confirmación para eliminar usuarios
-    const deleteButtons = document.querySelectorAll('.btn-delete-user');
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const userName = this.dataset.userName || 'este usuario';
-            const deleteUrl = this.href;
-            
-            Swal.fire({
-                title: '¿Está seguro?',
-                html: `¿Desea eliminar a <strong>${userName}</strong>?<br><small class="text-muted">Esta acción no se puede deshacer.</small>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-trash"></i> Sí, eliminar',
-                cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = deleteUrl;
-                }
-            });
-        });
-    });
-}
- // Función para mostrar mensajes de estado
-    const statusButtons = document.querySelectorAll('.btn-change-status');
-    statusButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const userName = this.dataset.userName || 'este usuario';
-            const currentStatus = this.dataset.currentStatus;
-            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-            const statusUrl = this.href;
-            
-            const statusText = {
-                'active': 'Activo',
-                'inactive': 'Inactivo'
-            };
-            
-            const statusIcon = {
-                'active': 'check-circle',
-                'inactive': 'times-circle'
-            };
-            
-            const statusColor = {
-                'active': '#28a745',
-                'inactive': '#dc3545'
-            };
-            
-            Swal.fire({
-                title: 'Cambiar estado',
-                html: `¿Desea cambiar el estado de <strong>${userName}</strong> de <span class="text-${currentStatus === 'active' ? 'success' : 'danger'}"><i class="fas fa-${statusIcon[currentStatus]}"></i> ${statusText[currentStatus]}</span> a <span class="text-${newStatus === 'active' ? 'success' : 'danger'}"><i class="fas fa-${statusIcon[newStatus]}"></i> ${statusText[newStatus]}</span>?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: statusColor[newStatus],
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: `<i class="fas fa-${statusIcon[newStatus]}"></i> Sí, cambiar a ${statusText[newStatus]}`,
-                cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = statusUrl;
-                }
-            });
-        });
-    });
-    
-    // Inicializar tooltips para botones de acción
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    if (tooltipTriggerList.length > 0) {
-        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-    }
-    
     // Inicializar filtros de búsqueda si existen
     const searchInput = document.getElementById('searchUsers');
     if (searchInput) {
@@ -634,73 +517,9 @@ function initializeUserList() {
             });
         });
     }
-    
-    // Inicializar filtros de rol si existen
-    const roleFilters = document.querySelectorAll('.role-filter');
-    roleFilters.forEach(filter => {
-        filter.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Remover clase activa de todos los filtros
-            roleFilters.forEach(f => f.classList.remove('active'));
-            
-            // Agregar clase activa al filtro seleccionado
-            this.classList.add('active');
-            
-            const roleToFilter = this.dataset.role;
-            const userRows = document.querySelectorAll('.user-row');
-            
-            userRows.forEach(row => {
-                if (roleToFilter === 'all') {
-                    row.style.display = '';
-                } else {
-                    const userRole = row.dataset.role;
-                    if (userRole === roleToFilter) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                }
-            });
-        });
-    });
+}
 
-
-document.addEventListener('DOMContentLoaded', function() {
-    const sectionHeaders = document.querySelectorAll('.section-header');
-
-    // Función para alternar sección
-    function toggleSection(header) {
-        const targetId = header.getAttribute('data-target');
-        const content = document.getElementById(targetId);
-        const toggle = header.querySelector('.section-toggle');
-        
-        if (content.classList.contains('expanded')) {
-            // Contraer
-            content.classList.remove('expanded');
-            toggle.classList.remove('rotated');
-        } else {
-            // Expandir
-            content.classList.add('expanded');
-            toggle.classList.add('rotated');
-        }
-    }
-
-    // Event listeners para cada header de sección
-    sectionHeaders.forEach(header => {
-        header.addEventListener('click', function() {
-            toggleSection(this);
-        });
-    });
-
-    // Expandir la primera sección por defecto
-    const firstSection = document.querySelector('.section-header[data-target="personal-info"]');
-    if (firstSection) {
-        toggleSection(firstSection);
-    }
-});
-
-// Función para mostrar el modal de detalles - CORREGIDA
+// Función para mostrar el modal de detalles
 function showDetailModal(button) {
     const userData = {
         id: button.getAttribute('data-id'),
@@ -715,10 +534,7 @@ function showDetailModal(button) {
         fecha: button.getAttribute('data-fecha')
     };
     
-    // Guardar datos globalmente para el modal de edición
-    window.currentUserData = userData;
-    
-    // Llenar los datos en el modal de detalles
+    // Llenar los datos en el modal
     document.getElementById('detailUserName').textContent = `${userData.nombres} ${userData.apellidos}`;
     document.getElementById('detailRut').textContent = userData.rut || '-';
     document.getElementById('detailNombres').textContent = userData.nombres || '-';
@@ -732,7 +548,6 @@ function showDetailModal(button) {
     const roleElement = document.getElementById('detailUserRole');
     const stateElement = document.getElementById('detailEstado');
     
-    // Configurar badge del rol
     if (userData.rol === 'admin') {
         roleElement.className = 'role-badge role-admin';
         roleElement.innerHTML = '<i class="fas fa-user-shield"></i> Administrador';
@@ -741,7 +556,6 @@ function showDetailModal(button) {
         roleElement.innerHTML = '<i class="fas fa-user"></i> Usuario';
     }
     
-    // Configurar badge del estado
     if (userData.estado === 'active') {
         stateElement.className = 'status-badge status-active';
         stateElement.textContent = 'Activo';
@@ -753,12 +567,11 @@ function showDetailModal(button) {
         stateElement.textContent = 'Pendiente';
     }
     
-    // Mostrar modal con animación
+    // Mostrar modal
     const modal = document.getElementById('detailModal');
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     
-    // Trigger de la animación de entrada
     setTimeout(() => {
         modal.classList.add('show');
     }, 10);
@@ -768,263 +581,24 @@ function showDetailModal(button) {
 function closeDetailModal() {
     const modal = document.getElementById('detailModal');
     
-    // Remover animación
     modal.classList.remove('show');
     
-    // Esperar animación y ocultar
     setTimeout(() => {
         modal.style.display = 'none';
         document.body.style.overflow = 'auto';
-        
-        // Limpiar datos
-        window.currentUserData = null;
-        window.originalUserData = null;
     }, 300);
 }
 
-// Función para editar usuario (placeholder)
+// Función para editar usuario
 function editUser() {
-    if (window.currentDetailUserId) {
-        // Aquí puedes redirigir a la página de edición
-        // window.location.href = `/usuarios/editar/${window.currentDetailUserId}/`;
-        alert(`Función de edición para usuario ID: ${window.currentDetailUserId} (por implementar)`);
-    }
+    alert('Función de edición por implementar');
 }
 
-// Variables globales para edición
-let currentEditUserId = null;
-let originalEditData = {};
-
-// Función para abrir el modal de edición
-function openEditModal() {
-    if (!window.currentUserData) {
-        alert('No hay datos de usuario disponibles');
-        return;
-    }
+function showPermissionsModal(button) {
+    const userId = button.getAttribute('data-id');
+    const userName = button.getAttribute('data-nombre');
+    const userRole = button.getAttribute('data-rol');
     
-    const userData = window.currentUserData;
-    currentEditUserId = userData.id;
-    
-    // Guardar datos originales
-    originalEditData = {...userData};
-    
-    // Llenar el formulario con los datos actuales
-    fillEditForm(userData);
-    
-    // Cerrar modal de detalles
-    closeDetailModal();
-    
-    // Mostrar modal de edición
-    const editModal = document.getElementById('editModal');
-    editModal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    
-    // Animación
-    setTimeout(() => {
-        editModal.classList.add('show');
-    }, 10);
-}
-
-// Función para llenar el formulario de edición
-function fillEditForm(userData) {
-    document.getElementById('editRut').value = userData.rut || '';
-    document.getElementById('editNombres').value = userData.nombres || '';
-    document.getElementById('editApellidos').value = userData.apellidos || '';
-    document.getElementById('editCorreo').value = userData.correo || '';
-    
-    // Formatear teléfono
-    let telefono = userData.telefono || '';
-    if (telefono && telefono !== '-' && telefono !== 'null') {
-        if (!telefono.startsWith('+56 9')) {
-            const cleanPhone = telefono.replace(/[^\d]/g, '');
-            if (cleanPhone.length >= 8) {
-                telefono = `+56 9 ${cleanPhone.slice(-8, -4)} ${cleanPhone.slice(-4)}`;
-            } else {
-                telefono = '+56 9 ';
-            }
-        }
-    } else {
-        telefono = '+56 9 ';
-    }
-    document.getElementById('editTelefono').value = telefono;
-    
-    document.getElementById('editRolSelect').value = userData.rol || 'usuario';
-    document.getElementById('editEstadoSelect').value = userData.estado || 'inactive';
-    document.getElementById('editFuncionInput').value = userData.funcion || '';
-    
-    // Configurar la acción del formulario
-    const form = document.getElementById('editUserForm');
-    form.action = `{% url 'usuarios:editar_usuario' 0 %}`.replace('0', userData.id);
-}
-
-// Función para cerrar el modal de edición
-function closeEditModal() {
-    const editModal = document.getElementById('editModal');
-    
-    editModal.classList.remove('show');
-    
-    setTimeout(() => {
-        editModal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-        
-        // Limpiar datos
-        currentEditUserId = null;
-        originalEditData = {};
-        
-        // Limpiar errores de validación
-        clearEditValidationErrors();
-    }, 300);
-}
-
-// Función para limpiar errores de validación
-function clearEditValidationErrors() {
-    const errorElements = document.querySelectorAll('#editModal .invalid-feedback');
-    const inputElements = document.querySelectorAll('#editModal .form-control-edit');
-    
-    errorElements.forEach(error => {
-        error.style.display = 'none';
-    });
-    
-    inputElements.forEach(input => {
-        input.classList.remove('is-invalid', 'is-valid');
-    });
-}
-
-// Manejar el envío del formulario de edición
-document.addEventListener('DOMContentLoaded', function() {
-    const editForm = document.getElementById('editUserForm');
-    
-    if (editForm) {
-        editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validar formulario
-            if (!validateEditForm()) {
-                return;
-            }
-            
-            // Mostrar confirmación
-            if (confirm('¿Está seguro que desea guardar los cambios?')) {
-                submitEditForm();
-            }
-        });
-    }
-    
-    // Cerrar modal al hacer clic fuera
-    const editModal = document.getElementById('editModal');
-    if (editModal) {
-        editModal.addEventListener('click', function(e) {
-            if (e.target === editModal) {
-                closeEditModal();
-            }
-        });
-    }
-    
-    // Cerrar con tecla Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const editModal = document.getElementById('editModal');
-            if (editModal && editModal.style.display === 'flex') {
-                closeEditModal();
-            }
-        }
-    });
-});
-
-// Función para validar el formulario de edición
-function validateEditForm() {
-    let isValid = true;
-    
-    // Validar campos requeridos
-    const requiredFields = ['editRut', 'editNombres', 'editApellidos', 'editCorreo'];
-    
-    requiredFields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        const value = field.value.trim();
-        
-        if (!value) {
-            showEditFieldError(fieldId, 'Este campo es requerido');
-            isValid = false;
-        } else {
-            hideEditFieldError(fieldId);
-        }
-    });
-    
-    // Validar email
-    const email = document.getElementById('editCorreo').value;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email && !emailRegex.test(email)) {
-        showEditFieldError('editCorreo', 'Ingrese un correo electrónico válido');
-        isValid = false;
-    }
-    
-    return isValid;
-}
-
-// Función para mostrar error en campo específico
-function showEditFieldError(fieldId, message) {
-    const field = document.getElementById(fieldId);
-    const errorElement = document.getElementById(fieldId.replace('edit', 'edit-').toLowerCase() + '-error');
-    
-    field.classList.add('is-invalid');
-    field.classList.remove('is-valid');
-    
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-    }
-}
-
-// Función para ocultar error en campo específico
-function hideEditFieldError(fieldId) {
-    const field = document.getElementById(fieldId);
-    const errorElement = document.getElementById(fieldId.replace('edit', 'edit-').toLowerCase() + '-error');
-    
-    field.classList.remove('is-invalid');
-    field.classList.add('is-valid');
-    
-    if (errorElement) {
-        errorElement.style.display = 'none';
-    }
-}
-
-// Función para enviar el formulario de edición
-function submitEditForm() {
-    const form = document.getElementById('editUserForm');
-    const formData = new FormData(form);
-    
-    // Mostrar loading
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
-    submitBtn.disabled = true;
-    
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Usuario actualizado correctamente');
-            closeEditModal();
-            // Recargar la página para mostrar los cambios
-            window.location.reload();
-        } else {
-            alert('Error al actualizar usuario: ' + (data.message || 'Error desconocido'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error de conexión. Por favor, intente nuevamente.');
-    })
-    .finally(() => {
-        // Restaurar botón
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
+    alert(`Asignar permisos a: ${userName} (ID: ${userId}, Rol: ${userRole})`);
+    // Aquí puedes implementar la lógica del modal de permisos
 }

@@ -136,15 +136,14 @@ def nuevo_usuario(request):
 
 @require_http_methods(["GET", "POST"])
 def editar_usuario(request, usuario_id):
-    """
-    Vista para editar un usuario existente.
-    """
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
     if request.method == 'POST':
+        # Verificar si es una petición AJAX
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         
         try:
+            # Obtener datos del formulario
             rut = request.POST.get('rut', '').strip()
             nombres = request.POST.get('nombres', '').strip()
             apellidos = request.POST.get('apellidos', '').strip()
@@ -154,10 +153,10 @@ def editar_usuario(request, usuario_id):
             estado = request.POST.get('estado', '').strip()
             funcion = request.POST.get('funcion', '').strip()
             
+            # Validar datos requeridos
             if not all([rut, nombres, apellidos, correo, rol, estado]):
                 error_data = {
                     'success': False,
-                    'error_type': 'validation_error',
                     'message': 'Por favor, complete todos los campos obligatorios.'
                 }
                 
@@ -167,15 +166,11 @@ def editar_usuario(request, usuario_id):
                     messages.error(request, error_data['message'])
                     return render(request, 'usuarios/editar_usuario.html', {'usuario': usuario})
             
-            # Verificar si el RUT ya existe (excluyendo el usuario actual)
+            # Verificar si el RUT ya existe en otro usuario
             if Usuario.objects.filter(rut=rut).exclude(id=usuario_id).exists():
-                existing_user = Usuario.objects.filter(rut=rut).exclude(id=usuario_id).first()
                 error_data = {
                     'success': False,
-                    'error_type': 'user_exists',
-                    'existing_field': 'RUT',
-                    'existing_value': f'{existing_user.nombres} {existing_user.apellidos} (RUT: {existing_user.rut})',
-                    'message': f'Ya existe otro usuario registrado con el RUT {rut}.'
+                    'message': f'Ya existe otro usuario con el RUT {rut}.'
                 }
                 
                 if is_ajax:
@@ -184,15 +179,11 @@ def editar_usuario(request, usuario_id):
                     messages.error(request, error_data['message'])
                     return render(request, 'usuarios/editar_usuario.html', {'usuario': usuario})
             
-            # Verificar si el correo ya existe (excluyendo el usuario actual)
+            # Verificar si el correo ya existe en otro usuario
             if Usuario.objects.filter(correo=correo).exclude(id=usuario_id).exists():
-                existing_user = Usuario.objects.filter(correo=correo).exclude(id=usuario_id).first()
                 error_data = {
                     'success': False,
-                    'error_type': 'user_exists',
-                    'existing_field': 'correo electrónico',
-                    'existing_value': f'{existing_user.nombres} {existing_user.apellidos} (Email: {existing_user.correo})',
-                    'message': f'Ya existe otro usuario registrado con el correo {correo}.'
+                    'message': f'Ya existe otro usuario con el correo {correo}.'
                 }
                 
                 if is_ajax:
@@ -201,11 +192,11 @@ def editar_usuario(request, usuario_id):
                     messages.error(request, error_data['message'])
                     return render(request, 'usuarios/editar_usuario.html', {'usuario': usuario})
             
-            # Actualizar los datos del usuario
+            # Actualizar usuario
             usuario.rut = rut
             usuario.nombres = nombres
             usuario.apellidos = apellidos
-            usuario.telefono = telefono
+            usuario.telefono = telefono if telefono and telefono != '+56 9 ' else ''
             usuario.correo = correo
             usuario.rol = rol
             usuario.estado = estado
@@ -214,8 +205,7 @@ def editar_usuario(request, usuario_id):
             
             success_data = {
                 'success': True,
-                'message': f'Usuario {nombres} {apellidos} actualizado exitosamente.',
-                'redirect_url': '/usuarios/'
+                'message': f'Usuario {nombres} {apellidos} actualizado exitosamente.'
             }
             
             if is_ajax:
@@ -227,7 +217,6 @@ def editar_usuario(request, usuario_id):
         except Exception as e:
             error_data = {
                 'success': False,
-                'error_type': 'general_error',
                 'message': f'Error al actualizar el usuario: {str(e)}'
             }
             

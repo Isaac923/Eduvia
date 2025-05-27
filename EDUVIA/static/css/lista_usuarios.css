@@ -33,6 +33,18 @@
   --transition: all 0.2s ease;
 }
 
+/* Expandir automáticamente en página de edición */
+body.edit-page .section-content,
+.form-container .section-content {
+    max-height: 800px;
+    padding: 25px;
+}
+
+body.edit-page .section-toggle,
+.form-container .section-toggle {
+    transform: rotate(180deg);
+}
+
 /* =========================================
    1. CONTENEDOR PRINCIPAL
    ========================================= */
@@ -214,6 +226,14 @@
 .btn-action:focus,
 .btn-action:active {
     text-decoration: none !important;
+}
+
+.btn-permissions {
+    background: linear-gradient(135deg, #ffc107, #ff8f00);
+}
+
+.btn-permissions:hover {
+    box-shadow: 0 6px 15px rgba(255, 193, 7, 0.3);
 }
 
 /* =========================================

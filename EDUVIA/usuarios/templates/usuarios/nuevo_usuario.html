@@ -22,38 +22,34 @@
         
         <!-- Sección: Información Personal -->
         <div class="form-section">
-            <div class="section-header" data-target="personal-info">
-                <h3><i class="fas fa-user"></i> Información Personal</h3>
-                <span class="section-toggle"><i class="fas fa-chevron-down"></i></span>
+            <h3><i class="fas fa-user"></i> Información Personal</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="rut">RUT <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-id-card"></i></span>
+                        <input type="text" id="rut" name="rut" class="form-control" placeholder="Ej: 12345678-9" required maxlength="12">
+                    </div>
+                    <small class="form-text">Formato: 12345678-9 (8 dígitos + dígito verificador)</small>
+                    <div class="invalid-feedback" id="rut-error"><i class="fas fa-exclamation-circle"></i>RUT inválido. Debe tener 8 dígitos más dígito verificador válido.</div>
+                </div>
             </div>
-            <div class="section-content" id="personal-info">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="rut">RUT <span class="required">*</span></label>
-                        <div class="input-group">
-                            <span class="input-icon"><i class="fas fa-id-card"></i></span>
-                            <input type="text" id="rut" name="rut" class="form-control" placeholder="Ej: 12345678-9" required maxlength="12">
-                        </div>
-                        <small class="form-text">Formato: 12345678-9 (8 dígitos + dígito verificador)</small>
-                        <div class="invalid-feedback" id="rut-error"><i class="fas fa-exclamation-circle"></i>RUT inválido. Debe tener 8 dígitos más dígito verificador válido.</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombres">Nombres <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-user"></i></span>
+                        <input type="text" id="nombres" name="nombres" class="form-control" placeholder="Ingrese nombres" required>
                     </div>
                 </div>
                 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="nombres">Nombres <span class="required">*</span></label>
-                        <div class="input-group">
-                            <span class="input-icon"><i class="fas fa-user"></i></span>
-                            <input type="text" id="nombres" name="nombres" class="form-control" placeholder="Ingrese nombres" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="apellidos">Apellidos <span class="required">*</span></label>
-                        <div class="input-group">
-                            <span class="input-icon"><i class="fas fa-user"></i></span>
-                            <input type="text" id="apellidos" name="apellidos" class="form-control" placeholder="Ingrese apellidos" required>
-                        </div>
+                <div class="form-group">
+                    <label for="apellidos">Apellidos <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-user"></i></span>
+                        <input type="text" id="apellidos" name="apellidos" class="form-control" placeholder="Ingrese apellidos" required>
                     </div>
                 </div>
             </div>
@@ -61,88 +57,80 @@
         
         <!-- Sección: Información de Contacto -->
         <div class="form-section">
-            <div class="section-header" data-target="contact-info">
-                <h3><i class="fas fa-address-book"></i> Información de Contacto</h3>
-                <span class="section-toggle"><i class="fas fa-chevron-down"></i></span>
-            </div>
-            <div class="section-content" id="contact-info">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="telefono">Número de Teléfono</label>
-                        <div class="input-group">
-                            <span class="input-icon"><i class="fas fa-phone"></i></span>
-                            <input type="tel" id="telefono" name="telefono" class="form-control" placeholder="Ej: +56 9 1234 5678" value="+56 9 " maxlength="16">
-                        </div>
-                        <small class="form-text">Formato: +56 9 1234 5678 (8 dígitos después del prefijo)</small>
-                        <div class="invalid-feedback" id="telefono-error"><i class="fas fa-exclamation-circle"></i>Número inválido. Debe tener 8 dígitos después de +56 9.</div>
+            <h3><i class="fas fa-address-book"></i> Información de Contacto</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="telefono">Número de Teléfono</label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-phone"></i></span>
+                        <input type="tel" id="telefono" name="telefono" class="form-control" placeholder="Ej: +56 9 1234 5678" value="+56 9 " maxlength="16">
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="correo">Correo Electrónico <span class="required">*</span></label>
-                        <div class="input-group">
-                            <span class="input-icon"><i class="fas fa-envelope"></i></span>
-                            <input type="email" id="correo" name="correo" class="form-control" placeholder="ejemplo@dominio.com" required>
-                        </div>
-                        <div class="invalid-feedback" id="correo-error"><i class="fas fa-exclamation-circle"></i>Por favor ingrese un correo electrónico válido.</div>
+                    <small class="form-text">Formato: +56 9 1234 5678 (8 dígitos después del prefijo)</small>
+                    <div class="invalid-feedback" id="telefono-error"><i class="fas fa-exclamation-circle"></i>Número inválido. Debe tener 8 dígitos después de +56 9.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="correo">Correo Electrónico <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                        <input type="email" id="correo" name="correo" class="form-control" placeholder="ejemplo@dominio.com" required>
                     </div>
+                    <div class="invalid-feedback" id="correo-error"><i class="fas fa-exclamation-circle"></i>Por favor ingrese un correo electrónico válido.</div>
                 </div>
             </div>
         </div>
         
         <!-- Sección: Información del Sistema -->
         <div class="form-section">
-            <div class="section-header" data-target="system-info">
-                <h3><i class="fas fa-cogs"></i> Información del Sistema</h3>
-                <span class="section-toggle"><i class="fas fa-chevron-down"></i></span>
+            <h3><i class="fas fa-cogs"></i> Información del Sistema</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Rol <span class="required">*</span></label>
+                    <div class="role-selection">
+                        <div class="role-option">
+                            <input type="radio" id="rol-usuario" name="rol" value="usuario" class="role-input">
+                            <label for="rol-usuario" class="role-label">
+                                <div class="role-icon-container">
+                                    <i class="fas fa-user-tie role-icon"></i>
+                                </div>
+                                <span class="role-title">Usuario</span>
+                                <span class="role-description">Acceso estándar al sistema</span>
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" id="rol-admin" name="rol" value="admin" class="role-input">
+                            <label for="rol-admin" class="role-label">
+                                <div class="role-icon-container">
+                                    <i class="fas fa-user-shield role-icon"></i>
+                                </div>
+                                <span class="role-title">Administrador</span>
+                                <span class="role-description">Acceso completo al sistema</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="invalid-feedback" id="rol-error">
+                        <i class="fas fa-exclamation-circle"></i> Debe seleccionar un rol para el usuario
+                    </div>
+                </div>
             </div>
-            <div class="section-content" id="system-info">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Rol <span class="required">*</span></label>
-                        <div class="role-selection">
-                            <div class="role-option">
-                                <input type="radio" id="rol-usuario" name="rol" value="usuario" class="role-input">
-                                <label for="rol-usuario" class="role-label">
-                                    <div class="role-icon-container">
-                                        <i class="fas fa-user-tie role-icon"></i>
-                                    </div>
-                                    <span class="role-title">Usuario</span>
-                                    <span class="role-description">Acceso estándar al sistema</span>
-                                </label>
-                            </div>
-                            <div class="role-option">
-                                <input type="radio" id="rol-admin" name="rol" value="admin" class="role-input">
-                                <label for="rol-admin" class="role-label">
-                                    <div class="role-icon-container">
-                                        <i class="fas fa-user-shield role-icon"></i>
-                                    </div>
-                                    <span class="role-title">Administrador</span>
-                                    <span class="role-description">Acceso completo al sistema</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="invalid-feedback" id="rol-error">
-                            <i class="fas fa-exclamation-circle"></i> Debe seleccionar un rol para el usuario
-                        </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="funcion">Función</label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-briefcase"></i></span>
+                        <input type="text" id="funcion" name="funcion" class="form-control" placeholder="Ej: Profesor de Matemáticas">
                     </div>
+                    <small class="form-text">Especifique la función o cargo del usuario en la institución</small>
                 </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="funcion">Función</label>
-                        <div class="input-group">
-                            <span class="input-icon"><i class="fas fa-briefcase"></i></span>
-                            <input type="text" id="funcion" name="funcion" class="form-control" placeholder="Ej: Profesor de Matemáticas">
-                        </div>
-                        <small class="form-text">Especifique la función o cargo del usuario en la institución</small>
-                    </div>
-                </div>
-                
-                <!-- Nota informativa sobre el estado por defecto -->
-                <div class="info-text mt-3">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Los nuevos usuarios se crean con estado "Inactivo" por defecto. Un administrador deberá activarlos posteriormente.</span>
-                </div>
+            </div>
+            
+            <!-- Nota informativa sobre el estado por defecto -->
+            <div class="info-text mt-3">
+                <i class="fas fa-info-circle"></i>
+                <span>Los nuevos usuarios se crean con estado "Inactivo" por defecto. Un administrador deberá activarlos posteriormente.</span>
             </div>
         </div>
         
@@ -161,5 +149,4 @@
 {% block extra_js %}
 <script src="{% static 'js/lista_usuarios.js' %}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 {% endblock %}

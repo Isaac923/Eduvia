@@ -124,6 +124,14 @@
                                     onclick="showDeleteModal(this)">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
+                            <button type="button" class="btn-action btn-permissions" 
+                                    data-id="{{ usuario.id }}" 
+                                    data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}"
+                                    data-rol="{{ usuario.rol }}"
+                                    onclick="showPermissionsModal(this)"
+                                    title="Asignar permisos">
+                                <i class="fas fa-key"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -390,7 +398,8 @@
                 <button type="button" class="btn-secondary" onclick="closeDetailModal()">
                     <i class="fas fa-times me-1"></i>Cerrar
                 </button>
-                <button type="button" class="btn-primary" id="editBtn" onclick="openEditModal()">
+                <!-- POR esta línea: -->
+                <button type="button" class="btn-primary" id="editBtn" onclick="redirectToEdit()">
                     <i class="fas fa-edit me-1"></i>Editar Usuario
                 </button>
                 <button type="button" class="btn-secondary" id="cancelBtn" onclick="cancelEdit()" style="display: none;">
@@ -496,6 +505,9 @@
 {% block extra_js %}
 <script src="{% static 'js/lista_usuarios.js' %}"></script>
 <script>
+    // Variables globales
+    window.currentUserData = null;
+
     // Función para resetear los filtros
     function resetFilters() {
         document.querySelector('.search-input').value = '';
@@ -521,33 +533,161 @@
         
         // Mostrar modal
         document.getElementById('deleteModal').style.display = 'flex';
-        
-        // Prevenir scroll del body
         document.body.style.overflow = 'hidden';
     }
     
-    // Función para cerrar el modal
+    // Función para cerrar el modal de eliminación
     function closeDeleteModal() {
         document.getElementById('deleteModal').style.display = 'none';
         document.body.style.overflow = 'auto';
     }
     
-    // Cerrar modal al hacer clic fuera de él
+    // Función para mostrar el modal de detalles
+    function showDetailModal(button) {
+        console.log('showDetailModal llamada'); // Debug
+        
+        const userData = {
+            id: button.getAttribute('data-id'),
+            rut: button.getAttribute('data-rut'),
+            nombres: button.getAttribute('data-nombres'),
+            apellidos: button.getAttribute('data-apellidos'),
+            correo: button.getAttribute('data-correo'),
+            telefono: button.getAttribute('data-telefono') || '',
+            rol: button.getAttribute('data-rol'),
+            estado: button.getAttribute('data-estado'),
+            funcion: button.getAttribute('data-funcion') || '',
+            fecha: button.getAttribute('data-fecha')
+        };
+        
+        console.log('Datos del usuario:', userData); // Debug
+        
+        // Guardar datos globalmente
+        window.currentUserData = userData;
+        
+        // Llenar los datos en el modal de detalles
+        document.getElementById('detailUserName').textContent = `${userData.nombres} ${userData.apellidos}`;
+        document.getElementById('detailRut').textContent = userData.rut || '-';
+        document.getElementById('detailNombres').textContent = userData.nombres || '-';
+        document.getElementById('detailApellidos').textContent = userData.apellidos || '-';
+        document.getElementById('detailCorreo').textContent = userData.correo || '-';
+        document.getElementById('detailTelefono').textContent = userData.telefono || '-';
+        document.getElementById('detailFuncion').textContent = userData.funcion || '-';
+        document.getElementById('detailFechaRegistro').textContent = userData.fecha || '-';
+        
+        // Configurar el rol
+        const roleElement = document.getElementById('detailUserRole');
+        const stateElement = document.getElementById('detailEstado');
+        
+        // Configurar badge del rol
+        if (userData.rol === 'admin') {
+            roleElement.className = 'role-badge role-admin';
+            roleElement.innerHTML = '<i class="fas fa-user-shield"></i> Administrador';
+        } else if (userData.rol === 'usuario') {
+            roleElement.className = 'role-badge role-staff';
+            roleElement.innerHTML = '<i class="fas fa-user"></i> Usuario';
+        }
+        
+        // Configurar badge del estado
+        if (userData.estado === 'active') {
+            stateElement.className = 'status-badge status-active';
+            stateElement.textContent = 'Activo';
+        } else if (userData.estado === 'inactive') {
+            stateElement.className = 'status-badge status-inactive';
+            stateElement.textContent = 'Inactivo';
+        } else {
+            stateElement.className = 'status-badge status-pending';
+            stateElement.textContent = 'Pendiente';
+        }
+        
+        // Mostrar modal con animación
+        const modal = document.getElementById('detailModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Trigger de la animación de entrada
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
+    }
+    
+    // Función para cerrar el modal de detalles
+    function closeDetailModal() {
+        const modal = document.getElementById('detailModal');
+        
+        modal.classList.remove('show');
+        
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 300);
+    }
+    
+    // Función para redireccionar al formulario de edición
+    function redirectToEdit() {
+        console.log('redirectToEdit llamada'); // Debug
+        console.log('currentUserData:', window.currentUserData); // Debug
+        
+        if (!window.currentUserData || !window.currentUserData.id) {
+            alert('No hay datos de usuario disponibles');
+            return;
+        }
+        
+        const userId = window.currentUserData.id;
+        console.log('Redirigiendo a editar usuario ID:', userId); // Debug
+        
+        // Cerrar el modal de detalles
+        closeDetailModal();
+        
+        // Redireccionar a la página de edición
+        const editUrl = "{% url 'usuarios:editar_usuario' 999 %}".replace('999', userId);
+        console.log('URL de edición:', editUrl); // Debug
+        
+        window.location.href = editUrl;
+    }
+    
+    // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('deleteModal');
+        console.log('DOM cargado'); // Debug
         
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closeDeleteModal();
-            }
-        });
+        const deleteModal = document.getElementById('deleteModal');
+        const detailModal = document.getElementById('detailModal');
         
-        // Cerrar modal con tecla Escape
+        // Cerrar modales al hacer clic fuera
+        if (deleteModal) {
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === deleteModal) {
+                    closeDeleteModal();
+                }
+            });
+        }
+        
+        if (detailModal) {
+            detailModal.addEventListener('click', function(e) {
+                if (e.target === detailModal) {
+                    closeDetailModal();
+                }
+            });
+        }
+        
+        // Cerrar modales con tecla Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                closeDeleteModal();
+                if (deleteModal && deleteModal.style.display === 'flex') {
+                    closeDeleteModal();
+                }
+                if (detailModal && detailModal.classList.contains('show')) {
+                    closeDetailModal();
+                }
             }
         });
+        
+        // Verificar que el botón de editar existe
+        const editBtn = document.getElementById('editBtn');
+        if (editBtn) {
+            console.log('Botón de editar encontrado'); // Debug
+        } else {
+            console.log('Botón de editar NO encontrado'); // Debug
+        }
     });
 
     // Función para cerrar alertas

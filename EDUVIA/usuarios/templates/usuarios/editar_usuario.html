@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Usuario - EDUVIA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lista_usuarios.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="form-container">
+    <div class="form-header">
+        <h2><i class="fas fa-user-edit"></i> Editar Usuario</h2>
+        <p>Modifique los datos del usuario {{ usuario.nombres }} {{ usuario.apellidos }}.</p>
+    </div>
+
+    <form method="post" class="eduvia-form" id="userForm" action="{% url 'usuarios:editar_usuario' usuario.id %}">
+        {% csrf_token %}
+        
+        <!-- Sección: Información Personal -->
+        <div class="form-section">
+            <h3><i class="fas fa-user"></i> Información Personal</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="rut">RUT <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-id-card"></i></span>
+                        <input type="text" id="rut" name="rut" class="form-control" 
+                               placeholder="Ej: 12345678-9" required maxlength="12"
+                               value="{{ usuario.rut }}">
+                    </div>
+                    <small class="form-text">Formato: 12345678-9 (8 dígitos + dígito verificador)</small>
+                    <div class="invalid-feedback" id="rut-error"><i class="fas fa-exclamation-circle"></i>RUT inválido. Debe tener 8 dígitos más dígito verificador válido.</div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombres">Nombres <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-user"></i></span>
+                        <input type="text" id="nombres" name="nombres" class="form-control" 
+                               placeholder="Ingrese nombres" required
+                               value="{{ usuario.nombres }}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="apellidos">Apellidos <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-user"></i></span>
+                        <input type="text" id="apellidos" name="apellidos" class="form-control" 
+                               placeholder="Ingrese apellidos" required
+                               value="{{ usuario.apellidos }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección: Información de Contacto -->
+        <div class="form-section">
+            <h3><i class="fas fa-address-book"></i> Información de Contacto</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="telefono">Número de Teléfono</label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-phone"></i></span>
+                        <input type="tel" id="telefono" name="telefono" class="form-control" 
+                               placeholder="Ej: +56 9 1234 5678" maxlength="16"
+                               value="{{ usuario.telefono|default:'+56 9 ' }}">
+                    </div>
+                    <small class="form-text">Formato: +56 9 1234 5678 (8 dígitos después del prefijo)</small>
+                    <div class="invalid-feedback" id="telefono-error"><i class="fas fa-exclamation-circle"></i>Número inválido. Debe tener 8 dígitos después de +56 9.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="correo">Correo Electrónico <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-envelope"></i></span>
+                        <input type="email" id="correo" name="correo" class="form-control" 
+                               placeholder="ejemplo@dominio.com" required
+                               value="{{ usuario.correo }}">
+                    </div>
+                    <div class="invalid-feedback" id="correo-error"><i class="fas fa-exclamation-circle"></i>Por favor ingrese un correo electrónico válido.</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección: Información del Sistema -->
+        <div class="form-section">
+            <h3><i class="fas fa-cogs"></i> Información del Sistema</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Rol <span class="required">*</span></label>
+                    <div class="role-selection">
+                        <div class="role-option">
+                            <input type="radio" id="rol-usuario" name="rol" value="usuario" class="role-input"
+                                   {% if usuario.rol == 'usuario' %}checked{% endif %}>
+                            <label for="rol-usuario" class="role-label">
+                                <div class="role-icon-container">
+                                    <i class="fas fa-user-tie role-icon"></i>
+                                </div>
+                                <span class="role-title">Usuario</span>
+                                <span class="role-description">Acceso estándar al sistema</span>
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" id="rol-admin" name="rol" value="admin" class="role-input"
+                                   {% if usuario.rol == 'admin' %}checked{% endif %}>
+                            <label for="rol-admin" class="role-label">
+                                <div class="role-icon-container">
+                                    <i class="fas fa-user-shield role-icon"></i>
+                                </div>
+                                <span class="role-title">Administrador</span>
+                                <span class="role-description">Acceso completo al sistema</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="invalid-feedback" id="rol-error">
+                        <i class="fas fa-exclamation-circle"></i> Debe seleccionar un rol para el usuario
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="estado">Estado <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-toggle-on"></i></span>
+                        <select id="estado" name="estado" class="form-control" required>
+                            <option value="active" {% if usuario.estado == 'active' %}selected{% endif %}>Activo</option>
+                            <option value="inactive" {% if usuario.estado == 'inactive' %}selected{% endif %}>Inactivo</option>
+                            <option value="pending" {% if usuario.estado == 'pending' %}selected{% endif %}>Pendiente</option>
+                        </select>
+                    </div>
+                    <small class="form-text">Seleccione el estado actual del usuario</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="funcion">Función</label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-briefcase"></i></span>
+                        <input type="text" id="funcion" name="funcion" class="form-control" 
+                               placeholder="Ej: Profesor de Matemáticas"
+                               value="{{ usuario.funcion|default:'' }}">
+                    </div>
+                    <small class="form-text">Especifique la función o cargo del usuario en la institución</small>
+                </div>
+            </div>
+            
+            <!-- Información adicional -->
+            <div class="info-text mt-3">
+                <i class="fas fa-info-circle"></i>
+                <span>Usuario creado el {{ usuario.fecha_creacion|date:"d/m/Y H:i" }}. Los cambios se aplicarán inmediatamente.</span>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <a href="{% url 'usuarios:lista_usuarios' %}" class="btn-eduvia btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+            <button type="submit" class="btn-eduvia btn-primary">
+                <i class="fas fa-save"></i> Actualizar Usuario
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formatear teléfono si está vacío o incorrecto
+    const telefonoInput = document.getElementById('telefono');
+    if (telefonoInput) {
+        let telefonoValue = telefonoInput.value;
+        if (!telefonoValue || telefonoValue === '' || telefonoValue === 'None' || telefonoValue === 'null') {
+            telefonoInput.value = '+56 9 ';
+        } else if (telefonoValue && !telefonoValue.startsWith('+56 9')) {
+            const cleanNumber = telefonoValue.replace(/[^\d]/g, '');
+            if (cleanNumber.length >= 8) {
+                const formattedNumber = cleanNumber.slice(-8);
+                telefonoInput.value = `+56 9 ${formattedNumber.slice(0, 4)} ${formattedNumber.slice(4)}`;
+            } else {
+                telefonoInput.value = '+56 9 ';
+            }
+        }
+    }
+
+    // Validación del formulario
+    const form = document.getElementById('userForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: '¿Confirmar cambios?',
+                html: `
+                    <div class="confirmation-details">
+                        <p><strong>¿Está seguro que desea actualizar los datos del usuario?</strong></p>
+                        <p><i class="fas fa-user"></i> <strong>Usuario:</strong> ${document.getElementById('nombres').value} ${document.getElementById('apellidos').value}</p>
+                        <p><i class="fas fa-id-card"></i> <strong>RUT:</strong> ${document.getElementById('rut').value}</p>
+                        <p><i class="fas fa-envelope"></i> <strong>Correo:</strong> ${document.getElementById('correo').value}</p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-save"></i> Sí, actualizar',
+                cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                customClass: {
+                    popup: 'swal-wide'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Actualizando usuario...',
+                        html: '<i class="fas fa-spinner fa-spin"></i> Por favor espere',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    form.submit();
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
