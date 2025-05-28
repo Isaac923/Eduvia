@@ -4,152 +4,162 @@
 {% block title %}Listado de Usuarios - EDUVIA{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/lista_usuarios.css' %}">
-
 {% endblock %}
-{% block content %}
-<div class="user-list-container">
-    <!-- Encabezado de la página -->
-    <div class="page-header">
-        <h2>Listado de Usuarios</h2>
-        <a href="{% url 'usuarios:nuevo_usuario' %}" class="btn-eduvia btn-primary">
-            <i class="fas fa-plus-circle"></i> Nuevo Usuario
-        </a>
-    </div>
-    
-    <!-- Contenedor para alertas dinámicas -->
-    <div id="alertContainer"></div>
 
-    <!-- Alertas de Django Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="custom-alert alert-{{ message.tags }}" id="djangoAlert">
-                <div class="alert-content">
-                    {% if message.tags == 'success' %}
-                        <i class="fas fa-check-circle alert-icon"></i>
-                    {% elif message.tags == 'error' %}
-                        <i class="fas fa-exclamation-circle alert-icon"></i>
-                    {% endif %}
-                    <span class="alert-message">{{ message }}</span>
+{% block content %}
+<div class="content-wrapper">
+    <div class="user-list-container">
+        <!-- Encabezado de la página -->
+        <div class="page-header">
+            <h2>Listado de Usuarios</h2>
+            <a href="{% url 'usuarios:nuevo_usuario' %}" class="btn-eduvia btn-primary">
+                <i class="fas fa-plus-circle"></i> Nuevo Usuario
+            </a>
+        </div>
+        
+        <!-- Contenedor para alertas dinámicas -->
+        <div id="alertContainer"></div>
+
+        <!-- Alertas de Django Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="custom-alert alert-{{ message.tags }}" id="djangoAlert">
+                    <div class="alert-content">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle alert-icon"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle alert-icon"></i>
+                        {% endif %}
+                        <span class="alert-message">{{ message }}</span>
+                    </div>
+                    <button type="button" class="alert-close" onclick="closeAlert(this)">×</button>
                 </div>
-                <button type="button" class="alert-close" onclick="closeAlert(this)">×</button>
+            {% endfor %}
+        {% endif %}
+        
+        {% if usuarios %}
+        <!-- Búsqueda y filtros -->
+        <div class="search-filter-container">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" class="form-control search-input" placeholder="Buscar por RUT, nombre o apellido...">
             </div>
-        {% endfor %}
-    {% endif %}
-    
-    {% if usuarios %}
-    <!-- Búsqueda y filtros - Versión compacta -->
-    <div class="search-filter-container compact-filters">
-        <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" class="form-control search-input" placeholder="Buscar...">
+            <div class="filter-group">
+                <select id="filterRol" class="form-select filter-dropdown filter-rol">
+                    <option value="">Todos los roles</option>
+                    <option value="admin">Administrador</option>
+                    <option value="teacher">Profesor</option>
+                    <option value="usuario">Usuario</option>
+                </select>
+                <select id="filterEstado" class="form-select filter-dropdown filter-estado">
+                    <option value="">Todos los estados</option>
+                    <option value="active">Activo</option>
+                    <option value="inactive">Inactivo</option>
+                    <option value="pending">Pendiente</option>
+                </select>
+            </div>
         </div>
-        <div class="filter-group">
-            <select class="form-select filter-dropdown filter-rol">
-                <option value="">Rol</option>
-                {% regroup usuarios by get_rol_display as rol_list %}
-                {% for rol_group in rol_list %}
-                    <option value="{{ rol_group.grouper.0 }}">{{ rol_group.grouper }}</option>
-                {% endfor %}
-            </select>
-            <select class="form-select filter-dropdown filter-estado">
-                <option value="">Estado</option>
-                {% regroup usuarios by get_estado_display as estado_list %}
-                {% for estado_group in estado_list %}
-                    <option value="{{ estado_group.grouper.0 }}">{{ estado_group.grouper }}</option>
-                {% endfor %}
-            </select>
+        {% endif %}
+        
+        <!-- Contenedor de tabla con scroll interno -->
+        <div class="table-container">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>RUT</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Rol</th>
+                        <th>Función</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for usuario in usuarios %}
+                    <tr class="user-row" 
+                        data-rut="{{ usuario.rut|lower }}"
+                        data-nombre="{{ usuario.nombres|lower }} {{ usuario.apellidos|lower }}"
+                        data-rol="{{ usuario.rol }}"
+                        data-estado="{{ usuario.estado }}">
+                        <td>{{ usuario.rut }}</td>
+                        <td>{{ usuario.nombres }}</td>
+                        <td>{{ usuario.apellidos }}</td>
+                        <td data-rol="{{ usuario.rol }}">
+                            {% if usuario.rol == 'admin' %}
+                                <span class="role-badge role-admin">
+                                    <i class="fas fa-user-shield"></i> Administrador
+                                </span>
+                            {% elif usuario.rol == 'teacher' %}
+                                <span class="role-badge role-teacher">
+                                    <i class="fas fa-chalkboard-teacher"></i> Profesor
+                                </span>
+                            {% elif usuario.rol == 'student' %}
+                                <span class="role-badge role-student">
+                                    <i class="fas fa-user-graduate"></i> Estudiante
+                                </span>
+                            {% else %}
+                                <span class="role-badge role-staff">
+                                    <i class="fas fa-user"></i> Personal
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="function-badge">{{ usuario.funcion|default:"Sin función" }}</span>
+                        </td>
+                        <td data-estado="{{ usuario.estado }}">
+                            {% if usuario.estado == 'active' %}
+                                <span class="status-badge status-active">Activo</span>
+                            {% elif usuario.estado == 'inactive' %}
+                                <span class="status-badge status-inactive">Inactivo</span>
+                            {% else %}
+                                <span class="status-badge status-pending">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button type="button" class="btn-action btn-view" 
+                                        data-id="{{ usuario.id }}"
+                                        data-rut="{{ usuario.rut|default:'' }}"
+                                        data-nombres="{{ usuario.nombres|default:'' }}"
+                                        data-apellidos="{{ usuario.apellidos|default:'' }}"
+                                        data-correo="{{ usuario.correo|default:'' }}"
+                                        data-telefono="{{ usuario.telefono|default:'' }}"
+                                        data-rol="{{ usuario.rol|default:'usuario' }}"
+                                        data-estado="{{ usuario.estado|default:'inactive' }}"
+                                        data-funcion="{{ usuario.funcion|default:'' }}"
+                                        data-fecha="{{ usuario.fecha_creacion|date:'d/m/Y H:i'|default:'-' }}"
+                                        onclick="showDetailModal(this)"
+                                        title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn-action btn-delete" 
+                                        data-id="{{ usuario.id }}" 
+                                        data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}"
+                                        data-rut="{{ usuario.rut }}"
+                                        onclick="showDeleteModal(this)"
+                                        title="Eliminar usuario">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                <p>No se encontraron usuarios.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </div>
-    {% endif %}
-    
-    <!-- Tabla de usuarios -->
-    <div class="table-responsive">
-        <table class="user-table">
-            <thead>
-                <tr>
-                    <th>RUT</th>
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for usuario in usuarios %}
-                <tr>
-                    <td>{{ usuario.rut }}</td>
-                    <td>{{ usuario.nombres }}</td>
-                    <td>{{ usuario.apellidos }}</td>
-                    <td data-rol="{{ usuario.rol }}">
-                        {% if usuario.rol == 'admin' %}
-                            <span class="role-badge role-admin"><i class="fas fa-user-shield"></i> Administrador</span>
-                        {% elif usuario.rol == 'teacher' %}
-                            <span class="role-badge role-teacher"><i class="fas fa-chalkboard-teacher"></i> Profesor</span>
-                        {% elif usuario.rol == 'student' %}
-                            <span class="role-badge role-student"><i class="fas fa-user-graduate"></i> Estudiante</span>
-                        {% else %}
-                            <span class="role-badge role-staff"><i class="fas fa-user"></i> Personal</span>
-                        {% endif %}
-                    </td>
-                    <td data-estado="{{ usuario.estado }}">
-                        {% if usuario.estado == 'active' %}
-                            <span class="status-badge status-active">Activo</span>
-                        {% elif usuario.estado == 'inactive' %}
-                            <span class="status-badge status-inactive">Inactivo</span>
-                        {% else %}
-                            <span class="status-badge status-pending">Pendiente</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <button type="button" class="btn-action btn-view" 
-                                    data-id="{{ usuario.id }}"
-                                    data-rut="{{ usuario.rut|default:'' }}"
-                                    data-nombres="{{ usuario.nombres|default:'' }}"
-                                    data-apellidos="{{ usuario.apellidos|default:'' }}"
-                                    data-correo="{{ usuario.correo|default:'' }}"
-                                    data-telefono="{{ usuario.telefono|default:'' }}"
-                                    data-rol="{{ usuario.rol|default:'usuario' }}"
-                                    data-estado="{{ usuario.estado|default:'inactive' }}"
-                                    data-funcion="{{ usuario.funcion|default:'' }}"
-                                    data-fecha="{{ usuario.fecha_creacion|date:'d/m/Y H:i'|default:'-' }}"
-                                    onclick="showDetailModal(this)">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button type="button" class="btn-action btn-delete" 
-                                    data-id="{{ usuario.id }}" 
-                                    data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}"
-                                    data-rut="{{ usuario.rut }}"
-                                    onclick="showDeleteModal(this)">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                            <button type="button" class="btn-action btn-permissions" 
-                                    data-id="{{ usuario.id }}" 
-                                    data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}"
-                                    data-rol="{{ usuario.rol }}"
-                                    onclick="showPermissionsModal(this)"
-                                    title="Asignar permisos">
-                                <i class="fas fa-key"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center py-4">
-                        <div class="empty-state">
-                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                            <p>No se encontraron usuarios. Para comenzar, crea un nuevo usuario usando el botón "Nuevo Usuario" en la parte superior.</p>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
         
         <!-- Mensaje cuando no hay resultados de búsqueda -->
-        <div id="empty-results" style="display: none;" class="text-center py-4">
+        <div id="empty-results" style="display: none;" class="empty-results">
             <div class="empty-state">
                 <i class="fas fa-search fa-3x text-muted mb-3"></i>
                 <p>No se encontraron usuarios que coincidan con los criterios de búsqueda.</p>
@@ -158,70 +168,43 @@
                 </button>
             </div>
         </div>
-    </div>
-    
-    {% if usuarios %}
-    <!-- Paginación - Solo se muestra si hay usuarios -->
-    <div class="pagination-container">
-        <div class="page-info">
-            Mostrando {{ usuarios.start_index }} a {{ usuarios.end_index }} de {{ usuarios.paginator.count }} usuarios
-        </div>
-        <ul class="pagination">
-            {% if usuarios.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page=1" aria-label="Primera página" data-tooltip="Primera página">
+
+        <!-- Paginador EDUVIA -->
+        <div class="pagination-container" id="paginationContainer">
+            <div class="pagination-info">
+                <span>Mostrando <strong id="showingStart">1</strong> - <strong id="showingEnd">4</strong> de <strong id="totalItems">{{ usuarios.count }}</strong> usuarios</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="firstPage" title="Primera página">
                     <i class="fas fa-angle-double-left"></i>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ usuarios.previous_page_number }}" aria-label="Página anterior" data-tooltip="Anterior">
+                </button>
+                <button class="pagination-btn" id="prevPage" title="Página anterior">
                     <i class="fas fa-angle-left"></i>
-                </a>
-            </li>
-            {% else %}
-            <li class="page-item disabled">
-                <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
-            </li>
-            <li class="page-item disabled">
-                <span class="page-link"><i class="fas fa-angle-left"></i></span>
-            </li>
-            {% endif %}
-            
-            {% for num in usuarios.paginator.page_range %}
-                {% if usuarios.number == num %}
-                <li class="page-item active">
-                    <span class="page-link">{{ num }}</span>
-                </li>
-                {% elif num > usuarios.number|add:'-3' and num < usuarios.number|add:'3' %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                </li>
-                {% endif %}
-            {% endfor %}
-            
-            {% if usuarios.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ usuarios.next_page_number }}" aria-label="Siguiente página" data-tooltip="Siguiente">
+                </button>
+                <div class="pagination-numbers" id="paginationNumbers">
+                    <!-- Los números se generan dinámicamente -->
+                </div>
+                <button class="pagination-btn" id="nextPage" title="Página siguiente">
                     <i class="fas fa-angle-right"></i>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?page={{ usuarios.paginator.num_pages }}" aria-label="Última página" data-tooltip="Última página">
+                </button>
+                <button class="pagination-btn" id="lastPage" title="Última página">
                     <i class="fas fa-angle-double-right"></i>
-                </a>
-            </li>
-            {% else %}
-            <li class="page-item disabled">
-                <span class="page-link"><i class="fas fa-angle-right"></i></span>
-            </li>
-            <li class="page-item disabled">
-                <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
-            </li>
-            {% endif %}
-        </ul>
+                </button>
+            </div>
+            <div class="pagination-size">
+                <label for="pageSize">Mostrar:</label>
+                <select id="pageSize" class="page-size-select">
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="12">12</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+                <span>por página</span>
+            </div>
+        </div>
     </div>
-    {% endif %}
-    
+
     <!-- Modal de confirmación para eliminar usuario -->
     <div class="delete-alert-modal" id="deleteModal" style="display: none;">
         <div class="delete-alert-content">
@@ -254,7 +237,8 @@
             </div>
         </div>
     </div>
-    <!-- Modal de detalles/edición del usuario -->
+
+    <!-- Modal de detalles del usuario -->
     <div class="detail-modal" id="detailModal" style="display: none;">
         <div class="detail-modal-content">
             <div class="detail-modal-header">
@@ -268,79 +252,7 @@
                     <span id="detailUserRole" class="role-badge">Rol</span>
                 </div>
             
-                <form id="editUserForm" method="POST" style="display: none;">
-                    {% csrf_token %}
-                    <div class="detail-sections">
-                        <!-- Información Personal -->
-                        <div class="detail-section">
-                            <h6><i class="fas fa-user"></i> Información Personal</h6>
-                            <div class="detail-grid">
-                                <div class="detail-item">
-                                    <label>RUT:</label>
-                                    <input type="text" id="editRut" name="rut" class="form-control-modal" maxlength="12">
-                                    <div class="invalid-feedback" id="edit-rut-error"></div>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Nombres:</label>
-                                    <input type="text" id="editNombres" name="nombres" class="form-control-modal" required>
-                                    <div class="invalid-feedback" id="edit-nombres-error"></div>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Apellidos:</label>
-                                    <input type="text" id="editApellidos" name="apellidos" class="form-control-modal" required>
-                                    <div class="invalid-feedback" id="edit-apellidos-error"></div>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <!-- Información de Contacto -->
-                        <div class="detail-section">
-                            <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
-                            <div class="detail-grid">
-                                <div class="detail-item">
-                                    <label>Correo Electrónico:</label>
-                                    <input type="email" id="editCorreo" name="correo" class="form-control-modal" required>
-                                    <div class="invalid-feedback" id="edit-correo-error"></div>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Teléfono:</label>
-                                    <input type="tel" id="editTelefono" name="telefono" class="form-control-modal" maxlength="16">
-                                    <div class="invalid-feedback" id="edit-telefono-error"></div>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <!-- Información del Sistema -->
-                        <div class="detail-section">
-                            <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
-                            <div class="detail-grid">
-                                <div class="detail-item">
-                                    <label>Rol:</label>
-                                    <select id="editRol" name="rol" class="form-control-modal" required>
-                                        <option value="usuario">Usuario</option>
-                                        <option value="admin">Administrador</option>
-                                    </select>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Estado:</label>
-                                    <select id="editEstado" name="estado" class="form-control-modal" required>
-                                        <option value="active">Activo</option>
-                                        <option value="inactive">Inactivo</option>
-                                        <option value="pending">Pendiente</option>
-                                    </select>
-                                </div>
-                                <div class="detail-item">
-                                    <label>Función:</label>
-                                    <input type="text" id="editFuncion" name="funcion" class="form-control-modal">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            
-                <!-- Vista de solo lectura -->
                 <div id="readOnlyView" class="detail-sections">
-                    <!-- Información Personal -->
                     <div class="detail-section">
                         <h6><i class="fas fa-user"></i> Información Personal</h6>
                         <div class="detail-grid">
@@ -359,7 +271,6 @@
                         </div>
                     </div>
                 
-                    <!-- Información de Contacto -->
                     <div class="detail-section">
                         <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
                         <div class="detail-grid">
@@ -374,7 +285,6 @@
                         </div>
                     </div>
                 
-                    <!-- Información del Sistema -->
                     <div class="detail-section">
                         <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
                         <div class="detail-grid">
@@ -398,109 +308,15 @@
                 <button type="button" class="btn-secondary" onclick="closeDetailModal()">
                     <i class="fas fa-times me-1"></i>Cerrar
                 </button>
-                <!-- POR esta línea: -->
                 <button type="button" class="btn-primary" id="editBtn" onclick="redirectToEdit()">
                     <i class="fas fa-edit me-1"></i>Editar Usuario
                 </button>
-                <button type="button" class="btn-secondary" id="cancelBtn" onclick="cancelEdit()" style="display: none;">
-                    <i class="fas fa-times me-1"></i>Cancelar
-                </button>
-                <button type="button" class="btn-success" id="saveBtn" onclick="saveUser()" style="display: none;">
-                    <i class="fas fa-save me-1"></i>Guardar Cambios
-                </button>
             </div>
-        </div>
-    </div>
-    <!-- Modal de edición del usuario -->
-    <div class="edit-modal" id="editModal" style="display: none;">
-        <div class="edit-modal-content">
-            <div class="edit-modal-header">
-                <h5><i class="fas fa-user-edit me-2"></i>Editar Usuario</h5>
-                <button type="button" class="edit-modal-close" onclick="closeEditModal()">×</button>
-            </div>
-            <form id="editUserForm" method="POST">
-                {% csrf_token %}
-                <div class="edit-modal-body">
-                    <div class="edit-sections">
-                        <!-- Información Personal -->
-                        <div class="edit-section">
-                            <h6><i class="fas fa-user"></i> Información Personal</h6>
-                            <div class="edit-grid">
-                                <div class="edit-item">
-                                    <label for="editRut">RUT <span class="required">*</span></label>
-                                    <input type="text" id="editRut" name="rut" class="form-control-edit" maxlength="12" required>
-                                    <div class="invalid-feedback" id="edit-rut-error"></div>
-                                </div>
-                                <div class="edit-item">
-                                    <label for="editNombres">Nombres <span class="required">*</span></label>
-                                    <input type="text" id="editNombres" name="nombres" class="form-control-edit" required>
-                                    <div class="invalid-feedback" id="edit-nombres-error"></div>
-                                </div>
-                                <div class="edit-item">
-                                    <label for="editApellidos">Apellidos <span class="required">*</span></label>
-                                    <input type="text" id="editApellidos" name="apellidos" class="form-control-edit" required>
-                                    <div class="invalid-feedback" id="edit-apellidos-error"></div>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <!-- Información de Contacto -->
-                        <div class="edit-section">
-                            <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
-                            <div class="edit-grid">
-                                <div class="edit-item">
-                                    <label for="editCorreo">Correo Electrónico <span class="required">*</span></label>
-                                    <input type="email" id="editCorreo" name="correo" class="form-control-edit" required>
-                                    <div class="invalid-feedback" id="edit-correo-error"></div>
-                                </div>
-                                <div class="edit-item">
-                                    <label for="editTelefono">Teléfono</label>
-                                    <input type="tel" id="editTelefono" name="telefono" class="form-control-edit" maxlength="16" value="+56 9 ">
-                                    <div class="invalid-feedback" id="edit-telefono-error"></div>
-                                </div>
-                            </div>
-                        </div>
-                    
-                        <!-- Información del Sistema -->
-                        <div class="edit-section">
-                            <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
-                            <div class="edit-grid">
-                                <div class="edit-item">
-                                    <label for="editRolSelect">Rol <span class="required">*</span></label>
-                                    <select id="editRolSelect" name="rol" class="form-control-edit" required>
-                                        <option value="usuario">Usuario</option>
-                                        <option value="admin">Administrador</option>
-                                    </select>
-                                </div>
-                                <div class="edit-item">
-                                    <label for="editEstadoSelect">Estado <span class="required">*</span></label>
-                                    <select id="editEstadoSelect" name="estado" class="form-control-edit" required>
-                                        <option value="active">Activo</option>
-                                        <option value="inactive">Inactivo</option>
-                                        <option value="pending">Pendiente</option>
-                                    </select>
-                                </div>
-                                <div class="edit-item">
-                                    <label for="editFuncionInput">Función</label>
-                                    <input type="text" id="editFuncionInput" name="funcion" class="form-control-edit">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="edit-modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeEditModal()">
-                        <i class="fas fa-times me-1"></i>Cancelar
-                    </button>
-                    <button type="submit" class="btn-success">
-                        <i class="fas fa-save me-1"></i>Guardar Cambios
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
 {% endblock %}
+
 
 {% block extra_js %}
 <script src="{% static 'js/lista_usuarios.js' %}"></script>
@@ -510,12 +326,7 @@
 
     // Función para resetear los filtros
     function resetFilters() {
-        document.querySelector('.search-input').value = '';
-        document.querySelector('.filter-rol').value = '';
-        document.querySelector('.filter-estado').value = '';
-        
-        // Disparar el evento para actualizar la tabla
-        document.querySelector('.search-input').dispatchEvent(new Event('input'));
+        resetFiltersWithPagination();
     }
     
     // Función para mostrar el modal de eliminación
@@ -585,6 +396,12 @@
         } else if (userData.rol === 'usuario') {
             roleElement.className = 'role-badge role-staff';
             roleElement.innerHTML = '<i class="fas fa-user"></i> Usuario';
+        } else if (userData.rol === 'student') {
+            roleElement.className = 'role-badge role-student';
+            roleElement.innerHTML = '<i class="fas fa-user-graduate"></i> Estudiante';
+        } else {
+            roleElement.className = 'role-badge role-staff';
+            roleElement.innerHTML = '<i class="fas fa-user"></i> Personal';
         }
         
         // Configurar badge del estado
@@ -624,31 +441,23 @@
     
     // Función para redireccionar al formulario de edición
     function redirectToEdit() {
-        console.log('redirectToEdit llamada'); // Debug
-        console.log('currentUserData:', window.currentUserData); // Debug
-        
         if (!window.currentUserData || !window.currentUserData.id) {
             alert('No hay datos de usuario disponibles');
             return;
         }
         
         const userId = window.currentUserData.id;
-        console.log('Redirigiendo a editar usuario ID:', userId); // Debug
         
         // Cerrar el modal de detalles
         closeDetailModal();
         
         // Redireccionar a la página de edición
         const editUrl = "{% url 'usuarios:editar_usuario' 999 %}".replace('999', userId);
-        console.log('URL de edición:', editUrl); // Debug
-        
         window.location.href = editUrl;
     }
     
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM cargado'); // Debug
-        
         const deleteModal = document.getElementById('deleteModal');
         const detailModal = document.getElementById('detailModal');
         
@@ -680,14 +489,6 @@
                 }
             }
         });
-        
-        // Verificar que el botón de editar existe
-        const editBtn = document.getElementById('editBtn');
-        if (editBtn) {
-            console.log('Botón de editar encontrado'); // Debug
-        } else {
-            console.log('Botón de editar NO encontrado'); // Debug
-        }
     });
 
     // Función para cerrar alertas
@@ -720,6 +521,371 @@
         allAlerts.forEach(alert => {
             autoCloseAlert(alert, 2000);
         });
+    });
+
+    // Variables de paginación - actualizadas
+    let currentPage = 1;
+    let itemsPerPage = 4;
+    let totalItems = 0;
+    let filteredItems = [];
+    let allUserRows = [];
+
+    // Función para inicializar paginación - MEJORADA
+    function initializePagination() {
+        // Obtener todas las filas de usuarios reales del DOM
+        allUserRows = Array.from(document.querySelectorAll('.user-row'));
+        totalItems = allUserRows.length;
+        filteredItems = [...allUserRows]; // Copia del array
+        
+        console.log(`Paginador inicializado: ${totalItems} usuarios encontrados`);
+        
+        // Solo mostrar paginador si hay más de 4 usuarios
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (totalItems <= 4) {
+            if (paginationContainer) {
+                paginationContainer.style.display = 'none';
+            }
+            // Mostrar todos los usuarios si son 4 o menos
+            allUserRows.forEach(row => row.style.display = '');
+            updateCounter(totalItems, totalItems);
+            return;
+        }
+        
+        // Mostrar paginador si hay más de 4 usuarios
+        if (paginationContainer) {
+            paginationContainer.style.display = 'flex';
+        }
+        
+        // Event listeners para controles de paginación
+        const firstPageBtn = document.getElementById('firstPage');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const lastPageBtn = document.getElementById('lastPage');
+        const pageSizeSelect = document.getElementById('pageSize');
+        
+        if (firstPageBtn) firstPageBtn.addEventListener('click', () => goToPage(1));
+        if (prevPageBtn) prevPageBtn.addEventListener('click', () => goToPage(currentPage - 1));
+        if (nextPageBtn) nextPageBtn.addEventListener('click', () => goToPage(currentPage + 1));
+        if (lastPageBtn) lastPageBtn.addEventListener('click', () => goToPage(getTotalPages()));
+        
+        // Event listener para cambio de tamaño de página
+        if (pageSizeSelect) {
+            pageSizeSelect.addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                currentPage = 1;
+                updatePagination();
+            });
+        }
+        
+        // Inicializar primera página
+        updatePagination();
+    }
+
+    // Función para obtener total de páginas - SIN CAMBIOS
+    function getTotalPages() {
+        return Math.ceil(filteredItems.length / itemsPerPage);
+    }
+
+    // Función para ir a una página específica - MEJORADA
+    function goToPage(page) {
+        const totalPages = getTotalPages();
+        
+        if (page < 1 || page > totalPages || totalPages === 0) return;
+        
+        currentPage = page;
+        updatePagination();
+        
+        // Scroll suave al inicio de la tabla
+        const tableContainer = document.getElementById('tableBodyScroll');
+        if (tableContainer) {
+            tableContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    // Función para actualizar la paginación - MEJORADA
+    function updatePagination() {
+        const totalPages = getTotalPages();
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        
+        // Ocultar TODAS las filas de usuarios primero
+        allUserRows.forEach(row => {
+            row.style.display = 'none';
+            row.classList.remove('fade-in-page');
+        });
+        
+        // Mostrar solo las filas de la página actual de los elementos filtrados
+        const currentPageItems = filteredItems.slice(startIndex, endIndex);
+        currentPageItems.forEach((row, index) => {
+            row.style.display = '';
+            // Animación escalonada
+            setTimeout(() => {
+                row.style.animationDelay = `${index * 0.05}s`;
+                row.classList.add('fade-in-page');
+            }, 50);
+        });
+        
+        // Actualizar información de paginación
+        updatePaginationInfo();
+        updatePaginationControls();
+        updatePaginationNumbers();
+        
+        // Actualizar contador con los usuarios visibles en esta página
+        const visibleCount = currentPageItems.length;
+        updateCounter(visibleCount, filteredItems.length);
+        
+        // Verificar indicador de scroll
+        setTimeout(checkScrollIndicator, 100);
+        
+        console.log(`Página ${currentPage}: Mostrando ${visibleCount} de ${filteredItems.length} usuarios`);
+    }
+
+    // Función para actualizar información de paginación - SIN CAMBIOS
+    function updatePaginationInfo() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, filteredItems.length);
+        
+        const showingStartEl = document.getElementById('showingStart');
+        const showingEndEl = document.getElementById('showingEnd');
+        const totalItemsEl = document.getElementById('totalItems');
+        
+        if (showingStartEl) showingStartEl.textContent = filteredItems.length > 0 ? startIndex + 1 : 0;
+        if (showingEndEl) showingEndEl.textContent = endIndex;
+        if (totalItemsEl) totalItemsEl.textContent = filteredItems.length;
+    }
+
+    // Función para actualizar controles de paginación - MEJORADA
+    function updatePaginationControls() {
+        const totalPages = getTotalPages();
+        
+        const firstPageBtn = document.getElementById('firstPage');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const lastPageBtn = document.getElementById('lastPage');
+        
+        if (firstPageBtn) firstPageBtn.disabled = currentPage === 1 || totalPages === 0;
+        if (prevPageBtn) prevPageBtn.disabled = currentPage === 1 || totalPages === 0;
+        if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+        if (lastPageBtn) lastPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+    }
+
+    // Función para actualizar números de paginación
+    function updatePaginationNumbers() {
+        const totalPages = getTotalPages();
+        const numbersContainer = document.getElementById('paginationNumbers');
+        numbersContainer.innerHTML = '';
+        
+        if (totalPages <= 1) return;
+        
+        // Calcular rango de páginas a mostrar
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+        
+        // Ajustar si estamos cerca del inicio o final
+        if (currentPage <= 3) {
+            endPage = Math.min(5, totalPages);
+        }
+        if (currentPage >= totalPages - 2) {
+            startPage = Math.max(1, totalPages - 4);
+        }
+        
+        // Agregar primera página si no está en el rango
+        if (startPage > 1) {
+            addPageNumber(1);
+            if (startPage > 2) {
+                addEllipsis();
+            }
+        }
+        
+        // Agregar páginas en el rango
+        for (let i = startPage; i <= endPage; i++) {
+            addPageNumber(i);
+        }
+        
+        // Agregar última página si no está en el rango
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                addEllipsis();
+            }
+            addPageNumber(totalPages);
+        }
+    }
+
+    // Función para agregar número de página
+    function addPageNumber(pageNum) {
+        const pageButton = document.createElement('button');
+        pageButton.className = `pagination-number ${pageNum === currentPage ? 'active' : ''}`;
+        pageButton.innerHTML = `<span>${pageNum}</span>`;
+        pageButton.addEventListener('click', () => goToPage(pageNum));
+        
+        document.getElementById('paginationNumbers').appendChild(pageButton);
+    }
+
+    // Función para agregar puntos suspensivos
+    function addEllipsis() {
+        const ellipsis = document.createElement('div');
+        ellipsis.className = 'pagination-ellipsis';
+        ellipsis.textContent = '...';
+        document.getElementById('paginationNumbers').appendChild(ellipsis);
+    }
+
+    // Función de filtrado actualizada para trabajar con paginación - MEJORADA
+    function filterUsersWithPagination() {
+        const searchInput = document.getElementById('searchInput');
+        const filterRol = document.getElementById('filterRol');
+        const filterEstado = document.getElementById('filterEstado');
+        
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const rolFilter = filterRol ? filterRol.value : '';
+        const estadoFilter = filterEstado ? filterEstado.value : '';
+        
+        // Filtrar desde todas las filas de usuarios
+        filteredItems = allUserRows.filter(row => {
+            const rutNombre = row.getAttribute('data-nombre') || '';
+            const rut = row.getAttribute('data-rut') || '';
+            const rol = row.getAttribute('data-rol') || '';
+            const estado = row.getAttribute('data-estado') || '';
+            
+            const matchesSearch = !searchTerm || 
+                                rutNombre.includes(searchTerm) || 
+                                rut.includes(searchTerm);
+            const matchesRol = !rolFilter || rol === rolFilter;
+            const matchesEstado = !estadoFilter || estado === estadoFilter;
+            
+            return matchesSearch && matchesRol && matchesEstado;
+        });
+        
+        // Resetear a la primera página cuando se filtra
+        currentPage = 1;
+        
+        // Mostrar/ocultar paginador según la cantidad de resultados
+        const paginationContainer = document.getElementById('paginationContainer');
+        const emptyResults = document.getElementById('empty-results');
+        
+        if (filteredItems.length === 0 && allUserRows.length > 0) {
+            // No hay resultados de búsqueda
+            if (emptyResults) emptyResults.style.display = 'block';
+            if (paginationContainer) paginationContainer.style.display = 'none';
+            updateCounter(0, allUserRows.length);
+        } else if (filteredItems.length <= 4) {
+            // 4 o menos resultados - no necesita paginador
+            if (emptyResults) emptyResults.style.display = 'none';
+            if (paginationContainer) paginationContainer.style.display = 'none';
+            
+            // Mostrar todos los resultados filtrados
+            allUserRows.forEach(row => row.style.display = 'none');
+            filteredItems.forEach(row => row.style.display = '');
+            updateCounter(filteredItems.length, filteredItems.length);
+        } else {
+            // Más de 4 resultados - mostrar paginador
+            if (emptyResults) emptyResults.style.display = 'none';
+            if (paginationContainer) paginationContainer.style.display = 'flex';
+            updatePagination();
+        }
+        
+        console.log(`Filtro aplicado: ${filteredItems.length} usuarios encontrados de ${allUserRows.length} totales`);
+    }
+
+    // Función para resetear filtros actualizada - MEJORADA
+    function resetFiltersWithPagination() {
+        const searchInput = document.getElementById('searchInput');
+        const filterRol = document.getElementById('filterRol');
+        const filterEstado = document.getElementById('filterEstado');
+        
+        if (searchInput) searchInput.value = '';
+        if (filterRol) filterRol.value = '';
+        if (filterEstado) filterEstado.value = '';
+        
+        // Restaurar todos los usuarios
+        filteredItems = [...allUserRows];
+        currentPage = 1;
+        
+        const emptyResults = document.getElementById('empty-results');
+        const paginationContainer = document.getElementById('paginationContainer');
+        
+        if (emptyResults) emptyResults.style.display = 'none';
+        
+        // Mostrar paginador solo si hay más de 4 usuarios
+        if (filteredItems.length > 4) {
+            if (paginationContainer) paginationContainer.style.display = 'flex';
+            updatePagination();
+        } else {
+            if (paginationContainer) paginationContainer.style.display = 'none';
+            allUserRows.forEach(row => row.style.display = '');
+            updateCounter(filteredItems.length, filteredItems.length);
+        }
+        
+        console.log('Filtros reseteados');
+    }
+
+    // Función para actualizar contador - MEJORADA
+    function updateCounter(visible, total) {
+        const counterNumber = document.querySelector('.counter-number');
+        if (counterNumber) {
+            counterNumber.textContent = visible;
+            
+            // Cambiar color si hay filtros activos o paginación
+            if (visible < allUserRows.length) {
+                counterNumber.style.background = 'rgba(245, 158, 11, 0.9)';
+            } else {
+                counterNumber.style.background = 'rgba(255, 255, 255, 0.2)';
+            }
+        }
+    }
+
+    // Actualizar las funciones existentes para usar las nuevas versiones
+    function filterUsers() {
+        filterUsersWithPagination();
+    }
+
+    function resetFilters() {
+        resetFiltersWithPagination();
+    }
+
+    // Agregar CSS para animación de página
+    const pageAnimationCSS = `
+        .fade-in-page {
+            animation: fadeInPage 0.4s ease-out both;
+        }
+        
+        @keyframes fadeInPage {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+
+    // Agregar el CSS al head
+    const style = document.createElement('style');
+    style.textContent = pageAnimationCSS;
+    document.head.appendChild(style);
+
+    // Actualizar el event listener del DOMContentLoaded para incluir paginación
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... tu código existente ...
+        
+        // Agregar esta línea
+        initializePagination();
+        
+        // Actualizar los event listeners de filtros para usar la nueva función
+        if (searchInput) {
+            searchInput.addEventListener('input', debounce(filterUsersWithPagination, 300));
+        }
+        
+        if (filterRol) {
+            filterRol.addEventListener('change', filterUsersWithPagination);
+        }
+        
+        if (filterEstado) {
+            filterEstado.addEventListener('change', filterUsersWithPagination);
+        }
+        
+        // ... resto de tu código existente ...
     });
 </script>
 {% endblock %}

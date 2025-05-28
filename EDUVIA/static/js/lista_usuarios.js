@@ -498,26 +498,106 @@ function showAlert(type, title, message) {
     });
 }
 
-// Función para inicializar funcionalidades de lista de usuarios
-function initializeUserList() {
-    // Inicializar filtros de búsqueda si existen
-    const searchInput = document.getElementById('searchUsers');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            const userRows = document.querySelectorAll('.user-row');
-            
-            userRows.forEach(row => {
-                const userData = row.textContent.toLowerCase();
-                if (userData.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
+// Función para resetear los filtros (simplificada)
+function resetFilters() {
+    document.querySelector('.search-input').value = '';
+    document.querySelector('.filter-rol').value = '';
+    document.querySelector('.filter-estado').value = '';
+    
+    // Mostrar todas las filas
+    const rows = document.querySelectorAll('.user-table tbody tr');
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+    
+    // Ocultar mensaje de no resultados
+    document.getElementById('empty-results').style.display = 'none';
+    document.querySelector('.user-table').style.display = 'table';
+}
+
+// Función de filtrado simplificada
+function filterTable() {
+    const searchInput = document.querySelector('.search-input');
+    const filterRol = document.querySelector('.filter-rol');
+    const filterEstado = document.querySelector('.filter-estado');
+    const emptyResults = document.getElementById('empty-results');
+    const userTable = document.querySelector('.user-table tbody');
+
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedRol = filterRol.value;
+    const selectedEstado = filterEstado.value;
+    const rows = userTable.querySelectorAll('tr');
+    let visibleRows = 0;
+
+    rows.forEach(row => {
+        // Saltar la fila de "empty state"
+        if (row.querySelector('.empty-state')) {
+            return;
+        }
+
+        const rut = row.cells[0].textContent.toLowerCase();
+        const nombres = row.cells[1].textContent.toLowerCase();
+        const apellidos = row.cells[2].textContent.toLowerCase();
+        const rol = row.cells[3].getAttribute('data-rol');
+        const estado = row.cells[5].getAttribute('data-estado');
+
+        // Buscar en RUT, nombres y apellidos
+        const matchesSearch = searchTerm === '' || 
+                            rut.includes(searchTerm) || 
+                            nombres.includes(searchTerm) || 
+                            apellidos.includes(searchTerm) ||
+                            (nombres + ' ' + apellidos).includes(searchTerm);
+
+        // Filtrar por rol
+        let matchesRol = selectedRol === '';
+        if (selectedRol !== '') {
+            if (selectedRol === 'usuario' && (rol === 'usuario' || rol === 'student' || rol === 'staff')) {
+                matchesRol = true;
+            } else if (selectedRol === rol) {
+                matchesRol = true;
+            }
+        }
+
+        // Filtrar por estado
+        const matchesEstado = selectedEstado === '' || estado === selectedEstado;
+
+        if (matchesSearch && matchesRol && matchesEstado) {
+            row.style.display = '';
+            visibleRows++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Mostrar/ocultar mensaje de "no hay resultados"
+    if (visibleRows === 0 && (searchTerm !== '' || selectedRol !== '' || selectedEstado !== '')) {
+        emptyResults.style.display = 'block';
+        userTable.parentElement.style.display = 'none';
+    } else {
+        emptyResults.style.display = 'none';
+        userTable.parentElement.style.display = 'table';
     }
 }
+
+// Event listeners simplificados
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('.search-input');
+    const filterRol = document.querySelector('.filter-rol');
+    const filterEstado = document.querySelector('.filter-estado');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTable);
+        searchInput.addEventListener('keyup', filterTable);
+    }
+
+    if (filterRol) {
+        filterRol.addEventListener('change', filterTable);
+    }
+
+    if (filterEstado) {
+        filterEstado.addEventListener('change', filterTable);
+    }
+});
 
 // Función para mostrar el modal de detalles
 function showDetailModal(button) {
