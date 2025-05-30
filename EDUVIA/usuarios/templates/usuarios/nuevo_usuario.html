@@ -6,413 +6,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/nuevo_usuario.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<style>
-    /* Estilos básicos del contenedor */
-    .form-container {
-        max-width: 900px;
-        margin: 2rem auto;
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        animation: fadeInUp 0.6s ease-out;
-    }
-
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Encabezado del formulario */
-    .form-header {
-        background: linear-gradient(135deg, #4e73df, #3d5fd8);
-        color: white;
-        padding: 2rem;
-        text-align: center;
-    }
-
-    .form-header h2 {
-        margin: 0;
-        font-size: 1.8rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-    }
-
-    .form-header p {
-        margin: 0.75rem 0 0;
-        opacity: 0.9;
-        font-size: 1rem;
-    }
-
-    /* Formulario */
-    .eduvia-form {
-        padding: 2rem;
-    }
-
-    /* Secciones del formulario */
-    .form-section {
-        margin-bottom: 2.5rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid #e9ecef;
-    }
-
-    .form-section:last-child {
-        margin-bottom: 1rem;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
-
-    .form-section h3 {
-        color: #4e73df;
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid #e3f2fd;
-    }
-
-    /* Filas del formulario */
-    .form-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .form-row:last-child {
-        margin-bottom: 0;
-    }
-
-    /* Grupos de formulario */
-    .form-group {
-        margin-bottom: 1.25rem;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.9rem;
-    }
-
-    .required {
-        color: #dc3545;
-        margin-left: 0.25rem;
-    }
-
-    /* Input groups con iconos */
-    .input-group {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .input-icon {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-        font-size: 16px;
-        z-index: 1;
-        pointer-events: none;
-        transition: color 0.3s ease;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 0.875rem 1rem 0.875rem 2.5rem;
-        border: 2px solid #dee2e6;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-        background: #fff;
-        color: #495057;
-        box-sizing: border-box;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: #4e73df;
-        box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1);
-    }
-
-    .form-control:focus + .input-icon {
-        color: #4e73df;
-    }
-
-    /* Estados de validación */
-    .form-control.is-valid {
-        border-color: #28a745;
-        background-color: #f8fff9;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='m2.3 6.73.94-.94 2.94 2.94L6.13 8.66 2.3 4.83z'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right calc(0.375em + 0.1875rem) center;
-        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-
-    .form-control.is-valid + .input-icon {
-        color: #28a745;
-    }
-
-    .form-control.is-invalid {
-        border-color: #dc3545;
-        background-color: #fff5f5;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right calc(0.375em + 0.1875rem) center;
-        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-    }
-
-    .form-control.is-invalid + .input-icon {
-        color: #dc3545;
-    }
-
-    /* Feedback messages */
-    .valid-feedback {
-        display: none;
-        width: 100%;
-        margin-top: 0.25rem;
-        font-size: 0.875em;
-        color: #28a745;
-        font-weight: 500;
-    }
-
-    .invalid-feedback {
-        display: none;
-        width: 100%;
-        margin-top: 0.25rem;
-        font-size: 0.875em;
-        color: #dc3545;
-        font-weight: 500;
-    }
-
-    .form-control.is-valid ~ .valid-feedback {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .form-control.is-invalid ~ .invalid-feedback {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    /* Selectores de rol */
-    .selector-group {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-        flex-wrap: wrap;
-    }
-    
-    .selector-btn {
-        padding: 12px 18px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        background-color: #f8f9fa;
-        cursor: pointer;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        user-select: none;
-        min-width: 140px;
-        justify-content: center;
-    }
-    
-    .selector-btn:hover {
-        border-color: #4e73df;
-        background-color: #e7f3ff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .selector-btn.active {
-        background: linear-gradient(135deg, #4e73df, #3d5fd8);
-        color: white;
-        border-color: #4e73df;
-        box-shadow: 0 4px 12px rgba(78, 115, 223, 0.3);
-    }
-
-    .selector-btn.active:hover {
-        background: linear-gradient(135deg, #3d5fd8, #2e4bc7);
-    }
-
-    .selector-btn i {
-        font-size: 16px;
-    }
-
-    /* Texto de ayuda */
-    .form-text {
-        display: block;
-        margin-top: 0.5rem;
-        font-size: 0.75rem;
-        color: #6c757d;
-    }
-
-    /* Alertas */
-    .alert {
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 1px solid transparent;
-        border-radius: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .alert-danger {
-        color: #721c24;
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-    }
-    
-    .alert-success {
-        color: #155724;
-        background-color: #d4edda;
-        border-color: #c3e6cb;
-    }
-
-    /* Texto informativo */
-    .info-text {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        padding: 1rem;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border-left: 3px solid #4e73df;
-        font-size: 0.875rem;
-        color: #495057;
-        margin-top: 1.5rem;
-    }
-
-    .info-text i {
-        color: #4e73df;
-        font-size: 1rem;
-        margin-top: 0.125rem;
-    }
-
-    /* Botones de acción */
-    .form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 1rem;
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #dee2e6;
-    }
-
-    .btn-eduvia {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-        font-size: 0.95rem;
-        text-decoration: none;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #4e73df, #3d5fd8);
-        color: white;
-        box-shadow: 0 4px 10px rgba(78, 115, 223, 0.3);
-    }
-
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #3d5fd8, #2e4bc7);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(78, 115, 223, 0.4);
-    }
-
-    .btn-secondary {
-        background: #fff;
-        color: #6c757d;
-        border: 1px solid #dee2e6;
-    }
-
-    .btn-secondary:hover {
-        background: #f8f9fa;
-        color: #495057;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Error styling */
-    #error-rol {
-        color: #dc3545;
-        display: none;
-        margin-top: 8px;
-        font-size: 0.875rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .form-container {
-            margin: 1rem;
-            border-radius: 8px;
-        }
-        
-        .form-header {
-            padding: 1.5rem;
-        }
-        
-        .form-header h2 {
-            font-size: 1.5rem;
-        }
-        
-        .eduvia-form {
-            padding: 1.5rem;
-        }
-        
-        .form-row {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        .form-actions {
-            flex-direction: column-reverse;
-            gap: 0.75rem;
-        }
-        
-        .btn-eduvia {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .selector-group {
-            flex-direction: column;
-        }
-
-        .selector-btn {
-            min-width: auto;
-        }
-    }
-
-    /* Utilidades */
-    .mt-3 { margin-top: 1rem; }
-    .mb-3 { margin-bottom: 1rem; }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -547,38 +140,68 @@
         <div class="form-section">
             <h3><i class="fas fa-cogs"></i> Información del Sistema</h3>
             
-            <!-- Selector de rol -->
+            <!-- Selector de rol principal -->
             <div class="form-row">
                 <div class="form-group">
-                    <label>Rol <span class="required">*</span></label>
+                    <label>Tipo de Usuario <span class="required">*</span></label>
                     <div class="selector-group">
                         <div class="selector-btn" data-rol="usuario" id="btn-rol-usuario">
-                            <i class="fas fa-user-tie"></i>
+                            <i class="fas fa-user"></i>
                             <span>Usuario</span>
                         </div>
-                        <div class="selector-btn" data-rol="admin" id="btn-rol-admin">
-                            <i class="fas fa-user-shield"></i>
-                            <span>Administrador</span>
+                        <div class="selector-btn" data-rol="profesor" id="btn-rol-profesor">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Profesor</span>
                         </div>
                     </div>
                     <input type="hidden" name="rol" id="rol" value="" required>
-                    <small class="form-text">Usuario: acceso estándar | Administrador: acceso completo</small>
-                    <div id="error-rol">
-                        <i class="fas fa-exclamation-triangle"></i> Debe seleccionar un rol para el usuario
+                    <small class="form-text">Seleccione el tipo de usuario</small>
+                    <div id="error-rol" class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i> Debe seleccionar un tipo de usuario
                     </div>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="funcion">Función</label>
-                    <div class="input-group">
-                        <span class="input-icon"><i class="fas fa-briefcase"></i></span>
-                        <input type="text" id="funcion" name="funcion" class="form-control" placeholder="Ej: Profesor de Matemáticas">
+                    
+                    <!-- Dropdown condicional para Usuario -->
+                    <div class="conditional-dropdown" id="dropdown-usuario">
+                        <div class="form-group">
+                            <label for="tipo-usuario">Nivel de Usuario <span class="required">*</span></label>
+                            <div class="input-group">
+                                <span class="input-icon"><i class="fas fa-user-cog"></i></span>
+                                <select id="tipo-usuario" name="tipo_usuario" class="form-control">
+                                    <option value="">Seleccione nivel de usuario</option>
+                                    <option value="regular">Usuario Regular</option>
+                                    <option value="admin">Administrador</option>
+                                </select>
+                            </div>
+                            <small class="form-text">Usuario Regular: acceso básico | Administrador: acceso completo</small>
+                        </div>
                     </div>
-                    <small class="form-text">Especifique la función o cargo del usuario</small>
-                    <div class="valid-feedback">
-                        <i class="fas fa-check-circle"></i> Función válida
+                    
+                    <!-- Dropdown condicional para Profesor -->
+                    <div class="conditional-dropdown" id="dropdown-profesor">
+                        <div class="form-group">
+                            <label for="asignatura">Asignatura <span class="required">*</span></label>
+                            <div class="input-group">
+                                <span class="input-icon"><i class="fas fa-book"></i></span>
+                                <select id="asignatura" name="asignatura" class="form-control">
+                                    <option value="">Seleccione una asignatura</option>
+                                    <option value="matematicas">Matemáticas</option>
+                                    <option value="lenguaje">Lenguaje y Comunicación</option>
+                                    <option value="ciencias">Ciencias Naturales</option>
+                                    <option value="historia">Historia y Geografía</option>
+                                    <option value="ingles">Inglés</option>
+                                    <option value="educacion-fisica">Educación Física</option>
+                                    <option value="artes">Artes Visuales</option>
+                                    <option value="musica">Música</option>
+                                    <option value="tecnologia">Tecnología</option>
+                                    <option value="religion">Religión</option>
+                                    <option value="filosofia">Filosofía</option>
+                                    <option value="fisica">Física</option>
+                                    <option value="quimica">Química</option>
+                                    <option value="biologia">Biología</option>
+                                </select>
+                            </div>
+                            <small class="form-text">Seleccione la asignatura que impartirá el profesor</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -601,273 +224,426 @@
         </div>
     </form>
 </div>
-
+{% endblock %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Elementos del DOM
-    const btnRolUsuario = document.getElementById('btn-rol-usuario');
-    const btnRolAdmin = document.getElementById('btn-rol-admin');
-    const rolInput = document.getElementById('rol');
-    const errorRol = document.getElementById('error-rol');
-    const userForm = document.getElementById('userForm');
-    const btnSubmit = document.getElementById('btn-submit');
+    console.log('Script cargado correctamente');
     
-    // Inputs para validación
+    // ========== ELEMENTOS DEL DOM ==========
+    const form = document.getElementById('userForm');
     const rutInput = document.getElementById('rut');
     const passwordInput = document.getElementById('password');
     const nombresInput = document.getElementById('nombres');
     const apellidosInput = document.getElementById('apellidos');
     const telefonoInput = document.getElementById('telefono');
     const correoInput = document.getElementById('correo');
-    const funcionInput = document.getElementById('funcion');
+    const rolInput = document.getElementById('rol');
+    const tipoUsuarioSelect = document.getElementById('tipo-usuario');
+    const asignaturaSelect = document.getElementById('asignatura');
+    const btnRolUsuario = document.getElementById('btn-rol-usuario');
+    const btnRolProfesor = document.getElementById('btn-rol-profesor');
+    const dropdownUsuario = document.getElementById('dropdown-usuario');
+    const dropdownProfesor = document.getElementById('dropdown-profesor');
+    const errorRol = document.getElementById('error-rol');
+
+    // ========== FUNCIONES DE VALIDACIÓN ==========
     
-    // Función para validar RUT chileno (exactamente 8 dígitos + DV)
-    function validarRut(rut) {
-        // Limpiar RUT
-        rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+    function validarRUT(rut) {
+        rut = rut.replace(/\./g, '').replace(/\-/g, '').trim();
+        if (rut.length < 8 || rut.length > 9) return false;
         
-        // Debe tener exactamente 9 caracteres (8 dígitos + 1 DV)
-        if (rut.length !== 9) {
-            return false;
-        }
+        const numero = rut.slice(0, -1);
+        const dv = rut.slice(-1).toUpperCase();
         
-        // Separar número y dígito verificador
-        const numero = rut.slice(0, 8);
-        const dv = rut.slice(8);
+        if (!/^\d+$/.test(numero)) return false;
         
-        // Verificar que los primeros 8 sean números
-        if (!/^\d{8}$/.test(numero)) {
-            return false;
-        }
-        
-        // Calcular dígito verificador
         let suma = 0;
         let multiplicador = 2;
         
         for (let i = numero.length - 1; i >= 0; i--) {
-            suma += parseInt(numero.charAt(i)) * multiplicador;
+            suma += parseInt(numero[i]) * multiplicador;
             multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
         }
         
         const resto = suma % 11;
-        const dvCalculado = resto < 2 ? resto.toString() : resto === 10 ? 'K' : (11 - resto).toString();
+        const dvCalculado = resto === 0 ? '0' : resto === 1 ? 'K' : (11 - resto).toString();
         
         return dv === dvCalculado;
     }
-    
-    // Función para formatear RUT
-    function formatearRut(rut) {
-        // Eliminar todo excepto números y K
-        rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
-        
-        if (rut.length <= 1) {
-            return rut;
+
+    function formatearRUT(rut) {
+        rut = rut.replace(/[^0-9K]/gi, '');
+        if (rut.length > 1) {
+            const numero = rut.slice(0, -1);
+            const dv = rut.slice(-1);
+            const numeroFormateado = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return `${numeroFormateado}-${dv}`;
         }
-        
-        // Separar dígito verificador
-        const dv = rut.slice(-1);
-        let numero = rut.slice(0, -1);
-        
-        // Agregar puntos cada 3 dígitos desde la derecha
-        numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        
-        // Retornar con guión
-        return numero + '-' + dv;
+        return rut;
     }
-    
-    // Función para validar email
+
+    function validarTelefono(telefono) {
+        const regex = /^\+56 9 \d{4} \d{4}$/;
+        return regex.test(telefono);
+    }
+
+    function formatearTelefono(telefono) {
+        let numeros = telefono.replace(/^\+56 9 /, '').replace(/\D/g, '');
+        if (numeros.length >= 4) {
+            return `+56 9 ${numeros.slice(0, 4)} ${numeros.slice(4, 8)}`;
+        } else if (numeros.length > 0) {
+            return `+56 9 ${numeros}`;
+        }
+        return '+56 9 ';
+    }
+
     function validarEmail(email) {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return regex.test(email);
     }
-    
-    // Función para validar teléfono chileno
-    function validarTelefono(telefono) {
-        // Debe coincidir exactamente con +56 9 seguido de 8 dígitos
-        const regex = /^\+56 9 \d{4} \d{4}$/;
-        return regex.test(telefono);
-    }
-    
-    // Función para formatear teléfono
-    function formatearTelefono(telefono) {
-        // Si no empieza con +56 9, mantener el prefijo
-        if (!telefono.startsWith('+56 9 ')) {
-            return '+56 9 ';
-        }
+
+    function aplicarValidacion(input, esValido) {
+        const grupo = input.closest('.form-group');
+        const validFeedback = grupo.querySelector('.valid-feedback');
+        const invalidFeedback = grupo.querySelector('.invalid-feedback');
         
-        // Extraer solo los números después del prefijo
-        const numeros = telefono.replace('+56 9 ', '').replace(/\D/g, '');
+        input.classList.remove('is-valid', 'is-invalid');
         
-        // Formatear: +56 9 1234 5678
-        if (numeros.length <= 4) {
-            return '+56 9 ' + numeros;
-        } else {
-            return '+56 9 ' + numeros.slice(0, 4) + ' ' + numeros.slice(4, 8);
-        }
-    }
-    
-    // Función para validar y marcar input
-    function validarInput(input, validacionFn, esOpcional = false) {
-        const valor = input.value.trim();
-        
-        if (esOpcional && valor === '') {
-            input.classList.remove('is-valid', 'is-invalid');
-            return true;
-        }
-        
-        if (!esOpcional && valor === '') {
-            input.classList.remove('is-valid');
-            input.classList.add('is-invalid');
-            return false;
-        }
-        
-        if (validacionFn(valor)) {
-            input.classList.remove('is-invalid');
+        if (esValido) {
             input.classList.add('is-valid');
-            return true;
+            if (validFeedback) validFeedback.style.display = 'block';
+            if (invalidFeedback) invalidFeedback.style.display = 'none';
         } else {
-            input.classList.remove('is-valid');
             input.classList.add('is-invalid');
-            return false;
+            if (validFeedback) validFeedback.style.display = 'none';
+            if (invalidFeedback) invalidFeedback.style.display = 'block';
         }
     }
+
+    // ========== MANEJO DE ROLES ==========
     
-    // Event listeners para validación en tiempo real
-    
-    // RUT
+    function mostrarDropdown(tipo) {
+        // Ocultar todos los dropdowns
+        dropdownUsuario.style.display = 'none';
+        dropdownProfesor.style.display = 'none';
+        errorRol.style.display = 'none';
+        
+        // Mostrar el dropdown correspondiente
+        if (tipo === 'usuario') {
+            dropdownUsuario.style.display = 'block';
+            asignaturaSelect.value = '';
+        } else if (tipo === 'profesor') {
+            dropdownProfesor.style.display = 'block';
+            tipoUsuarioSelect.value = '';
+        }
+    }
+
+    function activarBotonRol(boton, rol) {
+        // Remover clase activa de ambos botones
+        btnRolUsuario.classList.remove('active');
+        btnRolProfesor.classList.remove('active');
+        
+        // Activar el botón seleccionado
+        boton.classList.add('active');
+        rolInput.value = rol;
+        
+        // Mostrar dropdown correspondiente
+        mostrarDropdown(rol);
+        
+        console.log(`Rol seleccionado: ${rol}`);
+    }
+
+    // ========== EVENT LISTENERS ==========
+
+    // RUT - validación y formateo
     rutInput.addEventListener('input', function() {
-        const cursorPosition = this.selectionStart;
-        const oldValue = this.value;
-        const newValue = formatearRut(oldValue);
+        let valor = this.value;
+        this.value = formatearRUT(valor);
         
-        this.value = newValue;
-        
-        // Mantener posición del cursor
-        const diff = newValue.length - oldValue.length;
-        this.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-        
-        // Validar
-        validarInput(this, validarRut);
+        if (valor.length >= 8) {
+            const esValido = validarRUT(valor);
+            aplicarValidacion(this, esValido);
+        }
     });
-    
+
     // Contraseña
     passwordInput.addEventListener('input', function() {
-        validarInput(this, (valor) => valor.length >= 6);
+        const esValida = this.value.length >= 6;
+        aplicarValidacion(this, esValida);
     });
-    
+
     // Nombres
     nombresInput.addEventListener('input', function() {
-        validarInput(this, (valor) => valor.length >= 2);
+        const esValido = this.value.trim().length > 0;
+        aplicarValidacion(this, esValido);
     });
-    
+
     // Apellidos
     apellidosInput.addEventListener('input', function() {
-        validarInput(this, (valor) => valor.length >= 2);
+        const esValido = this.value.trim().length > 0;
+        aplicarValidacion(this, esValido);
     });
-    
+
     // Teléfono
     telefonoInput.addEventListener('input', function() {
         this.value = formatearTelefono(this.value);
-        validarInput(this, validarTelefono, true); // Es opcional
+        if (this.value.length > 7) {
+            const esValido = validarTelefono(this.value);
+            aplicarValidacion(this, esValido);
+        }
     });
-    
+
     // Correo
     correoInput.addEventListener('input', function() {
-        validarInput(this, validarEmail);
-    });
-    
-    // Función (opcional)
-    funcionInput.addEventListener('input', function() {
-        if (this.value.trim() !== '') {
-            this.classList.remove('is-invalid');
-            this.classList.add('is-valid');
-        } else {
-            this.classList.remove('is-valid', 'is-invalid');
+        if (this.value.length > 0) {
+            const esValido = validarEmail(this.value);
+            aplicarValidacion(this, esValido);
         }
     });
-    
-    // Función para seleccionar rol
-    function selectRol(rol) {
-        btnRolUsuario.classList.remove('active');
-        btnRolAdmin.classList.remove('active');
-        
-        if (rol === 'usuario') {
-            btnRolUsuario.classList.add('active');
-            rolInput.value = 'usuario';
-        } else if (rol === 'admin') {
-            btnRolAdmin.classList.add('active');
-            rolInput.value = 'admin';
-        }
-        
-        errorRol.style.display = 'none';
-    }
-    
-    // Event listeners para rol
+
+    // Botones de rol
     btnRolUsuario.addEventListener('click', function(e) {
         e.preventDefault();
-        selectRol('usuario');
+        activarBotonRol(this, 'usuario');
     });
-    
-    btnRolAdmin.addEventListener('click', function(e) {
+
+    btnRolProfesor.addEventListener('click', function(e) {
         e.preventDefault();
-        selectRol('admin');
+        activarBotonRol(this, 'profesor');
     });
+
+    // Dropdowns - limpiar validación cuando se selecciona
+    tipoUsuarioSelect.addEventListener('change', function() {
+        if (this.value) {
+            this.classList.remove('is-invalid');
+        }
+    });
+
+    asignaturaSelect.addEventListener('change', function() {
+        if (this.value) {
+            this.classList.remove('is-invalid');
+        }
+    });
+
+    // ========== VALIDACIÓN DEL FORMULARIO ==========
     
-    // Validación del formulario
-    userForm.addEventListener('submit', function(e) {
-        let isValid = true;
+    form.addEventListener('submit', function(e) {
+        let formularioValido = true;
+        
+        // Validar RUT
+        if (!rutInput.value || !validarRUT(rutInput.value)) {
+            aplicarValidacion(rutInput, false);
+            formularioValido = false;
+        }
+        
+        // Validar contraseña
+        if (!passwordInput.value || passwordInput.value.length < 6) {
+            aplicarValidacion(passwordInput, false);
+            formularioValido = false;
+        }
+        
+        // Validar nombres
+        if (!nombresInput.value.trim()) {
+            aplicarValidacion(nombresInput, false);
+            formularioValido = false;
+        }
+        
+        // Validar apellidos
+        if (!apellidosInput.value.trim()) {
+            aplicarValidacion(apellidosInput, false);
+            formularioValido = false;
+        }
+        
+        // Validar correo
+        if (!correoInput.value || !validarEmail(correoInput.value)) {
+            aplicarValidacion(correoInput, false);
+            formularioValido = false;
+        }
+        
+        // Validar teléfono (opcional pero si tiene contenido debe ser válido)
+        if (telefonoInput.value.length > 7 && !validarTelefono(telefonoInput.value)) {
+            aplicarValidacion(telefonoInput, false);
+            formularioValido = false;
+        }
         
         // Validar rol
         if (!rolInput.value) {
-            e.preventDefault();
             errorRol.style.display = 'block';
-            alert('Debe seleccionar un rol para el usuario');
-            isValid = false;
-            return false;
+            formularioValido = false;
         }
         
-        // Validar todos los campos requeridos
-        const validaciones = [
-            { input: rutInput, fn: validarRut, nombre: 'RUT' },
-            { input: passwordInput, fn: (valor) => valor.length >= 6, nombre: 'contraseña' },
-            { input: nombresInput, fn: (valor) => valor.length >= 2, nombre: 'nombres' },
-            { input: apellidosInput, fn: (valor) => valor.length >= 2, nombre: 'apellidos' },
-            { input: correoInput, fn: validarEmail, nombre: 'correo electrónico' }
-        ];
+        // Validar dropdown específico
+        if (rolInput.value === 'usuario' && !tipoUsuarioSelect.value) {
+            tipoUsuarioSelect.classList.add('is-invalid');
+            formularioValido = false;
+        }
         
-        for (let validacion of validaciones) {
-            if (!validarInput(validacion.input, validacion.fn)) {
-                e.preventDefault();
-                alert(`El campo ${validacion.nombre} no es válido`);
-                validacion.input.focus();
-                isValid = false;
-                return false;
+        if (rolInput.value === 'profesor' && !asignaturaSelect.value) {
+            asignaturaSelect.classList.add('is-invalid');
+            formularioValido = false;
+        }
+        
+        if (!formularioValido) {
+            e.preventDefault();
+            console.log('Formulario tiene errores');
+            
+            // Scroll al primer error
+            const primerError = form.querySelector('.is-invalid');
+            if (primerError) {
+                primerError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                primerError.focus();
             }
+        } else {
+            console.log('Formulario válido, enviando...');
         }
-        
-        // Validar teléfono si tiene valor
-        if (telefonoInput.value.trim() !== '+56 9 ' && telefonoInput.value.trim() !== '') {
-            if (!validarTelefono(telefonoInput.value)) {
-                e.preventDefault();
-                telefonoInput.classList.add('is-invalid');
-                alert('El formato del teléfono no es válido');
-                telefonoInput.focus();
-                return false;
-            }
-        }
-        
-        if (isValid) {
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-        }
-        
-        return isValid;
     });
+
+    // ========== INICIALIZACIÓN ==========
     
-    // Inicializar teléfono con prefijo
-    if (telefonoInput.value.trim() === '') {
-        telefonoInput.value = '+56 9 ';
-    }
+    // Ocultar dropdowns al cargar
+    dropdownUsuario.style.display = 'none';
+    dropdownProfesor.style.display = 'none';
+    errorRol.style.display = 'none';
+    
+    // Enfocar el primer campo
+    rutInput.focus();
+    
+    console.log('Inicialización completa');
 });
 </script>
+
+
+{% block extra_js %}
+<style>
+/* Estilos adicionales para que funcione correctamente */
+.selector-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.selector-btn {
+    flex: 1;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.selector-btn:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+}
+
+.selector-btn.active {
+    border-color: #007bff;
+    background: #007bff;
+    color: white;
+}
+
+.selector-btn i {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.conditional-dropdown {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.error-message {
+    display: none;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.error-message i {
+    margin-right: 0.25rem;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    color: #6c757d;
+}
+
+.form-control {
+    padding-left: 2.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.valid-feedback, .invalid-feedback {
+    display: none;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.valid-feedback {
+    color: #28a745;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn-eduvia {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-eduvia:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+</style>
 {% endblock %}

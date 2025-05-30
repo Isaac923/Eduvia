@@ -70,7 +70,6 @@
                         <th>Nombres</th>
                         <th>Apellidos</th>
                         <th>Rol</th>
-                        <th>Función</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -103,9 +102,6 @@
                                     <i class="fas fa-user"></i> Personal
                                 </span>
                             {% endif %}
-                        </td>
-                        <td>
-                            <span class="function-badge">{{ usuario.funcion|default:"Sin función" }}</span>
                         </td>
                         <td data-estado="{{ usuario.estado }}">
                             {% if usuario.estado == 'active' %}
@@ -146,7 +142,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-4">
+                        <td colspan="6" class="text-center py-4">
                             <div class="empty-state">
                                 <i class="fas fa-users fa-3x text-muted mb-3"></i>
                                 <p>No se encontraron usuarios.</p>
@@ -321,571 +317,384 @@
 {% block extra_js %}
 <script src="{% static 'js/lista_usuarios.js' %}"></script>
 <script>
-    // Variables globales
-    window.currentUserData = null;
-
-    // Función para resetear los filtros
-    function resetFilters() {
-        resetFiltersWithPagination();
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Iniciando JavaScript del formulario');
     
-    // Función para mostrar el modal de eliminación
-    function showDeleteModal(button) {
-        const userId = button.getAttribute('data-id');
-        const userName = button.getAttribute('data-nombre');
-        const userRut = button.getAttribute('data-rut');
-        
-        // Actualizar contenido del modal
-        document.getElementById('userName').textContent = userName;
-        document.getElementById('userRut').textContent = userRut;
-        
-        // Usar la URL correcta de Django
-        document.getElementById('deleteForm').action = "{% url 'usuarios:eliminar_usuario' 0 %}".replace('0', userId);
-        
-        // Mostrar modal
-        document.getElementById('deleteModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
+    // Elementos del DOM
+    const btnRolUsuario = document.getElementById('btn-rol-usuario');
+    const btnRolProfesor = document.getElementById('btn-rol-profesor');
+    const rolInput = document.getElementById('rol');
+    const errorRol = document.getElementById('error-rol');
+    const userForm = document.getElementById('userForm');
+    const btnSubmit = document.getElementById('btn-submit');
     
-    // Función para cerrar el modal de eliminación
-    function closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
+    // Dropdowns condicionales
+    const dropdownUsuario = document.getElementById('dropdown-usuario');
+    const dropdownProfesor = document.getElementById('dropdown-profesor');
+    const tipoUsuarioSelect = document.getElementById('tipo-usuario');
+    const asignaturaSelect = document.getElementById('asignatura');
     
-    // Función para mostrar el modal de detalles
-    function showDetailModal(button) {
-        console.log('showDetailModal llamada'); // Debug
-        
-        const userData = {
-            id: button.getAttribute('data-id'),
-            rut: button.getAttribute('data-rut'),
-            nombres: button.getAttribute('data-nombres'),
-            apellidos: button.getAttribute('data-apellidos'),
-            correo: button.getAttribute('data-correo'),
-            telefono: button.getAttribute('data-telefono') || '',
-            rol: button.getAttribute('data-rol'),
-            estado: button.getAttribute('data-estado'),
-            funcion: button.getAttribute('data-funcion') || '',
-            fecha: button.getAttribute('data-fecha')
-        };
-        
-        console.log('Datos del usuario:', userData); // Debug
-        
-        // Guardar datos globalmente
-        window.currentUserData = userData;
-        
-        // Llenar los datos en el modal de detalles
-        document.getElementById('detailUserName').textContent = `${userData.nombres} ${userData.apellidos}`;
-        document.getElementById('detailRut').textContent = userData.rut || '-';
-        document.getElementById('detailNombres').textContent = userData.nombres || '-';
-        document.getElementById('detailApellidos').textContent = userData.apellidos || '-';
-        document.getElementById('detailCorreo').textContent = userData.correo || '-';
-        document.getElementById('detailTelefono').textContent = userData.telefono || '-';
-        document.getElementById('detailFuncion').textContent = userData.funcion || '-';
-        document.getElementById('detailFechaRegistro').textContent = userData.fecha || '-';
-        
-        // Configurar el rol
-        const roleElement = document.getElementById('detailUserRole');
-        const stateElement = document.getElementById('detailEstado');
-        
-        // Configurar badge del rol
-        if (userData.rol === 'admin') {
-            roleElement.className = 'role-badge role-admin';
-            roleElement.innerHTML = '<i class="fas fa-user-shield"></i> Administrador';
-        } else if (userData.rol === 'usuario') {
-            roleElement.className = 'role-badge role-staff';
-            roleElement.innerHTML = '<i class="fas fa-user"></i> Usuario';
-        } else if (userData.rol === 'student') {
-            roleElement.className = 'role-badge role-student';
-            roleElement.innerHTML = '<i class="fas fa-user-graduate"></i> Estudiante';
-        } else {
-            roleElement.className = 'role-badge role-staff';
-            roleElement.innerHTML = '<i class="fas fa-user"></i> Personal';
-        }
-        
-        // Configurar badge del estado
-        if (userData.estado === 'active') {
-            stateElement.className = 'status-badge status-active';
-            stateElement.textContent = 'Activo';
-        } else if (userData.estado === 'inactive') {
-            stateElement.className = 'status-badge status-inactive';
-            stateElement.textContent = 'Inactivo';
-        } else {
-            stateElement.className = 'status-badge status-pending';
-            stateElement.textContent = 'Pendiente';
-        }
-        
-        // Mostrar modal con animación
-        const modal = document.getElementById('detailModal');
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        // Trigger de la animación de entrada
-        setTimeout(() => {
-            modal.classList.add('show');
-        }, 10);
-    }
+    // Inputs para validación
+    const rutInput = document.getElementById('rut');
+    const passwordInput = document.getElementById('password');
+    const nombresInput = document.getElementById('nombres');
+    const apellidosInput = document.getElementById('apellidos');
+    const telefonoInput = document.getElementById('telefono');
+    const correoInput = document.getElementById('correo');
     
-    // Función para cerrar el modal de detalles
-    function closeDetailModal() {
-        const modal = document.getElementById('detailModal');
-        
-        modal.classList.remove('show');
-        
-        setTimeout(() => {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }, 300);
-    }
-    
-    // Función para redireccionar al formulario de edición
-    function redirectToEdit() {
-        if (!window.currentUserData || !window.currentUserData.id) {
-            alert('No hay datos de usuario disponibles');
-            return;
-        }
-        
-        const userId = window.currentUserData.id;
-        
-        // Cerrar el modal de detalles
-        closeDetailModal();
-        
-        // Redireccionar a la página de edición
-        const editUrl = "{% url 'usuarios:editar_usuario' 999 %}".replace('999', userId);
-        window.location.href = editUrl;
-    }
-    
-    // Event listeners
-    document.addEventListener('DOMContentLoaded', function() {
-        const deleteModal = document.getElementById('deleteModal');
-        const detailModal = document.getElementById('detailModal');
-        
-        // Cerrar modales al hacer clic fuera
-        if (deleteModal) {
-            deleteModal.addEventListener('click', function(e) {
-                if (e.target === deleteModal) {
-                    closeDeleteModal();
-                }
-            });
-        }
-        
-        if (detailModal) {
-            detailModal.addEventListener('click', function(e) {
-                if (e.target === detailModal) {
-                    closeDetailModal();
-                }
-            });
-        }
-        
-        // Cerrar modales con tecla Escape
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                if (deleteModal && deleteModal.style.display === 'flex') {
-                    closeDeleteModal();
-                }
-                if (detailModal && detailModal.classList.contains('show')) {
-                    closeDetailModal();
-                }
-            }
-        });
+    // Debug: Verificar elementos
+    console.log('Elementos encontrados:', {
+        btnRolUsuario: !!btnRolUsuario,
+        btnRolProfesor: !!btnRolProfesor,
+        dropdownUsuario: !!dropdownUsuario,
+        dropdownProfesor: !!dropdownProfesor,
+        tipoUsuarioSelect: !!tipoUsuarioSelect,
+        asignaturaSelect: !!asignaturaSelect
     });
-
-    // Función para cerrar alertas
-    function closeAlert(button) {
-        const alert = button.closest('.custom-alert');
-        alert.classList.add('fade-out');
-        setTimeout(() => {
-            if (alert.parentNode) {
-                alert.remove();
-            }
-        }, 300);
-    }
-
-    // Función para auto-cerrar una alerta específica
-    function autoCloseAlert(alertElement, delay = 2000) {
-        setTimeout(() => {
-            if (alertElement && alertElement.parentNode) {
-                const closeButton = alertElement.querySelector('.alert-close');
-                if (closeButton) {
-                    closeAlert(closeButton);
-                }
-            }
-        }, delay);
-    }
-
-    // Auto-cerrar alertas cuando se carga la página
-    document.addEventListener('DOMContentLoaded', function() {
-        // Auto-cerrar todas las alertas después de 2 segundos
-        const allAlerts = document.querySelectorAll('.custom-alert');
-        allAlerts.forEach(alert => {
-            autoCloseAlert(alert, 2000);
-        });
-    });
-
-    // Variables de paginación - actualizadas
-    let currentPage = 1;
-    let itemsPerPage = 4;
-    let totalItems = 0;
-    let filteredItems = [];
-    let allUserRows = [];
-
-    // Función para inicializar paginación - MEJORADA
-    function initializePagination() {
-        // Obtener todas las filas de usuarios reales del DOM
-        allUserRows = Array.from(document.querySelectorAll('.user-row'));
-        totalItems = allUserRows.length;
-        filteredItems = [...allUserRows]; // Copia del array
+    
+    // Función para validar RUT chileno
+    function validarRut(rut) {
+        rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
         
-        console.log(`Paginador inicializado: ${totalItems} usuarios encontrados`);
-        
-        // Solo mostrar paginador si hay más de 4 usuarios
-        const paginationContainer = document.getElementById('paginationContainer');
-        if (totalItems <= 4) {
-            if (paginationContainer) {
-                paginationContainer.style.display = 'none';
-            }
-            // Mostrar todos los usuarios si son 4 o menos
-            allUserRows.forEach(row => row.style.display = '');
-            updateCounter(totalItems, totalItems);
-            return;
+        if (rut.length !== 9) {
+            return false;
         }
         
-        // Mostrar paginador si hay más de 4 usuarios
-        if (paginationContainer) {
-            paginationContainer.style.display = 'flex';
+        const numero = rut.slice(0, 8);
+        const dv = rut.slice(8);
+        
+        if (!/^\d{8}$/.test(numero)) {
+            return false;
         }
         
-        // Event listeners para controles de paginación
-        const firstPageBtn = document.getElementById('firstPage');
-        const prevPageBtn = document.getElementById('prevPage');
-        const nextPageBtn = document.getElementById('nextPage');
-        const lastPageBtn = document.getElementById('lastPage');
-        const pageSizeSelect = document.getElementById('pageSize');
+        let suma = 0;
+        let multiplicador = 2;
         
-        if (firstPageBtn) firstPageBtn.addEventListener('click', () => goToPage(1));
-        if (prevPageBtn) prevPageBtn.addEventListener('click', () => goToPage(currentPage - 1));
-        if (nextPageBtn) nextPageBtn.addEventListener('click', () => goToPage(currentPage + 1));
-        if (lastPageBtn) lastPageBtn.addEventListener('click', () => goToPage(getTotalPages()));
-        
-        // Event listener para cambio de tamaño de página
-        if (pageSizeSelect) {
-            pageSizeSelect.addEventListener('change', function() {
-                itemsPerPage = parseInt(this.value);
-                currentPage = 1;
-                updatePagination();
-            });
+        for (let i = numero.length - 1; i >= 0; i--) {
+            suma += parseInt(numero.charAt(i)) * multiplicador;
+            multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
         }
         
-        // Inicializar primera página
-        updatePagination();
+        const resto = suma % 11;
+        const dvCalculado = resto < 2 ? resto.toString() : resto === 10 ? 'K' : (11 - resto).toString();
+        
+        return dv === dvCalculado;
     }
-
-    // Función para obtener total de páginas - SIN CAMBIOS
-    function getTotalPages() {
-        return Math.ceil(filteredItems.length / itemsPerPage);
-    }
-
-    // Función para ir a una página específica - MEJORADA
-    function goToPage(page) {
-        const totalPages = getTotalPages();
+    
+    // Función para formatear RUT
+    function formatearRut(rut) {
+        rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
         
-        if (page < 1 || page > totalPages || totalPages === 0) return;
-        
-        currentPage = page;
-        updatePagination();
-        
-        // Scroll suave al inicio de la tabla
-        const tableContainer = document.getElementById('tableBodyScroll');
-        if (tableContainer) {
-            tableContainer.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-
-    // Función para actualizar la paginación - MEJORADA
-    function updatePagination() {
-        const totalPages = getTotalPages();
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        
-        // Ocultar TODAS las filas de usuarios primero
-        allUserRows.forEach(row => {
-            row.style.display = 'none';
-            row.classList.remove('fade-in-page');
-        });
-        
-        // Mostrar solo las filas de la página actual de los elementos filtrados
-        const currentPageItems = filteredItems.slice(startIndex, endIndex);
-        currentPageItems.forEach((row, index) => {
-            row.style.display = '';
-            // Animación escalonada
-            setTimeout(() => {
-                row.style.animationDelay = `${index * 0.05}s`;
-                row.classList.add('fade-in-page');
-            }, 50);
-        });
-        
-        // Actualizar información de paginación
-        updatePaginationInfo();
-        updatePaginationControls();
-        updatePaginationNumbers();
-        
-        // Actualizar contador con los usuarios visibles en esta página
-        const visibleCount = currentPageItems.length;
-        updateCounter(visibleCount, filteredItems.length);
-        
-        // Verificar indicador de scroll
-        setTimeout(checkScrollIndicator, 100);
-        
-        console.log(`Página ${currentPage}: Mostrando ${visibleCount} de ${filteredItems.length} usuarios`);
-    }
-
-    // Función para actualizar información de paginación - SIN CAMBIOS
-    function updatePaginationInfo() {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, filteredItems.length);
-        
-        const showingStartEl = document.getElementById('showingStart');
-        const showingEndEl = document.getElementById('showingEnd');
-        const totalItemsEl = document.getElementById('totalItems');
-        
-        if (showingStartEl) showingStartEl.textContent = filteredItems.length > 0 ? startIndex + 1 : 0;
-        if (showingEndEl) showingEndEl.textContent = endIndex;
-        if (totalItemsEl) totalItemsEl.textContent = filteredItems.length;
-    }
-
-    // Función para actualizar controles de paginación - MEJORADA
-    function updatePaginationControls() {
-        const totalPages = getTotalPages();
-        
-        const firstPageBtn = document.getElementById('firstPage');
-        const prevPageBtn = document.getElementById('prevPage');
-        const nextPageBtn = document.getElementById('nextPage');
-        const lastPageBtn = document.getElementById('lastPage');
-        
-        if (firstPageBtn) firstPageBtn.disabled = currentPage === 1 || totalPages === 0;
-        if (prevPageBtn) prevPageBtn.disabled = currentPage === 1 || totalPages === 0;
-        if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
-        if (lastPageBtn) lastPageBtn.disabled = currentPage === totalPages || totalPages === 0;
-    }
-
-    // Función para actualizar números de paginación
-    function updatePaginationNumbers() {
-        const totalPages = getTotalPages();
-        const numbersContainer = document.getElementById('paginationNumbers');
-        numbersContainer.innerHTML = '';
-        
-        if (totalPages <= 1) return;
-        
-        // Calcular rango de páginas a mostrar
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, currentPage + 2);
-        
-        // Ajustar si estamos cerca del inicio o final
-        if (currentPage <= 3) {
-            endPage = Math.min(5, totalPages);
-        }
-        if (currentPage >= totalPages - 2) {
-            startPage = Math.max(1, totalPages - 4);
+        if (rut.length <= 1) {
+            return rut;
         }
         
-        // Agregar primera página si no está en el rango
-        if (startPage > 1) {
-            addPageNumber(1);
-            if (startPage > 2) {
-                addEllipsis();
-            }
+        const dv = rut.slice(-1);
+        let numero = rut.slice(0, -1);
+        numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        return numero + '-' + dv;
+    }
+    
+    // Función para validar email
+    function validarEmail(email) {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
+    
+    // Función para validar teléfono chileno
+    function validarTelefono(telefono) {
+        const regex = /^\+56 9 \d{4} \d{4}$/;
+        return regex.test(telefono);
+    }
+    
+    // Función para formatear teléfono
+    function formatearTelefono(telefono) {
+        if (!telefono.startsWith('+56 9 ')) {
+            return '+56 9 ';
         }
         
-        // Agregar páginas en el rango
-        for (let i = startPage; i <= endPage; i++) {
-            addPageNumber(i);
-        }
+        const numeros = telefono.replace('+56 9 ', '').replace(/\D/g, '');
         
-        // Agregar última página si no está en el rango
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                addEllipsis();
-            }
-            addPageNumber(totalPages);
-        }
-    }
-
-    // Función para agregar número de página
-    function addPageNumber(pageNum) {
-        const pageButton = document.createElement('button');
-        pageButton.className = `pagination-number ${pageNum === currentPage ? 'active' : ''}`;
-        pageButton.innerHTML = `<span>${pageNum}</span>`;
-        pageButton.addEventListener('click', () => goToPage(pageNum));
-        
-        document.getElementById('paginationNumbers').appendChild(pageButton);
-    }
-
-    // Función para agregar puntos suspensivos
-    function addEllipsis() {
-        const ellipsis = document.createElement('div');
-        ellipsis.className = 'pagination-ellipsis';
-        ellipsis.textContent = '...';
-        document.getElementById('paginationNumbers').appendChild(ellipsis);
-    }
-
-    // Función de filtrado actualizada para trabajar con paginación - MEJORADA
-    function filterUsersWithPagination() {
-        const searchInput = document.getElementById('searchInput');
-        const filterRol = document.getElementById('filterRol');
-        const filterEstado = document.getElementById('filterEstado');
-        
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-        const rolFilter = filterRol ? filterRol.value : '';
-        const estadoFilter = filterEstado ? filterEstado.value : '';
-        
-        // Filtrar desde todas las filas de usuarios
-        filteredItems = allUserRows.filter(row => {
-            const rutNombre = row.getAttribute('data-nombre') || '';
-            const rut = row.getAttribute('data-rut') || '';
-            const rol = row.getAttribute('data-rol') || '';
-            const estado = row.getAttribute('data-estado') || '';
-            
-            const matchesSearch = !searchTerm || 
-                                rutNombre.includes(searchTerm) || 
-                                rut.includes(searchTerm);
-            const matchesRol = !rolFilter || rol === rolFilter;
-            const matchesEstado = !estadoFilter || estado === estadoFilter;
-            
-            return matchesSearch && matchesRol && matchesEstado;
-        });
-        
-        // Resetear a la primera página cuando se filtra
-        currentPage = 1;
-        
-        // Mostrar/ocultar paginador según la cantidad de resultados
-        const paginationContainer = document.getElementById('paginationContainer');
-        const emptyResults = document.getElementById('empty-results');
-        
-        if (filteredItems.length === 0 && allUserRows.length > 0) {
-            // No hay resultados de búsqueda
-            if (emptyResults) emptyResults.style.display = 'block';
-            if (paginationContainer) paginationContainer.style.display = 'none';
-            updateCounter(0, allUserRows.length);
-        } else if (filteredItems.length <= 4) {
-            // 4 o menos resultados - no necesita paginador
-            if (emptyResults) emptyResults.style.display = 'none';
-            if (paginationContainer) paginationContainer.style.display = 'none';
-            
-            // Mostrar todos los resultados filtrados
-            allUserRows.forEach(row => row.style.display = 'none');
-            filteredItems.forEach(row => row.style.display = '');
-            updateCounter(filteredItems.length, filteredItems.length);
+        if (numeros.length <= 4) {
+            return '+56 9 ' + numeros;
         } else {
-            // Más de 4 resultados - mostrar paginador
-            if (emptyResults) emptyResults.style.display = 'none';
-            if (paginationContainer) paginationContainer.style.display = 'flex';
-            updatePagination();
+            return '+56 9 ' + numeros.slice(0, 4) + ' ' + numeros.slice(4, 8);
+        }
+    }
+    
+    // Función para validar y marcar input
+    function validarInput(input, validacionFn, esOpcional = false) {
+        if (!input) return true;
+        
+        const valor = input.value.trim();
+        
+        if (esOpcional && valor === '') {
+            input.classList.remove('is-valid', 'is-invalid');
+            return true;
         }
         
-        console.log(`Filtro aplicado: ${filteredItems.length} usuarios encontrados de ${allUserRows.length} totales`);
-    }
-
-    // Función para resetear filtros actualizada - MEJORADA
-    function resetFiltersWithPagination() {
-        const searchInput = document.getElementById('searchInput');
-        const filterRol = document.getElementById('filterRol');
-        const filterEstado = document.getElementById('filterEstado');
+        if (!esOpcional && valor === '') {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+            return false;
+        }
         
-        if (searchInput) searchInput.value = '';
-        if (filterRol) filterRol.value = '';
-        if (filterEstado) filterEstado.value = '';
-        
-        // Restaurar todos los usuarios
-        filteredItems = [...allUserRows];
-        currentPage = 1;
-        
-        const emptyResults = document.getElementById('empty-results');
-        const paginationContainer = document.getElementById('paginationContainer');
-        
-        if (emptyResults) emptyResults.style.display = 'none';
-        
-        // Mostrar paginador solo si hay más de 4 usuarios
-        if (filteredItems.length > 4) {
-            if (paginationContainer) paginationContainer.style.display = 'flex';
-            updatePagination();
+        if (validacionFn(valor)) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+            return true;
         } else {
-            if (paginationContainer) paginationContainer.style.display = 'none';
-            allUserRows.forEach(row => row.style.display = '');
-            updateCounter(filteredItems.length, filteredItems.length);
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+            return false;
+        }
+    }
+    
+    // Función para ocultar todos los dropdowns
+    function ocultarTodosDropdowns() {
+        console.log('Ocultando todos los dropdowns');
+        
+        if (dropdownUsuario) {
+            dropdownUsuario.classList.remove('show');
+            dropdownUsuario.style.display = 'none';
+        }
+        if (dropdownProfesor) {
+            dropdownProfesor.classList.remove('show');
+            dropdownProfesor.style.display = 'none';
         }
         
-        console.log('Filtros reseteados');
+        // Limpiar selecciones
+        if (tipoUsuarioSelect) {
+            tipoUsuarioSelect.value = '';
+            tipoUsuarioSelect.classList.remove('is-valid', 'is-invalid');
+        }
+        if (asignaturaSelect) {
+            asignaturaSelect.value = '';
+            asignaturaSelect.classList.remove('is-valid', 'is-invalid');
+        }
     }
-
-    // Función para actualizar contador - MEJORADA
-    function updateCounter(visible, total) {
-        const counterNumber = document.querySelector('.counter-number');
-        if (counterNumber) {
-            counterNumber.textContent = visible;
+    
+    // Función para mostrar dropdown específico
+    function mostrarDropdown(tipo) {
+        console.log('Mostrando dropdown para:', tipo);
+        
+        // Ocultar todos primero
+        ocultarTodosDropdowns();
+        
+        // Mostrar el correcto inmediatamente
+        if (tipo === 'usuario' && dropdownUsuario) {
+            console.log('Mostrando dropdown usuario');
+            dropdownUsuario.style.display = 'block';
+            dropdownUsuario.classList.add('show');
+            console.log('Dropdown usuario clases:', dropdownUsuario.className);
+        } else if (tipo === 'profesor' && dropdownProfesor) {
+            console.log('Mostrando dropdown profesor');
+            dropdownProfesor.style.display = 'block';
+            dropdownProfesor.classList.add('show');
+            console.log('Dropdown profesor clases:', dropdownProfesor.className);
+        }
+    }
+    
+    // Función para seleccionar rol
+    function selectRol(rol) {
+        console.log('Seleccionando rol:', rol);
+        
+        // Remover clase active de ambos botones
+        if (btnRolUsuario) btnRolUsuario.classList.remove('active');
+        if (btnRolProfesor) btnRolProfesor.classList.remove('active');
+        
+        // Activar el botón correspondiente
+        if (rol === 'usuario') {
+            if (btnRolUsuario) btnRolUsuario.classList.add('active');
+            rolInput.value = 'usuario';
+            mostrarDropdown('usuario');
+        } else if (rol === 'profesor') {
+            if (btnRolProfesor) btnRolProfesor.classList.add('active');
+            rolInput.value = 'profesor';
+            mostrarDropdown('profesor');
+        }
+        
+        // Ocultar mensaje de error
+        if (errorRol) {
+            errorRol.style.display = 'none';
+        }
+        
+        console.log('Rol establecido:', rolInput.value);
+    }
+    
+    // Event listeners para los botones de rol
+    if (btnRolUsuario) {
+        btnRolUsuario.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Click en botón Usuario');
+            selectRol('usuario');
+        });
+    }
+    
+    if (btnRolProfesor) {
+        btnRolProfesor.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Click en botón Profesor');
+            selectRol('profesor');
+        });
+    }
+    
+    // Event listeners para validación en tiempo real
+    if (rutInput) {
+        rutInput.addEventListener('input', function() {
+            const cursorPosition = this.selectionStart;
+            const oldValue = this.value;
+            const newValue = formatearRut(oldValue);
             
-            // Cambiar color si hay filtros activos o paginación
-            if (visible < allUserRows.length) {
-                counterNumber.style.background = 'rgba(245, 158, 11, 0.9)';
+            this.value = newValue;
+            
+            const diff = newValue.length - oldValue.length;
+            this.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
+            
+            validarInput(this, validarRut);
+        });
+    }
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            validarInput(this, (valor) => valor.length >= 6);
+        });
+    }
+    
+    if (nombresInput) {
+        nombresInput.addEventListener('input', function() {
+            validarInput(this, (valor) => valor.length >= 2);
+        });
+    }
+    
+    if (apellidosInput) {
+        apellidosInput.addEventListener('input', function() {
+            validarInput(this, (valor) => valor.length >= 2);
+        });
+    }
+    
+    if (telefonoInput) {
+        telefonoInput.addEventListener('input', function() {
+            this.value = formatearTelefono(this.value);
+            validarInput(this, validarTelefono, true);
+        });
+    }
+    
+    if (correoInput) {
+        correoInput.addEventListener('input', function() {
+            validarInput(this, validarEmail);
+        });
+    }
+    
+    // Event listeners para dropdowns condicionales
+    if (tipoUsuarioSelect) {
+        tipoUsuarioSelect.addEventListener('change', function() {
+            console.log('Cambio en tipo usuario:', this.value);
+            if (this.value) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
             } else {
-                counterNumber.style.background = 'rgba(255, 255, 255, 0.2)';
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
             }
-        }
+        });
     }
-
-    // Actualizar las funciones existentes para usar las nuevas versiones
-    function filterUsers() {
-        filterUsersWithPagination();
-    }
-
-    function resetFilters() {
-        resetFiltersWithPagination();
-    }
-
-    // Agregar CSS para animación de página
-    const pageAnimationCSS = `
-        .fade-in-page {
-            animation: fadeInPage 0.4s ease-out both;
-        }
-        
-        @keyframes fadeInPage {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
+    
+    if (asignaturaSelect) {
+        asignaturaSelect.addEventListener('change', function() {
+            console.log('Cambio en asignatura:', this.value);
+            if (this.value) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+        });
+    }
+    
+    // Validación del formulario
+    if (userForm) {
+        userForm.addEventListener('submit', function(e) {
+            console.log('Enviando formulario...');
+            console.log('Valor del rol:', rolInput.value);
+            
+            // Validar que se haya seleccionado un rol
+            if (!rolInput.value) {
+                e.preventDefault();
+                if (errorRol) errorRol.style.display = 'block';
+                alert('Debe seleccionar un tipo de usuario');
+                return false;
             }
-        }
-    `;
-
-    // Agregar el CSS al head
-    const style = document.createElement('style');
-    style.textContent = pageAnimationCSS;
-    document.head.appendChild(style);
-
-    // Actualizar el event listener del DOMContentLoaded para incluir paginación
-    document.addEventListener('DOMContentLoaded', function() {
-        // ... tu código existente ...
-        
-        // Agregar esta línea
-        initializePagination();
-        
-        // Actualizar los event listeners de filtros para usar la nueva función
-        if (searchInput) {
-            searchInput.addEventListener('input', debounce(filterUsersWithPagination, 300));
-        }
-        
-        if (filterRol) {
-            filterRol.addEventListener('change', filterUsersWithPagination);
-        }
-        
-        if (filterEstado) {
-            filterEstado.addEventListener('change', filterUsersWithPagination);
-        }
-        
-        // ... resto de tu código existente ...
-    });
+            
+            // Validar dropdown condicional según el rol
+            if (rolInput.value === 'usuario') {
+                if (!tipoUsuarioSelect || !tipoUsuarioSelect.value) {
+                    e.preventDefault();
+                    if (tipoUsuarioSelect) tipoUsuarioSelect.classList.add('is-invalid');
+                    alert('Debe seleccionar el nivel de usuario');
+                    if (tipoUsuarioSelect) tipoUsuarioSelect.focus();
+                    return false;
+                }
+            } else if (rolInput.value === 'profesor') {
+                if (!asignaturaSelect || !asignaturaSelect.value) {
+                    e.preventDefault();
+                    if (asignaturaSelect) asignaturaSelect.classList.add('is-invalid');
+                    alert('Debe seleccionar una asignatura');
+                    if (asignaturaSelect) asignaturaSelect.focus();
+                    return false;
+                }
+            }
+            
+            // Validar campos requeridos
+            const validaciones = [
+                { input: rutInput, fn: validarRut, nombre: 'RUT' },
+                { input: passwordInput, fn: (valor) => valor.length >= 6, nombre: 'contraseña' },
+                { input: nombresInput, fn: (valor) => valor.length >= 2, nombre: 'nombres' },
+                { input: apellidosInput, fn: (valor) => valor.length >= 2, nombre: 'apellidos' },
+                { input: correoInput, fn: validarEmail, nombre: 'correo electrónico' }
+            ];
+            
+            for (let validacion of validaciones) {
+                if (validacion.input && !validarInput(validacion.input, validacion.fn)) {
+                    e.preventDefault();
+                    alert(`El campo ${validacion.nombre} no es válido`);
+                    validacion.input.focus();
+                    return false;
+                }
+            }
+            
+            // Validar teléfono si tiene valor
+            if (telefonoInput && telefonoInput.value.trim() !== '+56 9 ' && telefonoInput.value.trim() !== '') {
+                if (!validarTelefono(telefonoInput.value)) {
+                    e.preventDefault();
+                    telefonoInput.classList.add('is-invalid');
+                    alert('El formato del teléfono no es válido');
+                    telefonoInput.focus();
+                    return false;
+                }
+            }
+            
+            // Si todo está válido, deshabilitar botón y mostrar loading
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            }
+            
+            return true;
+        });
+    }
+    
+    // Inicializar teléfono con prefijo
+    if (telefonoInput && telefonoInput.value.trim() === '') {
+        telefonoInput.value = '+56 9 ';
+    }
+    
+    // Inicializar estado - ocultar todos los dropdowns al cargar
+    ocultarTodosDropdowns();
+    
+    console.log('JavaScript inicializado correctamente');
+});
 </script>
 {% endblock %}
