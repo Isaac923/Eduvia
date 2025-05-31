@@ -187,17 +187,6 @@
                     <i class="fas fa-angle-double-right"></i>
                 </button>
             </div>
-            <div class="pagination-size">
-                <label for="pageSize">Mostrar:</label>
-                <select id="pageSize" class="page-size-select">
-                    <option value="4">4</option>
-                    <option value="8">8</option>
-                    <option value="12">12</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                </select>
-                <span>por página</span>
-            </div>
         </div>
     </div>
 
@@ -313,388 +302,346 @@
 </div>
 {% endblock %}
 
-
 {% block extra_js %}
 <script src="{% static 'js/lista_usuarios.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Iniciando JavaScript del formulario');
+// Variables globales para paginación
+let currentPage = 1;
+let itemsPerPage = 4;
+let allRows = [];
+let visibleRows = [];
+
+// Función para mostrar el modal de eliminación
+function showDeleteModal(button) {
+    const userId = button.getAttribute('data-id');
+    const userName = button.getAttribute('data-nombre');
+    const userRut = button.getAttribute('data-rut');
     
-    // Elementos del DOM
-    const btnRolUsuario = document.getElementById('btn-rol-usuario');
-    const btnRolProfesor = document.getElementById('btn-rol-profesor');
-    const rolInput = document.getElementById('rol');
-    const errorRol = document.getElementById('error-rol');
-    const userForm = document.getElementById('userForm');
-    const btnSubmit = document.getElementById('btn-submit');
+    document.getElementById('userName').textContent = userName;
+    document.getElementById('userRut').textContent = userRut;
     
-    // Dropdowns condicionales
-    const dropdownUsuario = document.getElementById('dropdown-usuario');
-    const dropdownProfesor = document.getElementById('dropdown-profesor');
-    const tipoUsuarioSelect = document.getElementById('tipo-usuario');
-    const asignaturaSelect = document.getElementById('asignatura');
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = `/usuarios/eliminar/${userId}/`;
     
-    // Inputs para validación
-    const rutInput = document.getElementById('rut');
-    const passwordInput = document.getElementById('password');
-    const nombresInput = document.getElementById('nombres');
-    const apellidosInput = document.getElementById('apellidos');
-    const telefonoInput = document.getElementById('telefono');
-    const correoInput = document.getElementById('correo');
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
     
-    // Debug: Verificar elementos
-    console.log('Elementos encontrados:', {
-        btnRolUsuario: !!btnRolUsuario,
-        btnRolProfesor: !!btnRolProfesor,
-        dropdownUsuario: !!dropdownUsuario,
-        dropdownProfesor: !!dropdownProfesor,
-        tipoUsuarioSelect: !!tipoUsuarioSelect,
-        asignaturaSelect: !!asignaturaSelect
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+}
+
+// Función para cerrar el modal de eliminación
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }, 300);
+}
+
+// Función para cerrar alertas
+function closeAlert(button) {
+    const alert = button.closest('.custom-alert');
+    alert.classList.add('fade-out');
+    setTimeout(() => {
+        alert.remove();
+    }, 300);
+}
+
+// Función para redireccionar a editar
+function redirectToEdit() {
+    const userId = document.getElementById('editBtn').getAttribute('data-user-id');
+    if (userId) {
+        window.location.href = `/usuarios/editar/${userId}/`;
+    } else {
+        alert('ID de usuario no encontrado');
+    }
+}
+
+// Función para filtrar la tabla
+function filterTable() {
+    console.log('Filtrando tabla...');
+    
+    const searchInput = document.querySelector('.search-input');
+    const filterRol = document.querySelector('.filter-rol');
+    const filterEstado = document.querySelector('.filter-estado');
+    const emptyResults = document.getElementById('empty-results');
+    const userTable = document.querySelector('.user-table');
+
+    if (!searchInput || !filterRol || !filterEstado) {
+        console.log('Elementos de filtro no encontrados');
+        return;
+    }
+
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedRol = filterRol.value;
+    const selectedEstado = filterEstado.value;
+
+    console.log('Filtros:', { searchTerm, selectedRol, selectedEstado });
+
+    // Filtrar todas las filas
+    visibleRows = allRows.filter(row => {
+        if (row.querySelector('.empty-state')) {
+            return false;
+        }
+
+        const rut = row.getAttribute('data-rut') || '';
+        const nombre = row.getAttribute('data-nombre') || '';
+        const rol = row.getAttribute('data-rol') || '';
+        const estado = row.getAttribute('data-estado') || '';
+
+        // Buscar en RUT y nombre
+        const matchesSearch = searchTerm === '' || 
+                            rut.includes(searchTerm) || 
+                            nombre.includes(searchTerm);
+
+        // Filtrar por rol
+        let matchesRol = selectedRol === '';
+        if (selectedRol !== '') {
+            if (selectedRol === 'usuario' && (rol === 'usuario' || rol === 'student' || rol === 'staff')) {
+                matchesRol = true;
+            } else if (selectedRol === rol) {
+                matchesRol = true;
+            }
+        }
+
+        // Filtrar por estado
+        const matchesEstado = selectedEstado === '' || estado === selectedEstado;
+
+        return matchesSearch && matchesRol && matchesEstado;
+    });
+
+    console.log(`Filas visibles después del filtro: ${visibleRows.length}`);
+
+    // Resetear a la primera página
+    currentPage = 1;
+    
+    // Actualizar paginación
+    updatePagination();
+
+    // Mostrar/ocultar mensaje de "no hay resultados"
+    if (visibleRows.length === 0 && (searchTerm !== '' || selectedRol !== '' || selectedEstado !== '')) {
+        emptyResults.style.display = 'block';
+        userTable.style.display = 'none';
+        document.getElementById('paginationContainer').style.display = 'none';
+    } else {
+        emptyResults.style.display = 'none';
+        userTable.style.display = 'table';
+        document.getElementById('paginationContainer').style.display = 'flex';
+    }
+}
+
+// Función para resetear filtros
+function resetFilters() {
+    document.querySelector('.search-input').value = '';
+    document.querySelector('.filter-rol').value = '';
+    document.querySelector('.filter-estado').value = '';
+    
+    filterTable();
+}
+
+// Función para actualizar la paginación
+function updatePagination() {
+    console.log(`Actualizando paginación - Página: ${currentPage}, Items por página: ${itemsPerPage}, Filas visibles: ${visibleRows.length}`);
+    
+    const totalItems = visibleRows.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    
+    // Asegurar que la página actual no exceda el total
+    if (currentPage > totalPages && totalPages > 0) {
+        currentPage = totalPages;
+    } else if (currentPage < 1) {
+        currentPage = 1;
+    }
+    
+    // Calcular índices
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    const showingStart = totalItems > 0 ? startIndex + 1 : 0;
+    const showingEnd = endIndex;
+    
+    // Actualizar información de paginación
+    document.getElementById('showingStart').textContent = showingStart;
+    document.getElementById('showingEnd').textContent = showingEnd;
+    document.getElementById('totalItems').textContent = totalItems;
+    
+    // Ocultar todas las filas primero
+    allRows.forEach(row => {
+        row.style.display = 'none';
     });
     
-    // Función para validar RUT chileno
-    function validarRut(rut) {
-        rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
-        
-        if (rut.length !== 9) {
-            return false;
-        }
-        
-        const numero = rut.slice(0, 8);
-        const dv = rut.slice(8);
-        
-        if (!/^\d{8}$/.test(numero)) {
-            return false;
-        }
-        
-        let suma = 0;
-        let multiplicador = 2;
-        
-        for (let i = numero.length - 1; i >= 0; i--) {
-            suma += parseInt(numero.charAt(i)) * multiplicador;
-            multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
-        }
-        
-        const resto = suma % 11;
-        const dvCalculado = resto < 2 ? resto.toString() : resto === 10 ? 'K' : (11 - resto).toString();
-        
-        return dv === dvCalculado;
-    }
-    
-    // Función para formatear RUT
-    function formatearRut(rut) {
-        rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
-        
-        if (rut.length <= 1) {
-            return rut;
-        }
-        
-        const dv = rut.slice(-1);
-        let numero = rut.slice(0, -1);
-        numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        
-        return numero + '-' + dv;
-    }
-    
-    // Función para validar email
-    function validarEmail(email) {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    }
-    
-    // Función para validar teléfono chileno
-    function validarTelefono(telefono) {
-        const regex = /^\+56 9 \d{4} \d{4}$/;
-        return regex.test(telefono);
-    }
-    
-    // Función para formatear teléfono
-    function formatearTelefono(telefono) {
-        if (!telefono.startsWith('+56 9 ')) {
-            return '+56 9 ';
-        }
-        
-        const numeros = telefono.replace('+56 9 ', '').replace(/\D/g, '');
-        
-        if (numeros.length <= 4) {
-            return '+56 9 ' + numeros;
+    // Mostrar solo las filas de la página actual
+    visibleRows.forEach((row, index) => {
+        if (index >= startIndex && index < endIndex) {
+            row.style.display = '';
         } else {
-            return '+56 9 ' + numeros.slice(0, 4) + ' ' + numeros.slice(4, 8);
+            row.style.display = 'none';
         }
+    });
+    
+    // Actualizar botones de paginación
+    updatePaginationButtons(totalPages);
+    generatePageNumbers(totalPages);
+    
+    console.log(`Mostrando elementos ${showingStart}-${showingEnd} de ${totalItems}`);
+}
+
+// Función para actualizar botones de paginación
+function updatePaginationButtons(totalPages) {
+    const firstPageBtn = document.getElementById('firstPage');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const lastPageBtn = document.getElementById('lastPage');
+    
+    if (firstPageBtn) firstPageBtn.disabled = currentPage === 1;
+    if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
+    if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+    if (lastPageBtn) lastPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+}
+
+// Función para generar números de página
+function generatePageNumbers(totalPages) {
+    const paginationNumbers = document.getElementById('paginationNumbers');
+    if (!paginationNumbers) return;
+    
+    paginationNumbers.innerHTML = '';
+    
+    // Mostrar máximo 5 números de página
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
     }
     
-    // Función para validar y marcar input
-    function validarInput(input, validacionFn, esOpcional = false) {
-        if (!input) return true;
-        
-        const valor = input.value.trim();
-        
-        if (esOpcional && valor === '') {
-            input.classList.remove('is-valid', 'is-invalid');
-            return true;
-        }
-        
-        if (!esOpcional && valor === '') {
-            input.classList.remove('is-valid');
-            input.classList.add('is-invalid');
-            return false;
-        }
-        
-        if (validacionFn(valor)) {
-            input.classList.remove('is-invalid');
-            input.classList.add('is-valid');
-            return true;
-        } else {
-            input.classList.remove('is-valid');
-            input.classList.add('is-invalid');
-            return false;
-        }
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `pagination-btn page-number ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.addEventListener('click', () => goToPage(i));
+        paginationNumbers.appendChild(pageBtn);
+    }
+}
+
+// Funciones de navegación
+function goToPage(page) {
+    currentPage = page;
+    updatePagination();
+}
+
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+    }
+}
+
+function goToNextPage() {
+    const totalPages = Math.ceil(visibleRows.length / itemsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+    }
+}
+
+function goToLastPage() {
+    const totalPages = Math.ceil(visibleRows.length / itemsPerPage);
+    if (totalPages > 0) {
+        currentPage = totalPages;
+        updatePagination();
+    }
+}
+
+// Función para inicializar la lista de usuarios
+function initializeUserList() {
+    console.log('Inicializando lista de usuarios...');
+    
+    // Obtener todas las filas de usuarios
+    allRows = Array.from(document.querySelectorAll('.user-table tbody tr'));
+    visibleRows = allRows.filter(row => !row.querySelector('.empty-state'));
+    
+    console.log(`Total de filas: ${allRows.length}, Filas de usuarios: ${visibleRows.length}`);
+    
+    // Event listeners para filtros y búsqueda
+    const searchInput = document.querySelector('.search-input');
+    const filterRol = document.querySelector('.filter-rol');
+    const filterEstado = document.querySelector('.filter-estado');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTable);
+        searchInput.addEventListener('keyup', filterTable);
+    }
+
+    if (filterRol) {
+        filterRol.addEventListener('change', filterTable);
+    }
+
+    if (filterEstado) {
+        filterEstado.addEventListener('change', filterTable);
     }
     
-    // Función para ocultar todos los dropdowns
-    function ocultarTodosDropdowns() {
-        console.log('Ocultando todos los dropdowns');
-        
-        if (dropdownUsuario) {
-            dropdownUsuario.classList.remove('show');
-            dropdownUsuario.style.display = 'none';
-        }
-        if (dropdownProfesor) {
-            dropdownProfesor.classList.remove('show');
-            dropdownProfesor.style.display = 'none';
-        }
-        
-        // Limpiar selecciones
-        if (tipoUsuarioSelect) {
-            tipoUsuarioSelect.value = '';
-            tipoUsuarioSelect.classList.remove('is-valid', 'is-invalid');
-        }
-        if (asignaturaSelect) {
-            asignaturaSelect.value = '';
-            asignaturaSelect.classList.remove('is-valid', 'is-invalid');
-        }
-    }
+    // Inicializar paginación
+    initializePagination();
     
-    // Función para mostrar dropdown específico
-    function mostrarDropdown(tipo) {
-        console.log('Mostrando dropdown para:', tipo);
-        
-        // Ocultar todos primero
-        ocultarTodosDropdowns();
-        
-        // Mostrar el correcto inmediatamente
-        if (tipo === 'usuario' && dropdownUsuario) {
-            console.log('Mostrando dropdown usuario');
-            dropdownUsuario.style.display = 'block';
-            dropdownUsuario.classList.add('show');
-            console.log('Dropdown usuario clases:', dropdownUsuario.className);
-        } else if (tipo === 'profesor' && dropdownProfesor) {
-            console.log('Mostrando dropdown profesor');
-            dropdownProfesor.style.display = 'block';
-            dropdownProfesor.classList.add('show');
-            console.log('Dropdown profesor clases:', dropdownProfesor.className);
-        }
-    }
+    // Aplicar paginación inicial
+    updatePagination();
     
-    // Función para seleccionar rol
-    function selectRol(rol) {
-        console.log('Seleccionando rol:', rol);
-        
-        // Remover clase active de ambos botones
-        if (btnRolUsuario) btnRolUsuario.classList.remove('active');
-        if (btnRolProfesor) btnRolProfesor.classList.remove('active');
-        
-        // Activar el botón correspondiente
-        if (rol === 'usuario') {
-            if (btnRolUsuario) btnRolUsuario.classList.add('active');
-            rolInput.value = 'usuario';
-            mostrarDropdown('usuario');
-        } else if (rol === 'profesor') {
-            if (btnRolProfesor) btnRolProfesor.classList.add('active');
-            rolInput.value = 'profesor';
-            mostrarDropdown('profesor');
-        }
-        
-        // Ocultar mensaje de error
-        if (errorRol) {
-            errorRol.style.display = 'none';
-        }
-        
-        console.log('Rol establecido:', rolInput.value);
-    }
+    console.log('Lista de usuarios inicializada correctamente');
+}
+
+// Función para inicializar la paginación
+function initializePagination() {
+    console.log('Inicializando paginación...');
     
-    // Event listeners para los botones de rol
-    if (btnRolUsuario) {
-        btnRolUsuario.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Click en botón Usuario');
-            selectRol('usuario');
+    // Event listener para el selector de items por página
+    const itemsPerPageSelect = document.getElementById('pageSize');
+    if (itemsPerPageSelect) {
+        itemsPerPageSelect.value = itemsPerPage.toString();
+        itemsPerPageSelect.addEventListener('change', function() {
+            itemsPerPage = parseInt(this.value);
+            currentPage = 1;
+            updatePagination();
         });
     }
     
-    if (btnRolProfesor) {
-        btnRolProfesor.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Click en botón Profesor');
-            selectRol('profesor');
-        });
-    }
+    // Botones de paginación
+    const firstPageBtn = document.getElementById('firstPage');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const lastPageBtn = document.getElementById('lastPage');
     
-    // Event listeners para validación en tiempo real
-    if (rutInput) {
-        rutInput.addEventListener('input', function() {
-            const cursorPosition = this.selectionStart;
-            const oldValue = this.value;
-            const newValue = formatearRut(oldValue);
-            
-            this.value = newValue;
-            
-            const diff = newValue.length - oldValue.length;
-            this.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-            
-            validarInput(this, validarRut);
-        });
-    }
+    if (firstPageBtn) firstPageBtn.addEventListener('click', () => goToPage(1));
+    if (prevPageBtn) prevPageBtn.addEventListener('click', goToPreviousPage);
+    if (nextPageBtn) nextPageBtn.addEventListener('click', goToNextPage);
+    if (lastPageBtn) lastPageBtn.addEventListener('click', goToLastPage);
     
-    if (passwordInput) {
-        passwordInput.addEventListener('input', function() {
-            validarInput(this, (valor) => valor.length >= 6);
-        });
-    }
+    console.log('Paginación inicializada');
+}
+
+// Auto-cerrar alertas después de 5 segundos
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado, inicializando...');
     
-    if (nombresInput) {
-        nombresInput.addEventListener('input', function() {
-            validarInput(this, (valor) => valor.length >= 2);
-        });
-    }
-    
-    if (apellidosInput) {
-        apellidosInput.addEventListener('input', function() {
-            validarInput(this, (valor) => valor.length >= 2);
-        });
-    }
-    
-    if (telefonoInput) {
-        telefonoInput.addEventListener('input', function() {
-            this.value = formatearTelefono(this.value);
-            validarInput(this, validarTelefono, true);
-        });
-    }
-    
-    if (correoInput) {
-        correoInput.addEventListener('input', function() {
-            validarInput(this, validarEmail);
-        });
-    }
-    
-    // Event listeners para dropdowns condicionales
-    if (tipoUsuarioSelect) {
-        tipoUsuarioSelect.addEventListener('change', function() {
-            console.log('Cambio en tipo usuario:', this.value);
-            if (this.value) {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            } else {
-                this.classList.remove('is-valid');
-                this.classList.add('is-invalid');
+    const alerts = document.querySelectorAll('.custom-alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.classList.add('fade-out');
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
             }
-        });
-    }
+        }, 5000);
+    });
     
-    if (asignaturaSelect) {
-        asignaturaSelect.addEventListener('change', function() {
-            console.log('Cambio en asignatura:', this.value);
-            if (this.value) {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            } else {
-                this.classList.remove('is-valid');
-                this.classList.add('is-invalid');
-            }
-        });
-    }
-    
-    // Validación del formulario
-    if (userForm) {
-        userForm.addEventListener('submit', function(e) {
-            console.log('Enviando formulario...');
-            console.log('Valor del rol:', rolInput.value);
-            
-            // Validar que se haya seleccionado un rol
-            if (!rolInput.value) {
-                e.preventDefault();
-                if (errorRol) errorRol.style.display = 'block';
-                alert('Debe seleccionar un tipo de usuario');
-                return false;
-            }
-            
-            // Validar dropdown condicional según el rol
-            if (rolInput.value === 'usuario') {
-                if (!tipoUsuarioSelect || !tipoUsuarioSelect.value) {
-                    e.preventDefault();
-                    if (tipoUsuarioSelect) tipoUsuarioSelect.classList.add('is-invalid');
-                    alert('Debe seleccionar el nivel de usuario');
-                    if (tipoUsuarioSelect) tipoUsuarioSelect.focus();
-                    return false;
-                }
-            } else if (rolInput.value === 'profesor') {
-                if (!asignaturaSelect || !asignaturaSelect.value) {
-                    e.preventDefault();
-                    if (asignaturaSelect) asignaturaSelect.classList.add('is-invalid');
-                    alert('Debe seleccionar una asignatura');
-                    if (asignaturaSelect) asignaturaSelect.focus();
-                    return false;
-                }
-            }
-            
-            // Validar campos requeridos
-            const validaciones = [
-                { input: rutInput, fn: validarRut, nombre: 'RUT' },
-                { input: passwordInput, fn: (valor) => valor.length >= 6, nombre: 'contraseña' },
-                { input: nombresInput, fn: (valor) => valor.length >= 2, nombre: 'nombres' },
-                { input: apellidosInput, fn: (valor) => valor.length >= 2, nombre: 'apellidos' },
-                { input: correoInput, fn: validarEmail, nombre: 'correo electrónico' }
-            ];
-            
-            for (let validacion of validaciones) {
-                if (validacion.input && !validarInput(validacion.input, validacion.fn)) {
-                    e.preventDefault();
-                    alert(`El campo ${validacion.nombre} no es válido`);
-                    validacion.input.focus();
-                    return false;
-                }
-            }
-            
-            // Validar teléfono si tiene valor
-            if (telefonoInput && telefonoInput.value.trim() !== '+56 9 ' && telefonoInput.value.trim() !== '') {
-                if (!validarTelefono(telefonoInput.value)) {
-                    e.preventDefault();
-                    telefonoInput.classList.add('is-invalid');
-                    alert('El formato del teléfono no es válido');
-                    telefonoInput.focus();
-                    return false;
-                }
-            }
-            
-            // Si todo está válido, deshabilitar botón y mostrar loading
-            if (btnSubmit) {
-                btnSubmit.disabled = true;
-                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-            }
-            
-            return true;
-        });
-    }
-    
-    // Inicializar teléfono con prefijo
-    if (telefonoInput && telefonoInput.value.trim() === '') {
-        telefonoInput.value = '+56 9 ';
-    }
-    
-    // Inicializar estado - ocultar todos los dropdowns al cargar
-    ocultarTodosDropdowns();
-    
-    console.log('JavaScript inicializado correctamente');
+    // Inicializar funcionalidades de la lista de usuarios
+    initializeUserList();
 });
+
+console.log('JavaScript de lista de usuarios cargado');
 </script>
 {% endblock %}

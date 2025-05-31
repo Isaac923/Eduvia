@@ -682,3 +682,28 @@ function showPermissionsModal(button) {
     alert(`Asignar permisos a: ${userName} (ID: ${userId}, Rol: ${userRole})`);
     // Aquí puedes implementar la lógica del modal de permisos
 }
+
+// Función para inicializar la lista de usuarios
+function initializeUserList() {
+    console.log('Inicializando lista de usuarios...');
+    
+    // Event listeners para filtros y búsqueda
+    const searchInput = document.querySelector('.search-input');
+    const filterRol = document.querySelector('.filter-rol');
+    const filterEstado = document.querySelector('.filter-estado');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTable);
+        searchInput.addEventListener('keyup', filterTable);
+    }
+
+    if (filterRol) {
+        filterRol.addEventListener('change', filterTable);
+    }
+
+    if (filterEstado) {
+        filterEstado.addEventListener('change', filterTable);
+    }
+    
+    console.log('Lista de usuarios inicializada correctamente');
+}
