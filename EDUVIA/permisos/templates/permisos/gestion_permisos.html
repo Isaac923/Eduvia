@@ -1,0 +1,687 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}Gestión de Permisos - EDUVIA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lista_usuarios.css' %}">
+<style>
+.permisos-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.permisos-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.usuario-selector {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #343a40;
+}
+
+.user-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 1rem;
+    background: white;
+}
+
+.user-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.user-info-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    display: none;
+}
+
+.user-info-card.show {
+    display: block;
+}
+
+.user-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.user-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.permisos-form {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    display: none;
+}
+
+.permisos-form.show {
+    display: block;
+}
+
+.modulos-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.modulo-section {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.modulo-header {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modulo-header h5 {
+    margin: 0;
+    color: #343a40;
+    font-weight: 600;
+}
+
+.modulo-content {
+    padding: 1.5rem;
+}
+
+.permisos-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.permiso-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.permiso-item:hover {
+    background: #e9ecef;
+}
+
+.permiso-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: #007bff;
+}
+
+.permiso-label {
+    margin: 0;
+    font-weight: 500;
+    color: #495057;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn-eduvia {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+}
+
+.alert-floating {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.module-icon {
+    color: #007bff;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="permisos-container">
+    <div class="permisos-header">
+        <h2><i class="fas fa-shield-alt"></i> Gestión de Permisos</h2>
+        <p>Seleccione un usuario y configure sus permisos de acceso a los módulos del sistema</p>
+    </div>
+
+    <!-- Contenedor de alertas -->
+    <div id="alertContainer"></div>
+
+    <!-- Selector de Usuario -->
+    <div class="usuario-selector">
+        <div class="form-group">
+            <label for="userSelect">
+                <i class="fas fa-user"></i> Seleccionar Usuario
+            </label>
+            <select id="userSelect" class="user-select">
+                <option value="">-- Seleccione un usuario --</option>
+                {% for item in usuarios_con_permisos %}
+                <option value="{{ item.usuario.id }}" 
+                        data-nombres="{{ item.usuario.nombres }}"
+                        data-apellidos="{{ item.usuario.apellidos }}"
+                        data-rut="{{ item.usuario.rut }}"
+                        data-correo="{{ item.usuario.correo }}"
+                        data-rol="{{ item.usuario.rol }}"
+                        data-permisos="{{ item.permisos|dicttojson }}">
+                    {{ item.usuario.nombres }} {{ item.usuario.apellidos }} - {{ item.usuario.rut }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Información del usuario seleccionado -->
+        <div id="userInfoCard" class="user-info-card">
+            <h5><i class="fas fa-info-circle"></i> Información del Usuario</h5>
+            <div class="user-details">
+                <div class="user-detail">
+                    <i class="fas fa-user"></i>
+                    <strong>Nombre:</strong>
+                    <span id="selectedUserName">-</span>
+                </div>
+                <div class="user-detail">
+                    <i class="fas fa-id-card"></i>
+                    <strong>RUT:</strong>
+                    <span id="selectedUserRut">-</span>
+                </div>
+                <div class="user-detail">
+                    <i class="fas fa-envelope"></i>
+                    <strong>Correo:</strong>
+                    <span id="selectedUserEmail">-</span>
+                </div>
+                <div class="user-detail">
+                    <i class="fas fa-user-tag"></i>
+                    <strong>Rol:</strong>
+                    <span id="selectedUserRole">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de Permisos -->
+    <div id="permisosForm" class="permisos-form">
+        <h4><i class="fas fa-cogs"></i> Configurar Permisos de Acceso</h4>
+        <p class="text-muted">Seleccione los módulos a los que el usuario tendrá acceso</p>
+
+        <div class="modulos-grid">
+            <!-- Módulo Principal -->
+            <div class="modulo-section">
+                <div class="modulo-header">
+                    <i class="fas fa-home module-icon"></i>
+                    <h5>Principal</h5>
+                </div>
+                <div class="modulo-content">
+                    <div class="permisos-options">
+                        <div class="permiso-item">
+                            <input type="checkbox" 
+                                   id="perm_inicio_ver" 
+                                   class="permiso-checkbox" 
+                                   data-modulo="inicio" 
+                                   data-accion="ver">
+                            <label for="perm_inicio_ver" class="permiso-label">
+                                <i class="fas fa-eye"></i> Ver Inicio
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Módulo Gestión Académica -->
+            <div class="modulo-section">
+                <div class="modulo-header">
+                    <i class="fas fa-graduation-cap module-icon"></i>
+                    <h5>Gestión Académica</h5>
+                </div>
+                <div class="modulo-content">
+                    <div class="permisos-options">
+                        <div class="permiso-item">
+                            <input type="checkbox" 
+                                   id="perm_estudiantes_ver" 
+                                   class="permiso-checkbox" 
+                                   data-modulo="estudiantes" 
+                                   data-accion="ver">
+                            <label for="perm_estudiantes_ver" class="permiso-label">
+                                <i class="fas fa-eye"></i> Ver Estudiantes
+                            </label>
+                        </div>
+                        <div class="permiso-item">
+                            <input type="checkbox" 
+                                   id="perm_cursos_ver" 
+                                   class="permiso-checkbox" 
+                                   data-modulo="cursos" 
+                                   data-accion="ver">
+                            <label for="perm_cursos_ver" class="permiso-label">
+                                <i class="fas fa-eye"></i> Ver Cursos
+                            </label>
+                        </div>
+                        <div class="permiso-item">
+                            <input type="checkbox" 
+                                   id="perm_notas_ver" 
+                                   class="permiso-checkbox" 
+                                   data-modulo="notas" 
+                                   data-accion="ver">
+                            <label for="perm_notas_ver" class="permiso-label">
+                                <i class="fas fa-eye"></i> Ver Notas
+                            </label>
+                        </div>
+                        <div class="permiso-item">
+                            <input type="checkbox" 
+                                   id="perm_asistencia_ver" 
+                                   class="permiso-checkbox" 
+                                   data-modulo="asistencia" 
+                                   data-accion="ver">
+                            <label for="perm_asistencia_ver" class="permiso-label">
+                                <i class="fas fa-eye"></i> Ver Asistencia
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Módulo Administración (Solo para superusuarios) -->
+            {% if request.user.is_superuser %}
+            <div class="modulo-section">
+                <div class="modulo-header">
+                    <i class="fas fa-cogs module-icon"></i>
+                    <h5>Administración</h5>
+                </div>
+                <div class="modulo-content">
+                    <div class="permisos-options">
+                        <div class="permiso-item">
+                            <input type="checkbox" 
+                                   id="perm_usuarios_ver" 
+                                   class="permiso-checkbox" 
+                                   data-modulo="usuarios" 
+                                   data-accion="ver">
+                            <label for="perm_usuarios_ver" class="permiso-label">
+                                <i class="fas fa-eye"></i> Ver Usuarios
+                            </label>
+                        </div>
+                        <div class="permiso-item">
+                            <input type="checkbox" 
+                                   id="perm_permisos_ver" 
+                                   class="permiso-checkbox" 
+                                   data-modulo="permisos" 
+                                   data-accion="ver">
+                            <label for="perm_permisos_ver" class="permiso-label">
+                                <i class="fas fa-eye"></i> Ver Permisos
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="btn-eduvia btn-secondary" onclick="resetForm()">
+                <i class="fas fa-undo"></i> Limpiar
+            </button>
+            <button type="button" class="btn-eduvia btn-primary" id="savePermissions">
+                <i class="fas fa-save"></i> Guardar Permisos
+            </button>
+        </div>
+    </div>
+
+    <!-- Estado vacío cuando no hay usuario seleccionado -->
+    <div id="emptyState" class="empty-state">
+        <i class="fas fa-user-plus"></i>
+        <h4>Seleccione un Usuario</h4>
+        <p>Elija un usuario de la lista para configurar sus permisos de acceso al sistema</p>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+        <p class="mt-2">Guardando permisos...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userSelect = document.getElementById('userSelect');
+    const userInfoCard = document.getElementById('userInfoCard');
+    const permisosForm = document.getElementById('permisosForm');
+    const emptyState = document.getElementById('emptyState');
+    const saveBtn = document.getElementById('savePermissions');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const alertContainer = document.getElementById('alertContainer');
+    
+    let currentUserId = null;
+    let originalPermissions = {};
+
+    // Manejar selección de usuario
+    userSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (this.value) {
+            currentUserId = this.value;
+            showUserInfo(selectedOption);
+            loadUserPermissions(selectedOption);
+            showPermissionsForm();
+        } else {
+            hideUserInfo();
+            hidePermissionsForm();
+            currentUserId = null;
+        }
+    });
+
+    // Mostrar información del usuario
+    function showUserInfo(option) {
+        const nombres = option.dataset.nombres;
+        const apellidos = option.dataset.apellidos;
+        const rut = option.dataset.rut;
+        const correo = option.dataset.correo;
+        const rol = option.dataset.rol;
+
+        document.getElementById('selectedUserName').textContent = `${nombres} ${apellidos}`;
+        document.getElementById('selectedUserRut').textContent = rut;
+        document.getElementById('selectedUserEmail').textContent = correo;
+        document.getElementById('selectedUserRole').textContent = rol === 'usuario' ? 'Usuario' : 'Profesor';
+
+        userInfoCard.classList.add('show');
+    }
+
+    // Ocultar información del usuario
+    function hideUserInfo() {
+        userInfoCard.classList.remove('show');
+    }
+
+    // Cargar permisos del usuario
+    function loadUserPermissions(option) {
+        try {
+            const permisosData = option.dataset.permisos;
+            const permisos = permisosData ? JSON.parse(permisosData) : {};
+            
+            // Guardar permisos originales
+            originalPermissions = { ...permisos };
+            
+            // Limpiar todos los checkboxes
+            const checkboxes = document.querySelectorAll('.permiso-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Marcar permisos actuales
+            Object.keys(permisos).forEach(modulo => {
+                if (permisos[modulo]) {
+                    const checkbox = document.querySelector(`[data-modulo="${modulo}"][data-accion="ver"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error al cargar permisos:', error);
+            showAlert('Error al cargar permisos del usuario', 'error');
+        }
+    }
+
+    // Mostrar formulario de permisos
+    function showPermissionsForm() {
+        permisosForm.classList.add('show');
+        emptyState.style.display = 'none';
+    }
+
+    // Ocultar formulario de permisos
+    function hidePermissionsForm() {
+        permisosForm.classList.remove('show');
+        emptyState.style.display = 'block';
+    }
+
+    // Resetear formulario
+    window.resetForm = function() {
+        userSelect.value = '';
+        hideUserInfo();
+        hidePermissionsForm();
+        currentUserId = null;
+        originalPermissions = {};
+    };
+
+    // Guardar permisos
+    saveBtn.addEventListener('click', function() {
+        if (!currentUserId) {
+            showAlert('Debe seleccionar un usuario primero', 'warning');
+            return;
+        }
+
+        const checkboxes = document.querySelectorAll('.permiso-checkbox');
+        const nuevosPermisos = {};
+
+        checkboxes.forEach(checkbox => {
+            const modulo = checkbox.dataset.modulo;
+            nuevosPermisos[modulo] = checkbox.checked;
+        });
+
+        // Verificar si hay cambios
+        const hayChangios = Object.keys(nuevosPermisos).some(modulo => {
+            return originalPermissions[modulo] !== nuevosPermisos[modulo];
+        });
+
+        if (!hayChangios) {
+            showAlert('No se detectaron cambios en los permisos', 'info');
+            return;
+        }
+
+        // Confirmar cambios
+        Swal.fire({
+            title: '¿Guardar permisos?',
+            html: `
+                <p>Se actualizarán los permisos para:</p>
+                <strong>${document.getElementById('selectedUserName').textContent}</strong>
+                <br><small>${document.getElementById('selectedUserRut').textContent}</small>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#007bff',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-save"></i> Sí, guardar',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                savePermissions(nuevosPermisos);
+            }
+        });
+    });
+
+    // Función para guardar permisos
+    function savePermissions(permisos) {
+        loadingOverlay.style.display = 'flex';
+
+        fetch('{% url "permisos:actualizar_permisos" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                usuario_id: currentUserId,
+                permisos: permisos
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingOverlay.style.display = 'none';
+            
+            if (data.success) {
+                showAlert('Permisos actualizados correctamente', 'success');
+                originalPermissions = { ...permisos };
+                
+                // Actualizar los datos en el select
+                updateSelectOptionData();
+            } else {
+                showAlert(data.message || 'Error al actualizar permisos', 'error');
+            }
+        })
+        .catch(error => {
+            loadingOverlay.style.display = 'none';
+            showAlert('Error al guardar permisos', 'error');
+            console.error('Error:', error);
+        });
+    }
+
+    // Actualizar datos del option en el select
+    function updateSelectOptionData() {
+        const selectedOption = userSelect.options[userSelect.selectedIndex];
+        if (selectedOption) {
+            selectedOption.dataset.permisos = JSON.stringify(originalPermissions);
+        }
+    }
+
+    // Función para mostrar alertas
+    function showAlert(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 
+                          type === 'error' ? 'alert-danger' : 
+                          type === 'warning' ? 'alert-warning' : 'alert-info';
+        
+        const iconClass = type === 'success' ? 'check-circle' : 
+                         type === 'error' ? 'exclamation-triangle' : 
+                         type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+        
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-floating alert-dismissible fade show">
+                <i class="fas fa-${iconClass}"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        alertContainer.innerHTML = alertHtml;
+        
+        setTimeout(() => {
+            const alert = alertContainer.querySelector('.alert');
+            if (alert) alert.remove();
+        }, 5000);
+    }
+
+    // Función para obtener cookie CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Inicializar estado
+    hidePermissionsForm();
+});
+</script>
+{% endblock %}

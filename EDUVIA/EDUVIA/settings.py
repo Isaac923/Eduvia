@@ -38,7 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'usuarios', 'alumnos', 'cursos', 'asistencia'
+    'usuarios', 
+    'alumnos', 
+    'cursos', 
+    'asistencia',
+    'permisos',  # Asegurar que está en INSTALLED_APPS
 ]
 
 MIDDLEWARE = [
@@ -94,16 +98,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.validators.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.validators.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.validators.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.validators.NumericPasswordValidator',
     },
 ]
 
@@ -125,9 +129,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # Esto apunta a Eduvia/EDUVIA/static/
+    BASE_DIR / "static",
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # Para producción
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Para producción
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -42,6 +42,7 @@
 
             <div class="sidebar-nav">
                 <!-- Módulo de Dashboard -->
+                {% if request.user.is_superuser or user_permissions.inicio %}
                 <div class="nav-section">
                     <h4>Principal</h4>
                     <ul>
@@ -51,76 +52,71 @@
                                 <span>Inicio</span>
                             </a>
                         </li>
-                        <li class="{% if 'calendario' in request.path %}active{% endif %}">
-                            <a href="/calendario/">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>Calendario</span>
-                            </a>
-                        </li>
                     </ul>
                 </div>
+                {% endif %}
 
                 <!-- Módulo de Gestión Académica -->
+                {% if request.user.is_superuser or user_permissions.estudiantes or user_permissions.cursos or user_permissions.notas or user_permissions.asistencia %}
                 <div class="nav-section">
                     <h4>Gestión Académica</h4>
                     <ul>
+                        {% if request.user.is_superuser or user_permissions.estudiantes %}
                         <li class="{% if request.resolver_match.namespace == 'alumnos' %}active{% endif %}">
                             <a href="{% url 'alumnos:lista_alumnos' %}">
                                 <i class="fas fa-user-graduate"></i>
                                 <span>Estudiantes</span>
                             </a>
                         </li>
-                        <li class="{% if 'profesores' in request.path %}active{% endif %}">
-                            <a href="/profesores/">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <span>Profesores</span>
-                            </a>
-                        </li>
+                        {% endif %}
+                        
+                        {% if request.user.is_superuser or user_permissions.cursos %}
                         <li class="{% if request.resolver_match.url_name == 'gestion_cursos' or request.resolver_match.url_name == 'crear_curso' or request.resolver_match.url_name == 'editar_curso' or request.resolver_match.url_name == 'detalle_curso' or request.resolver_match.url_name == 'eliminar_curso' %}active{% endif %}">
                             <a href="{% url 'cursos:gestion_cursos' %}">
                                 <i class="fas fa-book"></i>
                                 <span>Cursos</span>
                             </a>
                         </li>
-                        <li class="{% if request.resolver_match.url_name == 'gestion_asignaturas' or request.resolver_match.url_name == 'crear_asignatura' or request.resolver_match.url_name == 'editar_asignatura' or request.resolver_match.url_name == 'eliminar_asignatura' %}active{% endif %}">
-                            <a href="{% url 'cursos:gestion_asignaturas' %}">
-                                <i class="fas fa-book-open"></i>
-                                <span>Asignaturas</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Módulo de Evaluación -->
-                <div class="nav-section">
-                    <h4>Evaluación</h4>
-                    <ul>
+                        {% endif %}
+                        
+                        {% if request.user.is_superuser or user_permissions.notas %}
                         <li class="{% if 'calificaciones' in request.path %}active{% endif %}">
                             <a href="/calificaciones/">
                                 <i class="fas fa-star"></i>
-                                <span>Calificaciones</span>
+                                <span>Notas</span>
                             </a>
                         </li>
+                        {% endif %}
+                        
+                        {% if request.user.is_superuser or user_permissions.asistencia %}
+                        <li class="{% if 'asistencia' in request.path %}active{% endif %}">
+                            <a href="/asistencia/">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Asistencia</span>
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
+                {% endif %}
 
                 <!-- Módulo de Administración -->
                 {% if request.user.is_superuser %}
                 <div class="nav-section">
                     <h4>Administración</h4>
                     <ul>
-                        <li class="{% if 'usuarios' in request.path %}active{% endif %}">
+                        <li class="{% if request.resolver_match.namespace == 'usuarios' %}active{% endif %}">
                             <a href="{% url 'usuarios:lista_usuarios' %}">
                                 <i class="fas fa-users"></i>
                                 <span>Usuarios</span>
                             </a>
                         </li>
-                        <!---  <li class="{% if 'reportes' in request.path %}active{% endif %}">
-                            <a href="/reportes/">
-                                <i class="fas fa-chart-bar"></i>
-                                <span>Reportes</span>
+                        <li class="{% if request.resolver_match.namespace == 'permisos' %}active{% endif %}">
+                            <a href="{% url 'permisos:gestion_permisos' %}">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Permisos</span>
                             </a>
-                        </li> -->
+                        </li>
                     </ul>
                 </div>
                 {% endif %}
