@@ -12,9 +12,9 @@
     <div class="user-list-container">
         <!-- Encabezado de la página -->
         <div class="page-header">
-            <h2>Listado de Usuarios</h2>
+            <h2><i class="fas fa-users me-3"></i>Listado de Usuarios</h2>
             <a href="{% url 'usuarios:nuevo_usuario' %}" class="btn-eduvia btn-primary">
-                <i class="fas fa-plus-circle"></i> Nuevo Usuario
+                <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
             </a>
         </div>
         
@@ -41,185 +41,164 @@
         {% if usuarios %}
             <!-- Búsqueda y filtros -->
             <div class="search-filter-container">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" 
-                           id="searchInput" 
-                           class="form-control search-input" 
-                           placeholder="Buscar por RUT, nombre o apellido...">
+                <div class="filters-row">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" 
+                               id="searchInput" 
+                               class="form-control search-input" 
+                               placeholder="Buscar por RUT, nombre o apellido...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="filterRol" class="form-select filter-dropdown filter-rol">
+                            <option value=""><i class="fas fa-filter"></i> Todos los roles</option>
+                            <option value="usuario"><i class="fas fa-user"></i> Usuario</option>
+                            <option value="profesor"><i class="fas fa-chalkboard-teacher"></i> Profesor</option>
+                        </select>
+                        <select id="filterEstado" class="form-select filter-dropdown filter-estado">
+                            <option value=""><i class="fas fa-list"></i> Todos los estados</option>
+                            <option value="active"><i class="fas fa-check-circle"></i> Activo</option>
+                            <option value="inactive"><i class="fas fa-times-circle"></i> Inactivo</option>
+                            <option value="pending"><i class="fas fa-clock"></i> Pendiente</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="filter-group">
-                    <select id="filterRol" class="form-select filter-dropdown filter-rol">
-                        <option value="">Todos los roles</option>
-                        <option value="usuario">Usuario</option>
-                        <option value="profesor">Profesor</option>
-                    </select>
-                    <select id="filterEstado" class="form-select filter-dropdown filter-estado">
-                        <option value="">Todos los estados</option>
-                        <option value="active">Activo</option>
-                        <option value="inactive">Inactivo</option>
-                        <option value="pending">Pendiente</option>
-                    </select>
+            </div>
+            
+            <!-- Contenedor de tabla con scroll interno -->
+            <div class="table-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th class="col-rut"><i class="fas fa-id-card me-2"></i>RUT</th>
+                            <th class="col-nombres"><i class="fas fa-user me-2"></i>Nombres</th>
+                            <th class="col-apellidos"><i class="fas fa-user-tag me-2"></i>Apellidos</th>
+                            <th class="col-rol"><i class="fas fa-user-cog me-2"></i>Rol</th>
+                            <th class="col-estado"><i class="fas fa-toggle-on me-2"></i>Estado</th>
+                            <th class="col-acciones"><i class="fas fa-cogs me-2"></i>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        {% for usuario in usuarios %}
+                            <tr class="user-row" 
+                                data-rut="{{ usuario.rut|lower }}"
+                                data-nombre="{{ usuario.nombres|lower }} {{ usuario.apellidos|lower }}"
+                                data-rol="{{ usuario.rol }}"
+                                data-estado="{{ usuario.estado }}">
+                                
+                                <td class="col-rut">{{ usuario.rut }}</td>
+                                <td class="col-nombres">{{ usuario.nombres }}</td>
+                                <td class="col-apellidos">{{ usuario.apellidos }}</td>
+                                
+                                <td class="col-rol" data-rol="{{ usuario.rol }}">
+                                    {% if usuario.rol == 'usuario' %}
+                                        <span class="role-badge role-user">
+                                            <i class="fas fa-user"></i> Usuario
+                                        </span>
+                                    {% elif usuario.rol == 'profesor' %}
+                                        <span class="role-badge role-teacher">
+                                            <i class="fas fa-chalkboard-teacher"></i> Profesor
+                                        </span>
+                                    {% else %}
+                                        <span class="role-badge role-user">
+                                            <i class="fas fa-user"></i> Usuario
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="col-estado" data-estado="{{ usuario.estado }}">
+                                    {% if usuario.estado == 'active' %}
+                                        <span class="status-badge status-active">Activo</span>
+                                    {% elif usuario.estado == 'inactive' %}
+                                        <span class="status-badge status-inactive">Inactivo</span>
+                                    {% else %}
+                                        <span class="status-badge status-pending">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="col-acciones">
+                                    <div class="action-buttons">
+                                        <button type="button" 
+                                                class="btn-action btn-view" 
+                                                data-id="{{ usuario.id }}"
+                                                data-rut="{{ usuario.rut|default:'' }}"
+                                                data-nombres="{{ usuario.nombres|default:'' }}"
+                                                data-apellidos="{{ usuario.apellidos|default:'' }}"
+                                                data-correo="{{ usuario.correo|default:'' }}"
+                                                data-telefono="{{ usuario.telefono|default:'' }}"
+                                                data-rol="{{ usuario.rol|default:'usuario' }}"
+                                                data-estado="{{ usuario.estado|default:'inactive' }}"
+                                                data-fecha="{{ usuario.fecha_creacion|date:'d/m/Y H:i'|default:'-' }}"
+                                                onclick="showDetailModal(this)"
+                                                title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        
+                                        <button type="button" 
+                                                class="btn-action btn-delete" 
+                                                data-id="{{ usuario.id }}" 
+                                                data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}"
+                                                data-rut="{{ usuario.rut }}"
+                                                onclick="showDeleteModal(this)"
+                                                title="Eliminar usuario">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginador EDUVIA -->
+            <div class="pagination-container" id="paginationContainer">
+                <div class="pagination-info">
+                    <span>
+                        <i class="fas fa-info-circle me-2"></i>Mostrando 
+                        <strong id="showingStart">1</strong> - 
+                        <strong id="showingEnd">4</strong> de 
+                        <strong id="totalItems">{{ usuarios.count }}</strong> usuarios
+                    </span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="pagination-btn" id="firstPage" title="Primera página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="pagination-btn" id="prevPage" title="Página anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <div class="pagination-numbers" id="paginationNumbers"></div>
+                    <button class="pagination-btn" id="nextPage" title="Página siguiente">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="pagination-btn" id="lastPage" title="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            <!-- Mensaje cuando no hay usuarios -->
+            <div class="no-users-container">
+                <div class="empty-state-welcome">
+                    <div class="welcome-icon">
+                        <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                    </div>
+                    <h4 class="text-center"><i class="fas fa-exclamation-triangle me-2"></i>No hay usuarios registrados</h4>
+                    <p class="text-center text-muted">
+                        <i class="fas fa-info-circle me-2"></i>Para comenzar a utilizar EDUVIA, es necesario crear al menos un usuario en el sistema.
+                    </p>
                 </div>
             </div>
         {% endif %}
         
-        <!-- Contenedor de tabla con scroll interno -->
-        <div class="table-container">
-            <table class="user-table">
-                <thead>
-                    <tr>
-                        <th class="col-rut">RUT</th>
-                        <th class="col-nombres">Nombres</th>
-                        <th class="col-apellidos">Apellidos</th>
-                        <th class="col-rol">Rol</th>
-                        <th class="col-estado">Estado</th>
-                        <th class="col-acciones">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    {% for usuario in usuarios %}
-                        <tr class="user-row" 
-                            data-rut="{{ usuario.rut|lower }}"
-                            data-nombre="{{ usuario.nombres|lower }} {{ usuario.apellidos|lower }}"
-                            data-rol="{{ usuario.rol }}"
-                            data-estado="{{ usuario.estado }}">
-                            
-                            <!-- RUT -->
-                            <td class="col-rut">
-                                {{ usuario.rut }}
-                            </td>
-                            
-                            <!-- Nombres -->
-                            <td class="col-nombres">
-                                {{ usuario.nombres }}
-                            </td>
-                            
-                            <!-- Apellidos -->
-                            <td class="col-apellidos">
-                                {{ usuario.apellidos }}
-                            </td>
-                            
-                            <!-- Rol -->
-                            <td class="col-rol" data-rol="{{ usuario.rol }}">
-                                {% if usuario.rol == 'usuario' %}
-                                    <span class="role-badge role-user">
-                                        <i class="fas fa-user"></i> 
-                                        Usuario
-                                    </span>
-                                {% elif usuario.rol == 'profesor' %}
-                                    <span class="role-badge role-teacher">
-                                        <i class="fas fa-chalkboard-teacher"></i> 
-                                        Profesor
-                                    </span>
-                                {% else %}
-                                    <span class="role-badge role-user">
-                                        <i class="fas fa-user"></i> 
-                                        Usuario
-                                    </span>
-                                {% endif %}
-                            </td>
-                            
-                            <!-- Estado -->
-                            <td class="col-estado" data-estado="{{ usuario.estado }}">
-                                {% if usuario.estado == 'active' %}
-                                    <span class="status-badge status-active">
-                                        Activo
-                                    </span>
-                                {% elif usuario.estado == 'inactive' %}
-                                    <span class="status-badge status-inactive">
-                                        Inactivo
-                                    </span>
-                                {% else %}
-                                    <span class="status-badge status-pending">
-                                        Pendiente
-                                    </span>
-                                {% endif %}
-                            </td>
-                            
-                            <!-- Acciones -->
-                            <td class="col-acciones">
-                                <div class="action-buttons">
-                                    <button type="button" 
-                                            class="btn-action btn-view" 
-                                            data-id="{{ usuario.id }}"
-                                            data-rut="{{ usuario.rut|default:'' }}"
-                                            data-nombres="{{ usuario.nombres|default:'' }}"
-                                            data-apellidos="{{ usuario.apellidos|default:'' }}"
-                                            data-correo="{{ usuario.correo|default:'' }}"
-                                            data-telefono="{{ usuario.telefono|default:'' }}"
-                                            data-rol="{{ usuario.rol|default:'usuario' }}"
-                                            data-tipo-usuario="{{ usuario.tipo_usuario|default:'' }}"
-                                            data-estado="{{ usuario.estado|default:'inactive' }}"
-                                            data-funcion="{{ usuario.funcion|default:'' }}"
-                                            data-fecha="{{ usuario.fecha_creacion|date:'d/m/Y H:i'|default:'-' }}"
-                                            onclick="showDetailModal(this)"
-                                            title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    
-                                    <button type="button" 
-                                            class="btn-action btn-delete" 
-                                            data-id="{{ usuario.id }}" 
-                                            data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}"
-                                            data-rut="{{ usuario.rut }}"
-                                            onclick="showDeleteModal(this)"
-                                            title="Eliminar usuario">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4">
-                                <div class="empty-state">
-                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                                    <p>No se encontraron usuarios.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
         <!-- Mensaje cuando no hay resultados de búsqueda -->
         <div id="empty-results" style="display: none;" class="empty-results">
             <div class="empty-state">
-                <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                <p>No se encontraron usuarios que coincidan con los criterios de búsqueda.</p>
+                <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+                <p><i class="fas fa-exclamation-circle me-2"></i>No se encontraron usuarios que coincidan con los criterios de búsqueda.</p>
                 <button class="btn btn-outline-primary mt-2" onclick="resetFilters()">
-                    <i class="fas fa-undo"></i> Limpiar filtros
-                </button>
-            </div>
-        </div>
-
-        <!-- Paginador EDUVIA -->
-        <div class="pagination-container" id="paginationContainer">
-            <div class="pagination-info">
-                <span>
-                    Mostrando 
-                    <strong id="showingStart">1</strong> - 
-                    <strong id="showingEnd">4</strong> de 
-                    <strong id="totalItems">{{ usuarios.count }}</strong> usuarios
-                </span>
-            </div>
-            <div class="pagination-controls">
-                <button class="pagination-btn" id="firstPage" title="Primera página">
-                    <i class="fas fa-angle-double-left"></i>
-                </button>
-                <button class="pagination-btn" id="prevPage" title="Página anterior">
-                    <i class="fas fa-angle-left"></i>
-                </button>
-                <div class="pagination-numbers" id="paginationNumbers">
-                    <!-- Los números se generan dinámicamente -->
-                </div>
-                <button class="pagination-btn" id="nextPage" title="Página siguiente">
-                    <i class="fas fa-angle-right"></i>
-                </button>
-                <button class="pagination-btn" id="lastPage" title="Última página">
-                    <i class="fas fa-angle-double-right"></i>
+                    <i class="fas fa-undo me-2"></i>Limpiar filtros
                 </button>
             </div>
         </div>
@@ -229,13 +208,8 @@
     <div class="delete-alert-modal" id="deleteModal" style="display: none;">
         <div class="delete-alert-content">
             <div class="delete-alert-header">
-                <h5>
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Confirmar eliminación
-                </h5>
-                <button type="button" 
-                        class="delete-alert-close" 
-                        onclick="closeDeleteModal()">×</button>
+                <h5><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirmar eliminación</h5>
+                <button type="button" class="delete-alert-close" onclick="closeDeleteModal()">×</button>
             </div>
             <div class="delete-alert-body">
                 <div class="text-center mb-3">
@@ -250,9 +224,7 @@
                 </div>
             </div>
             <div class="delete-alert-footer">
-                <button type="button" 
-                        class="btn-cancel" 
-                        onclick="closeDeleteModal()">
+                <button type="button" class="btn-cancel" onclick="closeDeleteModal()">
                     <i class="fas fa-times me-1"></i>Cancelar
                 </button>
                 <form id="deleteForm" method="POST" action="" style="display: inline;">
@@ -265,88 +237,86 @@
         </div>
     </div>
 
-    <!-- Modal de detalles del usuario -->
+    <!-- Modal de detalles del usuario - DISEÑO HORIZONTAL -->
     <div class="detail-modal" id="detailModal" style="display: none;">
         <div class="detail-modal-content">
             <div class="detail-modal-header">
                 <h5 id="modalTitle">
-                    <i class="fas fa-user-circle me-2"></i>
-                    Detalles del Usuario
+                    <i class="fas fa-address-card me-2"></i>Detalles del Usuario
                 </h5>
-                <button type="button" 
-                        class="detail-modal-close" 
-                        onclick="closeDetailModal()">×</button>
+                <button type="button" class="detail-modal-close" onclick="closeDetailModal()">×</button>
             </div>
-            <div class="detail-modal-body">
-                <div class="user-avatar">
-                    <i class="fas fa-user-circle fa-3x text-primary"></i>
-                    <h4 id="detailUserName">Nombre del Usuario</h4>
-                    <span id="detailUserRole" class="role-badge">Rol</span>
-                </div>
             
-                <div id="readOnlyView" class="detail-sections">
-                    <div class="detail-section">
-                        <h6><i class="fas fa-user"></i> Información Personal</h6>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <label>RUT:</label>
-                                <span id="detailRut">-</span>
+            <div class="detail-modal-body">
+                <!-- Avatar y nombre centrado -->
+                <div class="user-avatar-section">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle fa-4x text-primary"></i>
+                        <h4 id="detailUserName">Nombre del Usuario</h4>
+                        <span id="detailUserRole" class="role-badge">Rol</span>
+                    </div>
+                </div>
+                
+                <!-- Información en formato horizontal -->
+                <div class="detail-sections-horizontal">
+                    <div class="detail-row">
+                        <div class="detail-section">
+                            <h6><i class="fas fa-user me-2"></i>Información Personal</h6>
+                            <div class="detail-grid-horizontal">
+                                <div class="detail-item">
+                                    <label><i class="fas fa-id-card me-1"></i>RUT:</label>
+                                    <span id="detailRut">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label><i class="fas fa-user me-1"></i>Nombres:</label>
+                                    <span id="detailNombres">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label><i class="fas fa-user-tag me-1"></i>Apellidos:</label>
+                                    <span id="detailApellidos">-</span>
+                                </div>
                             </div>
-                            <div class="detail-item">
-                                <label>Nombres:</label>
-                                <span id="detailNombres">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Apellidos:</label>
-                                <span id="detailApellidos">-</span>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h6><i class="fas fa-address-book me-2"></i>Información de Contacto</h6>
+                            <div class="detail-grid-horizontal">
+                                <div class="detail-item">
+                                    <label><i class="fas fa-envelope me-1"></i>Correo:</label>
+                                    <span id="detailCorreo">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label><i class="fas fa-phone me-1"></i>Teléfono:</label>
+                                    <span id="detailTelefono">-</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                
-                    <div class="detail-section">
-                        <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <label>Correo Electrónico:</label>
-                                <span id="detailCorreo">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Teléfono:</label>
-                                <span id="detailTelefono">-</span>
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="detail-section">
-                        <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <label>Estado:</label>
-                                <span id="detailEstado" class="status-badge">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Función:</label>
-                                <span id="detailFuncion">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <label>Fecha de Registro:</label>
-                                <span id="detailFechaRegistro">-</span>
+                    
+                    <div class="detail-row">
+                        <div class="detail-section full-width">
+                            <h6><i class="fas fa-cogs me-2"></i>Información del Sistema</h6>
+                            <div class="detail-grid-horizontal">
+                                <div class="detail-item">
+                                    <label><i class="fas fa-toggle-on me-1"></i>Estado:</label>
+                                    <span id="detailEstado" class="status-badge">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label><i class="fas fa-calendar-alt me-1"></i>Fecha de Registro:</label>
+                                    <span id="detailFechaRegistro">-</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            
             <div class="detail-modal-footer">
-                <button type="button" 
-                        class="btn-secondary" 
-                        onclick="closeDetailModal()">
-                    <i class="fas fa-times me-1"></i>Cerrar
+                <button type="button" class="btn-modal btn-secondary" onclick="closeDetailModal()">
+                    <i class="fas fa-times me-2"></i>Cerrar
                 </button>
-                <button type="button" 
-                        class="btn-primary" 
-                        id="editBtn" 
-                        onclick="redirectToEdit()">
-                    <i class="fas fa-edit me-1"></i>Editar Usuario
+                <button type="button" class="btn-modal btn-primary" id="editBtn" onclick="redirectToEdit()">
+                    <i class="fas fa-edit me-2"></i>Editar Usuario
                 </button>
             </div>
         </div>
@@ -363,7 +333,7 @@ let itemsPerPage = 4;
 let allRows = [];
 let visibleRows = [];
 
-// Función para mostrar detalles del usuario - SIMPLIFICADA
+// Función para mostrar detalles del usuario
 function showDetailModal(button) {
     const userId = button.getAttribute('data-id');
     const rut = button.getAttribute('data-rut') || '-';
@@ -373,7 +343,6 @@ function showDetailModal(button) {
     const telefono = button.getAttribute('data-telefono') || '-';
     const rol = button.getAttribute('data-rol') || '-';
     const estado = button.getAttribute('data-estado') || '-';
-    const funcion = button.getAttribute('data-funcion') || '-';
     const fecha = button.getAttribute('data-fecha') || '-';
     
     // Determinar el rol simple
@@ -401,7 +370,6 @@ function showDetailModal(button) {
     document.getElementById('detailApellidos').textContent = apellidos;
     document.getElementById('detailCorreo').textContent = correo;
     document.getElementById('detailTelefono').textContent = telefono || 'No registrado';
-    document.getElementById('detailFuncion').textContent = funcion || 'No especificada';
     document.getElementById('detailFechaRegistro').textContent = fecha;
     
     // Estado
@@ -486,8 +454,6 @@ function redirectToEdit() {
 
 // Función para filtrar la tabla
 function filterTable() {
-    console.log('Filtrando tabla...');
-    
     const searchInput = document.querySelector('.search-input');
     const filterRol = document.querySelector('.filter-rol');
     const filterEstado = document.querySelector('.filter-estado');
@@ -495,15 +461,12 @@ function filterTable() {
     const userTable = document.querySelector('.user-table');
 
     if (!searchInput || !filterRol || !filterEstado) {
-        console.log('Elementos de filtro no encontrados');
         return;
     }
 
     const searchTerm = searchInput.value.toLowerCase().trim();
     const selectedRol = filterRol.value;
     const selectedEstado = filterEstado.value;
-
-    console.log('Filtros:', { searchTerm, selectedRol, selectedEstado });
 
     // Filtrar todas las filas
     visibleRows = allRows.filter(row => {
@@ -516,29 +479,18 @@ function filterTable() {
         const rol = row.getAttribute('data-rol') || '';
         const estado = row.getAttribute('data-estado') || '';
 
-        // Buscar en RUT y nombre
         const matchesSearch = searchTerm === '' || 
                             rut.includes(searchTerm) || 
                             nombre.includes(searchTerm);
-
-        // Filtrar por rol
         const matchesRol = selectedRol === '' || rol === selectedRol;
-
-        // Filtrar por estado
         const matchesEstado = selectedEstado === '' || estado === selectedEstado;
 
         return matchesSearch && matchesRol && matchesEstado;
     });
 
-    console.log(`Filas visibles después del filtro: ${visibleRows.length}`);
-
-    // Resetear a la primera página
     currentPage = 1;
-    
-    // Actualizar paginación
     updatePagination();
 
-    // Mostrar/ocultar mensaje de "no hay resultados"
     if (visibleRows.length === 0 && (searchTerm !== '' || selectedRol !== '' || selectedEstado !== '')) {
         emptyResults.style.display = 'block';
         userTable.style.display = 'none';
@@ -555,41 +507,33 @@ function resetFilters() {
     document.querySelector('.search-input').value = '';
     document.querySelector('.filter-rol').value = '';
     document.querySelector('.filter-estado').value = '';
-    
     filterTable();
 }
 
 // Función para actualizar la paginación
 function updatePagination() {
-    console.log(`Actualizando paginación - Página: ${currentPage}, Items por página: ${itemsPerPage}, Filas visibles: ${visibleRows.length}`);
-    
     const totalItems = visibleRows.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     
-    // Asegurar que la página actual no exceda el total
     if (currentPage > totalPages && totalPages > 0) {
         currentPage = totalPages;
     } else if (currentPage < 1) {
         currentPage = 1;
     }
     
-    // Calcular índices
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
     const showingStart = totalItems > 0 ? startIndex + 1 : 0;
     const showingEnd = endIndex;
     
-    // Actualizar información de paginación
     document.getElementById('showingStart').textContent = showingStart;
     document.getElementById('showingEnd').textContent = showingEnd;
     document.getElementById('totalItems').textContent = totalItems;
     
-    // Ocultar todas las filas primero
     allRows.forEach(row => {
         row.style.display = 'none';
     });
     
-    // Mostrar solo las filas de la página actual
     visibleRows.forEach((row, index) => {
         if (index >= startIndex && index < endIndex) {
             row.style.display = '';
@@ -598,11 +542,8 @@ function updatePagination() {
         }
     });
     
-    // Actualizar botones de paginación
     updatePaginationButtons(totalPages);
     generatePageNumbers(totalPages);
-    
-    console.log(`Mostrando elementos ${showingStart}-${showingEnd} de ${totalItems}`);
 }
 
 // Función para actualizar botones de paginación
@@ -625,7 +566,6 @@ function generatePageNumbers(totalPages) {
     
     paginationNumbers.innerHTML = '';
     
-    // Mostrar máximo 5 números de página
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, startPage + 4);
     
@@ -673,15 +613,9 @@ function goToLastPage() {
 
 // Función para inicializar la lista de usuarios
 function initializeUserList() {
-    console.log('Inicializando lista de usuarios...');
-    
-    // Obtener todas las filas de usuarios
     allRows = Array.from(document.querySelectorAll('.user-table tbody tr'));
     visibleRows = allRows.filter(row => !row.querySelector('.empty-state'));
     
-    console.log(`Total de filas: ${allRows.length}, Filas de usuarios: ${visibleRows.length}`);
-    
-    // Event listeners para filtros y búsqueda
     const searchInput = document.querySelector('.search-input');
     const filterRol = document.querySelector('.filter-rol');
     const filterEstado = document.querySelector('.filter-estado');
@@ -699,31 +633,12 @@ function initializeUserList() {
         filterEstado.addEventListener('change', filterTable);
     }
     
-    // Inicializar paginación
     initializePagination();
-    
-    // Aplicar paginación inicial
     updatePagination();
-    
-    console.log('Lista de usuarios inicializada correctamente');
 }
 
 // Función para inicializar la paginación
 function initializePagination() {
-    console.log('Inicializando paginación...');
-    
-    // Event listener para el selector de items por página
-    const itemsPerPageSelect = document.getElementById('pageSize');
-    if (itemsPerPageSelect) {
-        itemsPerPageSelect.value = itemsPerPage.toString();
-        itemsPerPageSelect.addEventListener('change', function() {
-            itemsPerPage = parseInt(this.value);
-            currentPage = 1;
-            updatePagination();
-        });
-    }
-    
-    // Botones de paginación
     const firstPageBtn = document.getElementById('firstPage');
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
@@ -733,14 +648,10 @@ function initializePagination() {
     if (prevPageBtn) prevPageBtn.addEventListener('click', goToPreviousPage);
     if (nextPageBtn) nextPageBtn.addEventListener('click', goToNextPage);
     if (lastPageBtn) lastPageBtn.addEventListener('click', goToLastPage);
-    
-    console.log('Paginación inicializada');
 }
 
 // Auto-cerrar alertas después de 5 segundos
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM cargado, inicializando...');
-    
     const alerts = document.querySelectorAll('.custom-alert');
     alerts.forEach(alert => {
         setTimeout(() => {

@@ -228,16 +228,6 @@
         <p>Complete el formulario para registrar un nuevo usuario en el sistema.</p>
     </div>
 
-    <!-- Mostrar mensajes -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <form method="post" class="eduvia-form" id="userForm" action="{% url 'usuarios:nuevo_usuario' %}">
         {% csrf_token %}
         
@@ -444,152 +434,6 @@
     </form>
 </div>
 
-<!-- Modal de corrección de información -->
-<div class="correction-modal" id="correctionModal">
-    <div class="correction-modal-content">
-        <div class="correction-modal-header">
-            <h5><i class="fas fa-edit"></i> Revisar y Corregir Información</h5>
-            <button type="button" class="correction-modal-close" onclick="closeCorrectionModal()">&times;</button>
-        </div>
-        <div class="correction-modal-body">
-            <div class="correction-form-section">
-                <h6><i class="fas fa-user"></i> Información Personal</h6>
-                <div class="correction-form-row">
-                    <div class="correction-form-group">
-                        <label for="modal-rut">RUT *</label>
-                        <input type="text" id="modal-rut" class="correction-form-control" placeholder="12.345.678-9" maxlength="12">
-                    </div>
-                    <div class="correction-form-group">
-                        <label for="modal-password">Contraseña *</label>
-                        <input type="password" id="modal-password" class="correction-form-control" placeholder="Contraseña">
-                    </div>
-                </div>
-                <div class="correction-form-row">
-                    <div class="correction-form-group">
-                        <label for="modal-nombres">Nombres *</label>
-                        <input type="text" id="modal-nombres" class="correction-form-control" placeholder="Nombres">
-                    </div>
-                    <div class="correction-form-group">
-                        <label for="modal-apellidos">Apellidos *</label>
-                        <input type="text" id="modal-apellidos" class="correction-form-control" placeholder="Apellidos">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="correction-form-section">
-                <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
-                <div class="correction-form-row">
-                    <div class="correction-form-group">
-                        <label for="modal-telefono">Teléfono</label>
-                        <input type="tel" id="modal-telefono" class="correction-form-control" placeholder="+56 9 1234 5678">
-                    </div>
-                    <div class="correction-form-group">
-                        <label for="modal-correo">Correo Electrónico *</label>
-                        <input type="email" id="modal-correo" class="correction-form-control" placeholder="ejemplo@dominio.com">
-                    </div>
-                </div>
-            </div>
-            
-            <div class="correction-form-section">
-                <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
-                <div class="correction-form-group">
-                    <label>Tipo de Usuario *</label>
-                    <div class="correction-role-selector">
-                        <div class="correction-role-option" data-modal-rol="usuario" id="modal-btn-usuario">
-                            <i class="fas fa-user"></i>
-                            <span>Usuario</span>
-                        </div>
-                        <div class="correction-role-option" data-modal-rol="profesor" id="modal-btn-profesor">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                            <span>Profesor</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="correction-form-group" id="modal-tipo-usuario-group" style="display: none;">
-                    <label for="modal-tipo-usuario">Nivel de Usuario *</label>
-                    <select id="modal-tipo-usuario" class="correction-form-control">
-                        <option value="">Seleccione nivel de usuario</option>
-                        <option value="regular">Usuario Regular</option>
-                        <option value="admin">Administrador</option>
-                    </select>
-                </div>
-                
-                <div class="correction-form-group" id="modal-asignatura-group" style="display: none;">
-                    <label for="modal-asignatura">Asignatura *</label>
-                    <select id="modal-asignatura" class="correction-form-control">
-                        <option value="">Seleccione una asignatura</option>
-                        <option value="matematicas">Matemáticas</option>
-                        <option value="lenguaje">Lenguaje y Comunicación</option>
-                        <option value="ciencias">Ciencias Naturales</option>
-                        <option value="historia">Historia y Geografía</option>
-                        <option value="ingles">Inglés</option>
-                        <option value="educacion-fisica">Educación Física</option>
-                        <option value="artes">Artes Visuales</option>
-                        <option value="musica">Música</option>
-                        <option value="tecnologia">Tecnología</option>
-                        <option value="religion">Religión</option>
-                        <option value="filosofia">Filosofía</option>
-                        <option value="fisica">Física</option>
-                        <option value="quimica">Química</option>
-                        <option value="biologia">Biología</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="correction-modal-footer">
-            <button type="button" class="btn-correction btn-correction-secondary" onclick="closeCorrectionModal()">
-                <i class="fas fa-times"></i> Cancelar
-            </button>
-            <button type="button" class="btn-correction btn-correction-primary" onclick="applyCorrectionAndProceed()">
-                <i class="fas fa-check"></i> Aplicar Cambios
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal de usuario duplicado -->
-<div class="correction-modal" id="duplicateModal">
-    <div class="correction-modal-content">
-        <div class="correction-modal-header" style="background: #fff3cd; border-bottom-color: #ffeaa7;">
-            <h5><i class="fas fa-exclamation-triangle" style="color: #856404;"></i> Usuario Ya Existe</h5>
-            <button type="button" class="correction-modal-close" onclick="closeDuplicateModal()">&times;</button>
-        </div>
-        <div class="correction-modal-body">
-            <div class="duplicate-alert" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                    <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 2rem; margin-top: 0.25rem;"></i>
-                    <div>
-                        <h6 style="color: #856404; margin: 0 0 0.5rem 0; font-weight: 600;">¡Información Duplicada!</h6>
-                        <p style="color: #856404; margin: 0; line-height: 1.5;" id="duplicate-message">
-                            Ya existe un usuario registrado con esta información. Por favor verifique los datos e intente nuevamente.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="duplicate-details" id="duplicate-details" style="background: #f8f9fa; border-radius: 8px; padding: 1.5rem;">
-                <h6 style="color: #495057; margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Datos Conflictivos:</h6>
-                <div id="conflict-list"></div>
-            </div>
-            
-            <div style="background: #e7f3ff; border: 1px solid #b8daff; border-radius: 8px; padding: 1rem; margin-top: 1.5rem;">
-                <p style="color: #004085; margin: 0; font-size: 0.875rem;">
-                    <i class="fas fa-lightbulb"></i> <strong>Sugerencia:</strong> 
-                    Revise y corrija la información en conflicto, o contacte al administrador si cree que es un error.
-                </p>
-            </div>
-        </div>
-        <div class="correction-modal-footer">
-            <button type="button" class="btn-correction btn-correction-secondary" onclick="closeDuplicateModal()">
-                <i class="fas fa-times"></i> Cancelar
-            </button>
-            <button type="button" class="btn-correction btn-correction-primary" onclick="openCorrectionFromDuplicate()">
-                <i class="fas fa-edit"></i> Corregir Información
-            </button>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -774,151 +618,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Valor final del campo rol:', rolInput.value);
     }
 
-    // ========== FUNCIONES DEL MODAL DE CORRECCIÓN ==========
-    
-    function showCorrectionModal() {
-        // Llenar el modal con los datos actuales del formulario
-        modalRut.value = rutInput.value;
-        modalPassword.value = passwordInput.value;
-        modalNombres.value = nombresInput.value;
-        modalApellidos.value = apellidosInput.value;
-        modalTelefono.value = telefonoInput.value;
-        modalCorreo.value = correoInput.value;
-        
-        // Configurar rol en el modal
-        modalBtnUsuario.classList.remove('active');
-        modalBtnProfesor.classList.remove('active');
-        modalTipoUsuarioGroup.style.display = 'none';
-        modalAsignaturaGroup.style.display = 'none';
-        
-        if (rolInput.value === 'usuario') {
-            modalBtnUsuario.classList.add('active');
-            modalTipoUsuarioGroup.style.display = 'block';
-            modalTipoUsuario.value = tipoUsuarioSelect.value;
-        } else if (rolInput.value === 'profesor') {
-            modalBtnProfesor.classList.add('active');
-            modalAsignaturaGroup.style.display = 'block';
-            modalAsignatura.value = asignaturaSelect.value;
-        }
-        
-        // Mostrar modal
-        correctionModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        
-        setTimeout(() => {
-            correctionModal.classList.add('show');
-        }, 10);
-        
-        // Enfocar primer campo
-        modalRut.focus();
-    }
-
-    function closeCorrectionModal() {
-        correctionModal.classList.remove('show');
-        
-        setTimeout(() => {
-            correctionModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }, 300);
-    }
-
-    function applyCorrectionAndProceed() {
-        // Validar datos del modal
-        if (!modalRut.value || !modalPassword.value || !modalNombres.value || 
-            !modalApellidos.value || !modalCorreo.value) {
-            Swal.fire({
-                title: 'Campos incompletos',
-                text: 'Por favor complete todos los campos requeridos',
-                icon: 'warning',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-        
-        // Validar rol específico
-        const modalRolActivo = modalBtnUsuario.classList.contains('active') ? 'usuario' : 
-                              modalBtnProfesor.classList.contains('active') ? 'profesor' : '';
-        
-        if (!modalRolActivo) {
-            Swal.fire({
-                title: 'Rol no seleccionado',
-                text: 'Debe seleccionar un tipo de usuario',
-                icon: 'warning',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-        
-        if (modalRolActivo === 'usuario' && !modalTipoUsuario.value) {
-            Swal.fire({
-                title: 'Nivel de usuario requerido',
-                text: 'Debe seleccionar el nivel de usuario',
-                icon: 'warning',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-        
-        if (modalRolActivo === 'profesor' && !modalAsignatura.value) {
-            Swal.fire({
-                title: 'Asignatura requerida',
-                text: 'Debe seleccionar una asignatura',
-                icon: 'warning',
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
-        
-        // Aplicar cambios al formulario principal
-        rutInput.value = modalRut.value;
-        passwordInput.value = modalPassword.value;
-        nombresInput.value = modalNombres.value;
-        apellidosInput.value = modalApellidos.value;
-        telefonoInput.value = modalTelefono.value;
-        correoInput.value = modalCorreo.value;
-        
-        // Aplicar rol
-        seleccionarRol(modalRolActivo);
-        
-        if (modalRolActivo === 'usuario') {
-            tipoUsuarioSelect.value = modalTipoUsuario.value;
-        } else if (modalRolActivo === 'profesor') {
-            asignaturaSelect.value = modalAsignatura.value;
-        }
-        
-        // Cerrar modal de corrección
-        closeCorrectionModal();
-        
-        // Proceder con confirmación final
-        setTimeout(() => {
-            showFinalConfirmation();
-        }, 500);
-    }
-
-    // Event listeners para el modal de corrección
-    modalBtnUsuario.addEventListener('click', function() {
-        modalBtnUsuario.classList.add('active');
-        modalBtnProfesor.classList.remove('active');
-        modalTipoUsuarioGroup.style.display = 'block';
-        modalAsignaturaGroup.style.display = 'none';
-    });
-
-    modalBtnProfesor.addEventListener('click', function() {
-        modalBtnProfesor.classList.add('active');
-        modalBtnUsuario.classList.remove('active');
-        modalAsignaturaGroup.style.display = 'block';
-        modalTipoUsuarioGroup.style.display = 'none';
-    });
-
-    // Formateo automático en el modal
-    modalRut.addEventListener('input', function() {
-        this.value = formatearRUT(this.value);
-    });
-
-    modalTelefono.addEventListener('input', function() {
-        this.value = formatearTelefono(this.value);
-    });
-
     // ========== FUNCIÓN PARA OBTENER INFORMACIÓN DETALLADA DEL USUARIO ==========
     
     function obtenerDetallesUsuario() {
@@ -971,13 +670,10 @@ document.addEventListener('DOMContentLoaded', function() {
             `,
             icon: 'question',
             showCancelButton: true,
-            showDenyButton: true,
             confirmButtonColor: '#28a745',
             cancelButtonColor: '#6c757d',
-            denyButtonColor: '#007bff',
             confirmButtonText: '<i class="fas fa-user-plus"></i> Sí, crear usuario',
             cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-            denyButtonText: '<i class="fas fa-edit"></i> Corregir información',
             customClass: {
                 popup: 'swal-wide'
             }
@@ -985,11 +681,46 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.isConfirmed) {
                 // Proceder con la creación
                 proceedWithCreation();
-            } else if (result.isDenied) {
-                // Abrir modal de corrección
-                showCorrectionModal();
             }
             // Si cancela, no hacer nada
+        });
+    }
+
+    function showUserExistsAlert(message = null) {
+        const defaultMessage = 'Ya existe un usuario registrado con esta información.';
+        const displayMessage = message || defaultMessage;
+        
+        Swal.fire({
+            title: 'Usuario Duplicado',
+            html: `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="background: #f8f9fa; border-left: 4px solid #dc3545; padding: 20px; margin: 15px 0; text-align: left;">
+                        <h5 style="color: #dc3545; margin: 0 0 15px 0; font-weight: 600;">Información Duplicada</h5>
+                        <p style="color: #495057; margin: 0; line-height: 1.5;">
+                            ${displayMessage}
+                        </p>
+                        <p style="color: #6c757d; margin: 15px 0 0 0; font-size: 0.9rem;">
+                            Por favor, verifique la información ingresada e intente nuevamente con datos únicos.
+                        </p>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Corregir Información',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#0056b3',
+            cancelButtonColor: '#6c757d',
+            allowOutsideClick: false,
+            width: '500px',
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Enfocar el primer campo para corregir
+                document.getElementById('rut').focus();
+            }
         });
     }
 
@@ -1012,12 +743,55 @@ document.addEventListener('DOMContentLoaded', function() {
             btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
         }
         
-        console.log('Enviando formulario...');
+        // Enviar formulario con fetch para interceptar errores
+        const formData = new FormData(form);
         
-        // Enviar formulario
-        setTimeout(() => {
-            form.submit();
-        }, 1000); // Pequeña pausa para mostrar el loading
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => {
+            return response.json().then(data => ({
+                status: response.status,
+                ok: response.ok,
+                data: data
+            }));
+        })
+        .then(({status, ok, data}) => {
+            Swal.close();
+            
+            if (ok && status === 200 && data.success) {
+                // Usuario creado exitosamente
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = "{% url 'usuarios:lista_usuarios' %}";
+                });
+            } else {
+                // Error: Usuario ya existe o otro error
+                const errorMessage = data && data.message ? data.message : null;
+                showUserExistsAlert(errorMessage);
+            }
+        })
+        .catch(error => {
+            console.log('Error capturado:', error);
+            Swal.close();
+            showUserExistsAlert();
+        })
+        .finally(() => {
+            // Rehabilitar botón
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="fas fa-save"></i> Guardar Usuario';
+            }
+        });
     }
 
     // ========== EVENT LISTENERS ==========

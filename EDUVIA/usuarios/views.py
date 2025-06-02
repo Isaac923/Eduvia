@@ -104,6 +104,8 @@ def lista_usuarios(request):
 @require_http_methods(["GET", "POST"])
 def nuevo_usuario(request):
     if request.method == 'POST':
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
         try:
             # Obtener datos del formulario
             rut = request.POST.get('rut', '').strip()
@@ -113,30 +115,54 @@ def nuevo_usuario(request):
             telefono = request.POST.get('telefono', '').strip()
             correo = request.POST.get('correo', '').strip()
             rol = request.POST.get('rol', '').strip()
-            estado = request.POST.get('estado', 'inactive')
+            estado = request.POST.get('estado', 'active')
             funcion = request.POST.get('funcion', '').strip()
             
             # Validar campos básicos requeridos
             if not all([rut, password, nombres, apellidos, correo, rol]):
-                messages.error(request, 'Por favor, complete todos los campos obligatorios.')
-                return render(request, 'usuarios/nuevo_usuario.html')
+                error_data = {
+                    'success': False,
+                    'message': 'Por favor, complete todos los campos obligatorios.'
+                }
+                
+                if is_ajax:
+                    return JsonResponse(error_data, status=400)
+                else:
+                    messages.error(request, error_data['message'])
+                    return render(request, 'usuarios/nuevo_usuario.html')
             
             # Verificar si el RUT ya existe
             if Usuario.objects.filter(rut=rut).exists():
                 existing_user = Usuario.objects.get(rut=rut)
-                messages.error(request, f'Ya existe un usuario registrado con el RUT {rut}: {existing_user.nombres} {existing_user.apellidos}')
-                return render(request, 'usuarios/nuevo_usuario.html')
+                error_data = {
+                    'success': False,
+                    'message': f'Ya existe un usuario registrado con el RUT {rut}: {existing_user.nombres} {existing_user.apellidos}'
+                }
+                
+                if is_ajax:
+                    return JsonResponse(error_data, status=409)
+                else:
+                    messages.error(request, error_data['message'])
+                    return render(request, 'usuarios/nuevo_usuario.html')
             
             # Verificar correo único
             if Usuario.objects.filter(correo=correo).exists():
                 existing_user = Usuario.objects.get(correo=correo)
-                messages.error(request, f'Ya existe un usuario registrado con el correo {correo}: {existing_user.nombres} {existing_user.apellidos}')
-                return render(request, 'usuarios/nuevo_usuario.html')
+                error_data = {
+                    'success': False,
+                    'message': f'Ya existe un usuario registrado con el correo {correo}: {existing_user.nombres} {existing_user.apellidos}'
+                }
+                
+                if is_ajax:
+                    return JsonResponse(error_data, status=409)
+                else:
+                    messages.error(request, error_data['message'])
+                    return render(request, 'usuarios/nuevo_usuario.html')
             
             # Crear el usuario
             usuario = Usuario(
                 rut=rut,
-                password=password,  # Se hasheará automáticamente en el save()
+                password=password,
                 nombres=nombres,
                 apellidos=apellidos,
                 telefono=telefono if telefono and telefono != '+56 9 ' else None,
@@ -147,12 +173,28 @@ def nuevo_usuario(request):
             )
             usuario.save()
             
-            messages.success(request, f'Usuario {nombres} {apellidos} creado exitosamente.')
-            return redirect('usuarios:lista_usuarios')
+            success_data = {
+                'success': True,
+                'message': f'Usuario {nombres} {apellidos} creado exitosamente.'
+            }
+            
+            if is_ajax:
+                return JsonResponse(success_data, status=200)
+            else:
+                messages.success(request, success_data['message'])
+                return redirect('usuarios:lista_usuarios')
                 
         except Exception as e:
-            messages.error(request, f'Error al crear el usuario: {str(e)}')
-            return render(request, 'usuarios/nuevo_usuario.html')
+            error_data = {
+                'success': False,
+                'message': f'Error al crear el usuario: {str(e)}'
+            }
+            
+            if is_ajax:
+                return JsonResponse(error_data, status=500)
+            else:
+                messages.error(request, error_data['message'])
+                return render(request, 'usuarios/nuevo_usuario.html')
     
     return render(request, 'usuarios/nuevo_usuario.html')
 

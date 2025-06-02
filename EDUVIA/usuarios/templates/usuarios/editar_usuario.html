@@ -4,11 +4,224 @@
 {% block title %}Editar Usuario - EDUVIA{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/lista_usuarios.css' %}">
+<link rel="stylesheet" href="{% static 'css/nuevo_usuario.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+/* Estilos para que funcione correctamente */
+.selector-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.selector-btn {
+    flex: 1;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    user-select: none;
+}
+
+.selector-btn:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.selector-btn.active {
+    border-color: #007bff;
+    background: #007bff;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.selector-btn i {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.conditional-dropdown {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    animation: slideDown 0.3s ease;
+}
+
+.conditional-dropdown.show {
+    display: block;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.error-message {
+    display: none;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.error-message.show {
+    display: block;
+}
+
+.error-message i {
+    margin-right: 0.25rem;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    color: #6c757d;
+}
+
+.form-control {
+    padding-left: 2.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.valid-feedback, .invalid-feedback {
+    display: none;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.valid-feedback {
+    color: #28a745;
+}
+
+.invalid-feedback {
+    color: #dc3545;
+}
+
+.valid-feedback.show, .invalid-feedback.show {
+    display: block;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn-eduvia {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-eduvia:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.info-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.required {
+    color: #dc3545;
+}
+
+/* Estilos para SweetAlert2 personalizado */
+.swal-wide {
+    width: 600px !important;
+}
+
+.confirmation-details {
+    text-align: left;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.confirmation-details p {
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.confirmation-details i {
+    width: 16px;
+    color: #007bff;
+}
+</style>
 {% endblock %}
 
 {% block content %}
-
 <div class="form-container">
     <div class="form-header">
         <h2><i class="fas fa-user-edit"></i> Editar Usuario</h2>
@@ -22,113 +235,175 @@
         <div class="form-section">
             <h3><i class="fas fa-user"></i> Información Personal</h3>
             
+            <!-- Campo RUT -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="rut">RUT <span class="required">*</span></label>
                     <div class="input-group">
                         <span class="input-icon"><i class="fas fa-id-card"></i></span>
                         <input type="text" id="rut" name="rut" class="form-control" 
-                               placeholder="Ej: 12345678-9" required maxlength="12"
+                               placeholder="Ej: 12.345.678-9" maxlength="12" required
                                value="{{ usuario.rut }}">
                     </div>
-                    <small class="form-text">Formato: 12345678-9 (8 dígitos + dígito verificador)</small>
-                    <div class="invalid-feedback" id="rut-error"><i class="fas fa-exclamation-circle"></i>RUT inválido. Debe tener 8 dígitos más dígito verificador válido.</div>
+                    <small class="form-text">Formato: 12.345.678-9 (8 dígitos + dígito verificador)</small>
+                    <div class="valid-feedback">
+                        <i class="fas fa-check-circle"></i> RUT válido
+                    </div>
+                    <div class="invalid-feedback">
+                        <i class="fas fa-exclamation-circle"></i> RUT inválido
+                    </div>
                 </div>
             </div>
             
+            <!-- Campo Nombres -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="nombres">Nombres <span class="required">*</span></label>
                     <div class="input-group">
                         <span class="input-icon"><i class="fas fa-user"></i></span>
                         <input type="text" id="nombres" name="nombres" class="form-control" 
-                               placeholder="Ingrese nombres" required
+                               placeholder="Ej: Juan" required
                                value="{{ usuario.nombres }}">
                     </div>
+                    <small class="form-text">Ingrese los nombres del usuario</small>
+                    <div class="valid-feedback">
+                        <i class="fas fa-check-circle"></i> Nombre válido
+                    </div>
+                    <div class="invalid-feedback">
+                        <i class="fas fa-exclamation-circle"></i> Nombre inválido
+                    </div>
                 </div>
-                
+            </div>
+            
+            <!-- Campo Apellidos -->
+            <div class="form-row">
                 <div class="form-group">
                     <label for="apellidos">Apellidos <span class="required">*</span></label>
                     <div class="input-group">
                         <span class="input-icon"><i class="fas fa-user"></i></span>
                         <input type="text" id="apellidos" name="apellidos" class="form-control" 
-                               placeholder="Ingrese apellidos" required
+                               placeholder="Ej: Pérez" required
                                value="{{ usuario.apellidos }}">
+                    </div>
+                    <small class="form-text">Ingrese los apellidos del usuario</small>
+                    <div class="valid-feedback">
+                        <i class="fas fa-check-circle"></i> Apellido válido
+                    </div>
+                    <div class="invalid-feedback">
+                        <i class="fas fa-exclamation-circle"></i> Apellido inválido
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Sección: Información de Contacto -->
-        <div class="form-section">
-            <h3><i class="fas fa-address-book"></i> Información de Contacto</h3>
             
+            <!-- Campo Teléfono -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="telefono">Número de Teléfono</label>
+                    <label for="telefono">Teléfono <span class="required">*</span></label>
                     <div class="input-group">
                         <span class="input-icon"><i class="fas fa-phone"></i></span>
-                        <input type="tel" id="telefono" name="telefono" class="form-control" 
-                               placeholder="Ej: +56 9 1234 5678" maxlength="16"
-                               value="{{ usuario.telefono|default:'+56 9 ' }}">
+                        <input type="text" id="telefono" name="telefono" class="form-control" 
+                               placeholder="Ej: +56 9 1234 5678" required
+                               value="{{ usuario.telefono }}">
                     </div>
-                    <small class="form-text">Formato: +56 9 1234 5678 (8 dígitos después del prefijo)</small>
-                    <div class="invalid-feedback" id="telefono-error"><i class="fas fa-exclamation-circle"></i>Número inválido. Debe tener 8 dígitos después de +56 9.</div>
+                    <small class="form-text">Ingrese el teléfono del usuario</small>
+                    <div class="valid-feedback">
+                        <i class="fas fa-check-circle"></i> Teléfono válido
+                    </div>
+                    <div class="invalid-feedback">
+                        <i class="fas fa-exclamation-circle"></i> Teléfono inválido
+                    </div>
                 </div>
-                
+            </div>
+            
+            <!-- Campo Correo -->
+            <div class="form-row">
                 <div class="form-group">
-                    <label for="correo">Correo Electrónico <span class="required">*</span></label>
+                    <label for="correo">Correo <span class="required">*</span></label>
                     <div class="input-group">
                         <span class="input-icon"><i class="fas fa-envelope"></i></span>
                         <input type="email" id="correo" name="correo" class="form-control" 
-                               placeholder="ejemplo@dominio.com" required
+                               placeholder="Ej: correo@ejemplo.com" required
                                value="{{ usuario.correo }}">
                     </div>
-                    <div class="invalid-feedback" id="correo-error"><i class="fas fa-exclamation-circle"></i>Por favor ingrese un correo electrónico válido.</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Sección: Información del Sistema -->
-        <div class="form-section">
-            <h3><i class="fas fa-cogs"></i> Información del Sistema</h3>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Rol <span class="required">*</span></label>
-                    <div class="role-selection">
-                        <div class="role-option">
-                            <input type="radio" id="rol-usuario" name="rol" value="usuario" class="role-input"
-                                   {% if usuario.rol == 'usuario' %}checked{% endif %}>
-                            <label for="rol-usuario" class="role-label">
-                                <div class="role-icon-container">
-                                    <i class="fas fa-user-tie role-icon"></i>
-                                </div>
-                                <span class="role-title">Usuario</span>
-                                <span class="role-description">Acceso estándar al sistema</span>
-                            </label>
-                        </div>
-                        <div class="role-option">
-                            <input type="radio" id="rol-admin" name="rol" value="admin" class="role-input"
-                                   {% if usuario.rol == 'admin' %}checked{% endif %}>
-                            <label for="rol-admin" class="role-label">
-                                <div class="role-icon-container">
-                                    <i class="fas fa-user-shield role-icon"></i>
-                                </div>
-                                <span class="role-title">Administrador</span>
-                                <span class="role-description">Acceso completo al sistema</span>
-                            </label>
-                        </div>
+                    <small class="form-text">Ingrese el correo del usuario</small>
+                    <div class="valid-feedback">
+                        <i class="fas fa-check-circle"></i> Correo válido
                     </div>
-                    <div class="invalid-feedback" id="rol-error">
-                        <i class="fas fa-exclamation-circle"></i> Debe seleccionar un rol para el usuario
+                    <div class="invalid-feedback">
+                        <i class="fas fa-exclamation-circle"></i> Correo inválido
                     </div>
                 </div>
             </div>
             
+            <!-- Campo Rol -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="estado">Estado <span class="required">*</span></label>
+                    <label for="rol">Rol <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-user-tag"></i></span>
+                        <select id="rol" name="rol" class="form-control" required>
+                            <option value="usuario" {% if usuario.rol == 'usuario' %}selected{% endif %}>Usuario</option>
+                            <option value="profesor" {% if usuario.rol == 'profesor' %}selected{% endif %}>Profesor</option>
+                        </select>
+                    </div>
+                    <small class="form-text">Seleccione el rol del usuario</small>
+                    <div class="invalid-feedback">
+                        <i class="fas fa-exclamation-circle"></i> Debe seleccionar un rol
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Campo Tipo Usuario -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tipo-usuario">Tipo de Usuario <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-user-tag"></i></span>
+                        <select id="tipo-usuario" name="tipo-usuario" class="form-control" required>
+                            <option value="admin" {% if usuario.tipo_usuario == 'admin' %}selected{% endif %}>Administrador</option>
+                            <option value="regular" {% if usuario.tipo_usuario == 'regular' %}selected{% endif %}>Usuario Regular</option>
+                        </select>
+                    </div>
+                    <small class="form-text">Seleccione el tipo de usuario</small>
+                    <div class="invalid-feedback">
+                        <i class="fas fa-exclamation-circle"></i> Debe seleccionar un tipo de usuario
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Campo Asignatura -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="asignatura">Asignatura <span class="required">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-book"></i></span>
+                        <select id="asignatura" name="asignatura" class="form-control" required>
+                            <option value="lenguaje" {% if usuario.asignatura == 'lenguaje' %}selected{% endif %}>Lenguaje y Comunicación</option>
+                            <option value="ciencias" {% if usuario.asignatura == 'ciencias' %}selected{% endif %}>Ciencias Naturales</option>
+                            <option value="historia" {% if usuario.asignatura == 'historia' %}selected{% endif %}>Historia y Geografía</option>
+                            <option value="ingles" {% if usuario.asignatura == 'ingles' %}selected{% endif %}>Inglés</option>
+                            <option value="educacion-fisica" {% if usuario.asignatura == 'educacion-fisica' %}selected{% endif %}>Educación Física</option>
+                            <option value="artes" {% if usuario.asignatura == 'artes' %}selected{% endif %}>Artes Visuales</option>
+                            <option value="musica" {% if usuario.asignatura == 'musica' %}selected{% endif %}>Música</option>
+                            <option value="tecnologia" {% if usuario.asignatura == 'tecnologia' %}selected{% endif %}>Tecnología</option>
+                            <option value="religion" {% if usuario.asignatura == 'religion' %}selected{% endif %}>Religión</option>
+                            <option value="filosofia" {% if usuario.asignatura == 'filosofia' %}selected{% endif %}>Filosofía</option>
+                            <option value="fisica" {% if usuario.asignatura == 'fisica' %}selected{% endif %}>Física</option>
+                            <option value="quimica" {% if usuario.asignatura == 'quimica' %}selected{% endif %}>Química</option>
+                            <option value="biologia" {% if usuario.asignatura == 'biologia' %}selected{% endif %}>Biología</option>
+                        </select>
+                    </div>
+                    <small class="form-text">Seleccione la asignatura que impartirá el profesor</small>
+                    <div class="invalid-feedback">
+                        <i class="fas fa-exclamation-circle"></i> Debe seleccionar una asignatura
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Campo Estado -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="estado">Estado del Usuario <span class="required">*</span></label>
                     <div class="input-group">
                         <span class="input-icon"><i class="fas fa-toggle-on"></i></span>
                         <select id="estado" name="estado" class="form-control" required>
@@ -137,25 +412,13 @@
                             <option value="pending" {% if usuario.estado == 'pending' %}selected{% endif %}>Pendiente</option>
                         </select>
                     </div>
-                    <small class="form-text">Seleccione el estado actual del usuario</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="funcion">Función</label>
-                    <div class="input-group">
-                        <span class="input-icon"><i class="fas fa-briefcase"></i></span>
-                        <input type="text" id="funcion" name="funcion" class="form-control" 
-                               placeholder="Ej: Profesor de Matemáticas"
-                               value="{{ usuario.funcion|default:'' }}">
-                    </div>
-                    <small class="form-text">Especifique la función o cargo del usuario en la institución</small>
+                    <small class="form-text">Estado actual del usuario en el sistema</small>
                 </div>
             </div>
             
-            <!-- Información adicional -->
             <div class="info-text mt-3">
                 <i class="fas fa-info-circle"></i>
-                <span>Usuario creado el {{ usuario.fecha_creacion|date:"d/m/Y H:i" }}. Los cambios se aplicarán inmediatamente.</span>
+                <span>Modificar el estado del usuario afectará su acceso al sistema.</span>
             </div>
         </div>
         
@@ -163,78 +426,442 @@
             <a href="{% url 'usuarios:lista_usuarios' %}" class="btn-eduvia btn-secondary">
                 <i class="fas fa-times"></i> Cancelar
             </a>
-            <button type="submit" class="btn-eduvia btn-primary">
+            <button type="submit" class="btn-eduvia btn-primary" id="btn-submit">
                 <i class="fas fa-save"></i> Actualizar Usuario
             </button>
         </div>
     </form>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Formatear teléfono si está vacío o incorrecto
+    console.log('Iniciando JavaScript del formulario de editar usuario');
+    
+    // ========== ELEMENTOS DEL DOM ==========
+    const form = document.getElementById('userForm');
+    const rutInput = document.getElementById('rut');
+    const nombresInput = document.getElementById('nombres');
+    const apellidosInput = document.getElementById('apellidos');
     const telefonoInput = document.getElementById('telefono');
-    if (telefonoInput) {
-        let telefonoValue = telefonoInput.value;
-        if (!telefonoValue || telefonoValue === '' || telefonoValue === 'None' || telefonoValue === 'null') {
-            telefonoInput.value = '+56 9 ';
-        } else if (telefonoValue && !telefonoValue.startsWith('+56 9')) {
-            const cleanNumber = telefonoValue.replace(/[^\d]/g, '');
-            if (cleanNumber.length >= 8) {
-                const formattedNumber = cleanNumber.slice(-8);
-                telefonoInput.value = `+56 9 ${formattedNumber.slice(0, 4)} ${formattedNumber.slice(4)}`;
-            } else {
-                telefonoInput.value = '+56 9 ';
-            }
+    const correoInput = document.getElementById('correo');
+    const rolInput = document.getElementById('rol');
+    const estadoSelect = document.getElementById('estado');
+    const tipoUsuarioSelect = document.getElementById('tipo-usuario');
+    const asignaturaSelect = document.getElementById('asignatura');
+    const btnRolUsuario = document.getElementById('btn-rol-usuario');
+    const btnRolProfesor = document.getElementById('btn-rol-profesor');
+    const dropdownUsuario = document.getElementById('dropdown-usuario');
+    const dropdownProfesor = document.getElementById('dropdown-profesor');
+    const errorRol = document.getElementById('error-rol');
+    const btnSubmit = document.getElementById('btn-submit');
+
+    // ========== FUNCIONES DE VALIDACIÓN ==========
+    
+    function validarRUT(rut) {
+        rut = rut.replace(/\./g, '').replace(/\-/g, '').trim();
+        if (rut.length < 8 || rut.length > 9) return false;
+        
+        const numero = rut.slice(0, -1);
+        const dv = rut.slice(-1).toUpperCase();
+        
+        if (!/^\d+$/.test(numero)) return false;
+        
+        let suma = 0;
+        let multiplicador = 2;
+        
+        for (let i = numero.length - 1; i >= 0; i--) {
+            suma += parseInt(numero[i]) * multiplicador;
+            multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+        }
+        
+        const resto = suma % 11;
+        const dvCalculado = resto === 0 ? '0' : resto === 1 ? 'K' : (11 - resto).toString();
+        
+        return dv === dvCalculado;
+    }
+
+    function formatearRUT(rut) {
+        rut = rut.replace(/[^0-9K]/gi, '');
+        if (rut.length > 1) {
+            const numero = rut.slice(0, -1);
+            const dv = rut.slice(-1);
+            const numeroFormateado = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return `${numeroFormateado}-${dv}`;
+        }
+        return rut;
+    }
+
+    function validarTelefono(telefono) {
+        const regex = /^\+56 9 \d{4} \d{4}$/;
+        return regex.test(telefono);
+    }
+
+    function formatearTelefono(telefono) {
+        let numeros = telefono.replace(/^\+56 9 /, '').replace(/\D/g, '');
+        if (numeros.length >= 4) {
+            return `+56 9 ${numeros.slice(0, 4)} ${numeros.slice(4, 8)}`;
+        } else if (numeros.length > 0) {
+            return `+56 9 ${numeros}`;
+        }
+        return '+56 9 ';
+    }
+
+    function validarEmail(email) {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
+
+    function aplicarValidacion(input, esValido) {
+        const grupo = input.closest('.form-group');
+        const validFeedback = grupo.querySelector('.valid-feedback');
+        const invalidFeedback = grupo.querySelector('.invalid-feedback');
+        
+        input.classList.remove('is-valid', 'is-invalid');
+        
+        if (validFeedback) validFeedback.classList.remove('show');
+        if (invalidFeedback) invalidFeedback.classList.remove('show');
+        
+        if (esValido) {
+            input.classList.add('is-valid');
+            if (validFeedback) validFeedback.classList.add('show');
+        } else {
+            input.classList.add('is-invalid');
+            if (invalidFeedback) invalidFeedback.classList.add('show');
         }
     }
 
-    // Validación del formulario
-    const form = document.getElementById('userForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            Swal.fire({
-                title: '¿Confirmar cambios?',
-                html: `
-                    <div class="confirmation-details">
-                        <p><strong>¿Está seguro que desea actualizar los datos del usuario?</strong></p>
-                        <p><i class="fas fa-user"></i> <strong>Usuario:</strong> ${document.getElementById('nombres').value} ${document.getElementById('apellidos').value}</p>
-                        <p><i class="fas fa-id-card"></i> <strong>RUT:</strong> ${document.getElementById('rut').value}</p>
-                        <p><i class="fas fa-envelope"></i> <strong>Correo:</strong> ${document.getElementById('correo').value}</p>
-                    </div>
-                `,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-save"></i> Sí, actualizar',
-                cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-                customClass: {
-                    popup: 'swal-wide'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Actualizando usuario...',
-                        html: '<i class="fas fa-spinner fa-spin"></i> Por favor espere',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        showConfirmButton: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                    
-                    form.submit();
-                }
-            });
+    // ========== FUNCIONES DE MANEJO DE ROLES ==========
+    
+    function ocultarTodosDropdowns() {
+        dropdownUsuario.classList.remove('show');
+        dropdownProfesor.classList.remove('show');
+        errorRol.classList.remove('show');
+    }
+
+    function mostrarDropdown(tipo) {
+        ocultarTodosDropdowns();
+        
+        if (tipo === 'usuario') {
+            dropdownUsuario.classList.add('show');
+        } else if (tipo === 'profesor') {
+            dropdownProfesor.classList.add('show');
+        }
+    }
+
+    function seleccionarRol(rol) {
+        btnRolUsuario.classList.remove('active');
+        btnRolProfesor.classList.remove('active');
+        
+        if (rol === 'usuario') {
+            btnRolUsuario.classList.add('active');
+            rolInput.value = 'usuario';
+            mostrarDropdown('usuario');
+        } else if (rol === 'profesor') {
+            btnRolProfesor.classList.add('active');
+            rolInput.value = 'profesor';
+            mostrarDropdown('profesor');
+        }
+        
+        errorRol.classList.remove('show');
+    }
+
+    // ========== INICIALIZACIÓN CON DATOS EXISTENTES ==========
+    
+    function inicializarFormulario() {
+        const rolActual = rolInput.value;
+        
+        if (rolActual === 'usuario') {
+            seleccionarRol('usuario');
+            if (tipoUsuarioSelect.value) {
+                tipoUsuarioSelect.classList.add('is-valid');
+            }
+        } else if (rolActual === 'profesor') {
+            seleccionarRol('profesor');
+            if (asignaturaSelect.value) {
+                asignaturaSelect.classList.add('is-valid');
+            }
+        }
+        
+        // Validar campos prellenados
+        if (rutInput.value && validarRUT(rutInput.value)) {
+            aplicarValidacion(rutInput, true);
+        }
+        
+        if (nombresInput.value.trim().length > 0) {
+            aplicarValidacion(nombresInput, true);
+        }
+        
+        if (apellidosInput.value.trim().length > 0) {
+            aplicarValidacion(apellidosInput, true);
+        }
+        
+        if (correoInput.value && validarEmail(correoInput.value)) {
+            aplicarValidacion(correoInput, true);
+        }
+        
+        if (telefonoInput.value && telefonoInput.value !== '+56 9 ' && validarTelefono(telefonoInput.value)) {
+            aplicarValidacion(telefonoInput, true);
+        }
+    }
+
+    // ========== FUNCIÓN PARA OBTENER INFORMACIÓN DETALLADA DEL USUARIO ==========
+    
+    function obtenerDetallesUsuario() {
+        let rolTexto = '';
+        let detalleRol = '';
+        
+        if (rolInput.value === 'usuario') {
+            rolTexto = 'Usuario';
+            if (tipoUsuarioSelect.value === 'admin') {
+                detalleRol = 'Administrador';
+            } else if (tipoUsuarioSelect.value === 'regular') {
+                detalleRol = 'Usuario Regular';
+            }
+        } else if (rolInput.value === 'profesor') {
+            rolTexto = 'Profesor';
+            const asignaturaSeleccionada = asignaturaSelect.options[asignaturaSelect.selectedIndex];
+            detalleRol = asignaturaSeleccionada ? asignaturaSeleccionada.text : '';
+        }
+        
+        const estadoTexto = estadoSelect.options[estadoSelect.selectedIndex].text;
+        
+        return {
+            nombres: nombresInput.value.trim(),
+            apellidos: apellidosInput.value.trim(),
+            rut: rutInput.value.trim(),
+            correo: correoInput.value.trim(),
+            telefono: telefonoInput.value.trim() !== '+56 9 ' ? telefonoInput.value.trim() : 'No registrado',
+            rol: rolTexto,
+            detalleRol: detalleRol,
+            estado: estadoTexto
+        };
+    }
+
+    function showFinalConfirmation() {
+        const detalles = obtenerDetallesUsuario();
+        
+        Swal.fire({
+            title: '¿Actualizar usuario?',
+            html: `
+                <div class="confirmation-details">
+                    <p><strong>¿Está seguro que desea actualizar este usuario?</strong></p>
+                    <p><i class="fas fa-user"></i> <strong>Nombre:</strong> ${detalles.nombres} ${detalles.apellidos}</p>
+                    <p><i class="fas fa-id-card"></i> <strong>RUT:</strong> ${detalles.rut}</p>
+                    <p><i class="fas fa-envelope"></i> <strong>Correo:</strong> ${detalles.correo}</p>
+                    <p><i class="fas fa-phone"></i> <strong>Teléfono:</strong> ${detalles.telefono}</p>
+                    <p><i class="fas fa-user-tag"></i> <strong>Rol:</strong> ${detalles.rol}</p>
+                    ${detalles.detalleRol ? `<p><i class="fas fa-info-circle"></i> <strong>Detalle:</strong> ${detalles.detalleRol}</p>` : ''}
+                    <p><i class="fas fa-toggle-on"></i> <strong>Estado:</strong> ${detalles.estado}</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-save"></i> Sí, actualizar usuario',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            customClass: {
+                popup: 'swal-wide'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                proceedWithUpdate();
+            }
         });
     }
+
+    function proceedWithUpdate() {
+        Swal.fire({
+            title: 'Actualizando usuario...',
+            html: '<i class="fas fa-spinner fa-spin"></i> Por favor espere mientras se actualiza el usuario',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+                        didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+        }
+        
+        setTimeout(() => {
+            form.submit();
+        }, 1000);
+    }
+
+    // ========== EVENT LISTENERS ==========
+
+    // Botones de rol
+    btnRolUsuario.addEventListener('click', function(e) {
+        e.preventDefault();
+        seleccionarRol('usuario');
+    });
+
+    btnRolProfesor.addEventListener('click', function(e) {
+        e.preventDefault();
+        seleccionarRol('profesor');
+    });
+
+    // Validaciones en tiempo real
+    rutInput.addEventListener('input', function() {
+        let valor = this.value;
+        this.value = formatearRUT(valor);
+        
+        if (valor.length >= 8) {
+            const esValido = validarRUT(valor);
+            aplicarValidacion(this, esValido);
+        }
+    });
+
+    nombresInput.addEventListener('input', function() {
+        const esValido = this.value.trim().length > 0;
+        aplicarValidacion(this, esValido);
+    });
+
+    apellidosInput.addEventListener('input', function() {
+        const esValido = this.value.trim().length > 0;
+        aplicarValidacion(this, esValido);
+    });
+
+    telefonoInput.addEventListener('input', function() {
+        this.value = formatearTelefono(this.value);
+        if (this.value.length > 7) {
+            const esValido = validarTelefono(this.value);
+            aplicarValidacion(this, esValido);
+        }
+    });
+
+    correoInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            const esValido = validarEmail(this.value);
+            aplicarValidacion(this, esValido);
+        }
+    });
+
+    // Dropdowns condicionales
+    tipoUsuarioSelect.addEventListener('change', function() {
+        if (this.value) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+        }
+    });
+
+    asignaturaSelect.addEventListener('change', function() {
+        if (this.value) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else {
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+        }
+    });
+
+    // ========== VALIDACIÓN DEL FORMULARIO ==========
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let formularioValido = true;
+        let errores = [];
+        
+        // Validar que se haya seleccionado un rol
+        if (!rolInput.value) {
+            formularioValido = false;
+            errores.push('Debe seleccionar un tipo de usuario');
+            errorRol.classList.add('show');
+        }
+        
+        // Validar dropdown condicional según el rol
+        if (rolInput.value === 'usuario') {
+            if (!tipoUsuarioSelect.value) {
+                formularioValido = false;
+                errores.push('Debe seleccionar el nivel de usuario');
+                tipoUsuarioSelect.classList.add('is-invalid');
+            }
+        } else if (rolInput.value === 'profesor') {
+            if (!asignaturaSelect.value) {
+                formularioValido = false;
+                errores.push('Debe seleccionar una asignatura');
+                asignaturaSelect.classList.add('is-invalid');
+            }
+        }
+        
+        // Validar campos requeridos
+        const validaciones = [
+            { input: rutInput, fn: validarRUT, nombre: 'RUT', mensaje: 'El RUT no es válido' },
+            { input: nombresInput, fn: (valor) => valor.length >= 2, nombre: 'nombres', mensaje: 'Los nombres son requeridos' },
+            { input: apellidosInput, fn: (valor) => valor.length >= 2, nombre: 'apellidos', mensaje: 'Los apellidos son requeridos' },
+            { input: correoInput, fn: validarEmail, nombre: 'correo electrónico', mensaje: 'El correo electrónico no es válido' }
+        ];
+        
+        for (let validacion of validaciones) {
+            if (validacion.input && !validacion.fn(validacion.input.value)) {
+                formularioValido = false;
+                errores.push(validacion.mensaje);
+                aplicarValidacion(validacion.input, false);
+            }
+        }
+        
+        // Validar teléfono si tiene valor
+        if (telefonoInput.value.trim() !== '+56 9 ' && telefonoInput.value.trim() !== '') {
+            if (!validarTelefono(telefonoInput.value)) {
+                formularioValido = false;
+                errores.push('El formato del teléfono no es válido');
+                aplicarValidacion(telefonoInput, false);
+            }
+        }
+        
+        // Si hay errores, mostrarlos y no continuar
+        if (!formularioValido) {
+            Swal.fire({
+                title: 'Errores en el formulario',
+                html: `
+                    <div class="error-summary">
+                        <p><strong>Por favor corrige los siguientes errores:</strong></p>
+                        <ul style="text-align: left; margin: 1rem 0;">
+                            ${errores.map(error => `<li>${error}</li>`).join('')}
+                        </ul>
+                    </div>
+                `,
+                icon: 'error',
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: '<i class="fas fa-check"></i> Entendido'
+            });
+            
+            // Enfocar el primer campo con error
+            const primerCampoError = form.querySelector('.is-invalid, .form-control:invalid');
+            if (primerCampoError) {
+                primerCampoError.focus();
+            }
+            
+            return false;
+        }
+        
+        // Si todo está válido, mostrar modal de confirmación final
+        showFinalConfirmation();
+        
+        return false;
+    });
+
+    // ========== INICIALIZACIÓN ==========
+    
+    // Inicializar formulario con datos existentes
+    inicializarFormulario();
+    
+    // Enfocar el primer campo
+    rutInput.focus();
+    
+    console.log('JavaScript de editar usuario inicializado correctamente');
 });
 </script>
 {% endblock %}
