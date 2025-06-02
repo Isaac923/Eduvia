@@ -193,6 +193,31 @@
 .required {
     color: #dc3545;
 }
+
+/* Estilos para SweetAlert2 personalizado */
+.swal-wide {
+    width: 600px !important;
+}
+
+.confirmation-details {
+    text-align: left;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.confirmation-details p {
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.confirmation-details i {
+    width: 16px;
+    color: #007bff;
+}
 </style>
 {% endblock %}
 
@@ -400,11 +425,11 @@
                 </div>
             </div>
             
-            <input type="hidden" name="estado" value="inactive">
+            <input type="hidden" name="estado" value="active">
             
             <div class="info-text mt-3">
-                <i class="fas fa-info-circle"></i>
-                <span>Los nuevos usuarios se crean con estado "Inactivo" por defecto.</span>
+                <i class="fas fa-check-circle"></i>
+                <span>Los nuevos usuarios se crean con estado "Activo" por defecto.</span>
             </div>
         </div>
         
@@ -418,9 +443,157 @@
         </div>
     </form>
 </div>
+
+<!-- Modal de corrección de información -->
+<div class="correction-modal" id="correctionModal">
+    <div class="correction-modal-content">
+        <div class="correction-modal-header">
+            <h5><i class="fas fa-edit"></i> Revisar y Corregir Información</h5>
+            <button type="button" class="correction-modal-close" onclick="closeCorrectionModal()">&times;</button>
+        </div>
+        <div class="correction-modal-body">
+            <div class="correction-form-section">
+                <h6><i class="fas fa-user"></i> Información Personal</h6>
+                <div class="correction-form-row">
+                    <div class="correction-form-group">
+                        <label for="modal-rut">RUT *</label>
+                        <input type="text" id="modal-rut" class="correction-form-control" placeholder="12.345.678-9" maxlength="12">
+                    </div>
+                    <div class="correction-form-group">
+                        <label for="modal-password">Contraseña *</label>
+                        <input type="password" id="modal-password" class="correction-form-control" placeholder="Contraseña">
+                    </div>
+                </div>
+                <div class="correction-form-row">
+                    <div class="correction-form-group">
+                        <label for="modal-nombres">Nombres *</label>
+                        <input type="text" id="modal-nombres" class="correction-form-control" placeholder="Nombres">
+                    </div>
+                    <div class="correction-form-group">
+                        <label for="modal-apellidos">Apellidos *</label>
+                        <input type="text" id="modal-apellidos" class="correction-form-control" placeholder="Apellidos">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="correction-form-section">
+                <h6><i class="fas fa-address-book"></i> Información de Contacto</h6>
+                <div class="correction-form-row">
+                    <div class="correction-form-group">
+                        <label for="modal-telefono">Teléfono</label>
+                        <input type="tel" id="modal-telefono" class="correction-form-control" placeholder="+56 9 1234 5678">
+                    </div>
+                    <div class="correction-form-group">
+                        <label for="modal-correo">Correo Electrónico *</label>
+                        <input type="email" id="modal-correo" class="correction-form-control" placeholder="ejemplo@dominio.com">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="correction-form-section">
+                <h6><i class="fas fa-cogs"></i> Información del Sistema</h6>
+                <div class="correction-form-group">
+                    <label>Tipo de Usuario *</label>
+                    <div class="correction-role-selector">
+                        <div class="correction-role-option" data-modal-rol="usuario" id="modal-btn-usuario">
+                            <i class="fas fa-user"></i>
+                            <span>Usuario</span>
+                        </div>
+                        <div class="correction-role-option" data-modal-rol="profesor" id="modal-btn-profesor">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Profesor</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="correction-form-group" id="modal-tipo-usuario-group" style="display: none;">
+                    <label for="modal-tipo-usuario">Nivel de Usuario *</label>
+                    <select id="modal-tipo-usuario" class="correction-form-control">
+                        <option value="">Seleccione nivel de usuario</option>
+                        <option value="regular">Usuario Regular</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                
+                <div class="correction-form-group" id="modal-asignatura-group" style="display: none;">
+                    <label for="modal-asignatura">Asignatura *</label>
+                    <select id="modal-asignatura" class="correction-form-control">
+                        <option value="">Seleccione una asignatura</option>
+                        <option value="matematicas">Matemáticas</option>
+                        <option value="lenguaje">Lenguaje y Comunicación</option>
+                        <option value="ciencias">Ciencias Naturales</option>
+                        <option value="historia">Historia y Geografía</option>
+                        <option value="ingles">Inglés</option>
+                        <option value="educacion-fisica">Educación Física</option>
+                        <option value="artes">Artes Visuales</option>
+                        <option value="musica">Música</option>
+                        <option value="tecnologia">Tecnología</option>
+                        <option value="religion">Religión</option>
+                        <option value="filosofia">Filosofía</option>
+                        <option value="fisica">Física</option>
+                        <option value="quimica">Química</option>
+                        <option value="biologia">Biología</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="correction-modal-footer">
+            <button type="button" class="btn-correction btn-correction-secondary" onclick="closeCorrectionModal()">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="button" class="btn-correction btn-correction-primary" onclick="applyCorrectionAndProceed()">
+                <i class="fas fa-check"></i> Aplicar Cambios
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de usuario duplicado -->
+<div class="correction-modal" id="duplicateModal">
+    <div class="correction-modal-content">
+        <div class="correction-modal-header" style="background: #fff3cd; border-bottom-color: #ffeaa7;">
+            <h5><i class="fas fa-exclamation-triangle" style="color: #856404;"></i> Usuario Ya Existe</h5>
+            <button type="button" class="correction-modal-close" onclick="closeDuplicateModal()">&times;</button>
+        </div>
+        <div class="correction-modal-body">
+            <div class="duplicate-alert" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 2rem; margin-top: 0.25rem;"></i>
+                    <div>
+                        <h6 style="color: #856404; margin: 0 0 0.5rem 0; font-weight: 600;">¡Información Duplicada!</h6>
+                        <p style="color: #856404; margin: 0; line-height: 1.5;" id="duplicate-message">
+                            Ya existe un usuario registrado con esta información. Por favor verifique los datos e intente nuevamente.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="duplicate-details" id="duplicate-details" style="background: #f8f9fa; border-radius: 8px; padding: 1.5rem;">
+                <h6 style="color: #495057; margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Datos Conflictivos:</h6>
+                <div id="conflict-list"></div>
+            </div>
+            
+            <div style="background: #e7f3ff; border: 1px solid #b8daff; border-radius: 8px; padding: 1rem; margin-top: 1.5rem;">
+                <p style="color: #004085; margin: 0; font-size: 0.875rem;">
+                    <i class="fas fa-lightbulb"></i> <strong>Sugerencia:</strong> 
+                    Revise y corrija la información en conflicto, o contacte al administrador si cree que es un error.
+                </p>
+            </div>
+        </div>
+        <div class="correction-modal-footer">
+            <button type="button" class="btn-correction btn-correction-secondary" onclick="closeDuplicateModal()">
+                <i class="fas fa-times"></i> Cancelar
+            </button>
+            <button type="button" class="btn-correction btn-correction-primary" onclick="openCorrectionFromDuplicate()">
+                <i class="fas fa-edit"></i> Corregir Información
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Iniciando JavaScript del formulario de nuevo usuario');
@@ -443,11 +616,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorRol = document.getElementById('error-rol');
     const btnSubmit = document.getElementById('btn-submit');
 
+    // Elementos del modal de corrección
+    const correctionModal = document.getElementById('correctionModal');
+    const modalRut = document.getElementById('modal-rut');
+    const modalPassword = document.getElementById('modal-password');
+    const modalNombres = document.getElementById('modal-nombres');
+    const modalApellidos = document.getElementById('modal-apellidos');
+    const modalTelefono = document.getElementById('modal-telefono');
+    const modalCorreo = document.getElementById('modal-correo');
+    const modalBtnUsuario = document.getElementById('modal-btn-usuario');
+    const modalBtnProfesor = document.getElementById('modal-btn-profesor');
+    const modalTipoUsuario = document.getElementById('modal-tipo-usuario');
+    const modalAsignatura = document.getElementById('modal-asignatura');
+    const modalTipoUsuarioGroup = document.getElementById('modal-tipo-usuario-group');
+    const modalAsignaturaGroup = document.getElementById('modal-asignatura-group');
+
     console.log('Elementos encontrados:', {
         btnRolUsuario: !!btnRolUsuario,
         btnRolProfesor: !!btnRolProfesor,
         dropdownUsuario: !!dropdownUsuario,
-        dropdownProfesor: !!dropdownProfesor
+        dropdownProfesor: !!dropdownProfesor,
+        rolInput: !!rolInput,
+        correctionModal: !!correctionModal
     });
 
     // ========== FUNCIONES DE VALIDACIÓN ==========
@@ -565,21 +755,269 @@ document.addEventListener('DOMContentLoaded', function() {
         btnRolUsuario.classList.remove('active');
         btnRolProfesor.classList.remove('active');
         
-        // Activar el botón correspondiente
+        // Activar el botón correspondiente y establecer el valor correcto
         if (rol === 'usuario') {
             btnRolUsuario.classList.add('active');
             rolInput.value = 'usuario';
             mostrarDropdown('usuario');
+            console.log('Rol establecido como USUARIO:', rolInput.value);
         } else if (rol === 'profesor') {
             btnRolProfesor.classList.add('active');
             rolInput.value = 'profesor';
             mostrarDropdown('profesor');
+            console.log('Rol establecido como PROFESOR:', rolInput.value);
         }
         
         // Ocultar mensaje de error
         errorRol.classList.remove('show');
         
-        console.log('Rol establecido:', rolInput.value);
+        console.log('Valor final del campo rol:', rolInput.value);
+    }
+
+    // ========== FUNCIONES DEL MODAL DE CORRECCIÓN ==========
+    
+    function showCorrectionModal() {
+        // Llenar el modal con los datos actuales del formulario
+        modalRut.value = rutInput.value;
+        modalPassword.value = passwordInput.value;
+        modalNombres.value = nombresInput.value;
+        modalApellidos.value = apellidosInput.value;
+        modalTelefono.value = telefonoInput.value;
+        modalCorreo.value = correoInput.value;
+        
+        // Configurar rol en el modal
+        modalBtnUsuario.classList.remove('active');
+        modalBtnProfesor.classList.remove('active');
+        modalTipoUsuarioGroup.style.display = 'none';
+        modalAsignaturaGroup.style.display = 'none';
+        
+        if (rolInput.value === 'usuario') {
+            modalBtnUsuario.classList.add('active');
+            modalTipoUsuarioGroup.style.display = 'block';
+            modalTipoUsuario.value = tipoUsuarioSelect.value;
+        } else if (rolInput.value === 'profesor') {
+            modalBtnProfesor.classList.add('active');
+            modalAsignaturaGroup.style.display = 'block';
+            modalAsignatura.value = asignaturaSelect.value;
+        }
+        
+        // Mostrar modal
+        correctionModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        setTimeout(() => {
+            correctionModal.classList.add('show');
+        }, 10);
+        
+        // Enfocar primer campo
+        modalRut.focus();
+    }
+
+    function closeCorrectionModal() {
+        correctionModal.classList.remove('show');
+        
+        setTimeout(() => {
+            correctionModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 300);
+    }
+
+    function applyCorrectionAndProceed() {
+        // Validar datos del modal
+        if (!modalRut.value || !modalPassword.value || !modalNombres.value || 
+            !modalApellidos.value || !modalCorreo.value) {
+            Swal.fire({
+                title: 'Campos incompletos',
+                text: 'Por favor complete todos los campos requeridos',
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        
+        // Validar rol específico
+        const modalRolActivo = modalBtnUsuario.classList.contains('active') ? 'usuario' : 
+                              modalBtnProfesor.classList.contains('active') ? 'profesor' : '';
+        
+        if (!modalRolActivo) {
+            Swal.fire({
+                title: 'Rol no seleccionado',
+                text: 'Debe seleccionar un tipo de usuario',
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        
+        if (modalRolActivo === 'usuario' && !modalTipoUsuario.value) {
+            Swal.fire({
+                title: 'Nivel de usuario requerido',
+                text: 'Debe seleccionar el nivel de usuario',
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        
+        if (modalRolActivo === 'profesor' && !modalAsignatura.value) {
+            Swal.fire({
+                title: 'Asignatura requerida',
+                text: 'Debe seleccionar una asignatura',
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        
+        // Aplicar cambios al formulario principal
+        rutInput.value = modalRut.value;
+        passwordInput.value = modalPassword.value;
+        nombresInput.value = modalNombres.value;
+        apellidosInput.value = modalApellidos.value;
+        telefonoInput.value = modalTelefono.value;
+        correoInput.value = modalCorreo.value;
+        
+        // Aplicar rol
+        seleccionarRol(modalRolActivo);
+        
+        if (modalRolActivo === 'usuario') {
+            tipoUsuarioSelect.value = modalTipoUsuario.value;
+        } else if (modalRolActivo === 'profesor') {
+            asignaturaSelect.value = modalAsignatura.value;
+        }
+        
+        // Cerrar modal de corrección
+        closeCorrectionModal();
+        
+        // Proceder con confirmación final
+        setTimeout(() => {
+            showFinalConfirmation();
+        }, 500);
+    }
+
+    // Event listeners para el modal de corrección
+    modalBtnUsuario.addEventListener('click', function() {
+        modalBtnUsuario.classList.add('active');
+        modalBtnProfesor.classList.remove('active');
+        modalTipoUsuarioGroup.style.display = 'block';
+        modalAsignaturaGroup.style.display = 'none';
+    });
+
+    modalBtnProfesor.addEventListener('click', function() {
+        modalBtnProfesor.classList.add('active');
+        modalBtnUsuario.classList.remove('active');
+        modalAsignaturaGroup.style.display = 'block';
+        modalTipoUsuarioGroup.style.display = 'none';
+    });
+
+    // Formateo automático en el modal
+    modalRut.addEventListener('input', function() {
+        this.value = formatearRUT(this.value);
+    });
+
+    modalTelefono.addEventListener('input', function() {
+        this.value = formatearTelefono(this.value);
+    });
+
+    // ========== FUNCIÓN PARA OBTENER INFORMACIÓN DETALLADA DEL USUARIO ==========
+    
+    function obtenerDetallesUsuario() {
+        let rolTexto = '';
+        let detalleRol = '';
+        
+        if (rolInput.value === 'usuario') {
+            rolTexto = 'Usuario';
+            if (tipoUsuarioSelect.value === 'admin') {
+                detalleRol = 'Administrador';
+            } else if (tipoUsuarioSelect.value === 'regular') {
+                detalleRol = 'Usuario Regular';
+            }
+        } else if (rolInput.value === 'profesor') {
+            rolTexto = 'Profesor';
+            const asignaturaSeleccionada = asignaturaSelect.options[asignaturaSelect.selectedIndex];
+            detalleRol = asignaturaSeleccionada ? asignaturaSeleccionada.text : '';
+        }
+        
+        return {
+            nombres: nombresInput.value.trim(),
+            apellidos: apellidosInput.value.trim(),
+            rut: rutInput.value.trim(),
+            correo: correoInput.value.trim(),
+            telefono: telefonoInput.value.trim() !== '+56 9 ' ? telefonoInput.value.trim() : 'No registrado',
+            rol: rolTexto,
+            detalleRol: detalleRol
+        };
+    }
+
+    function showFinalConfirmation() {
+        const detalles = obtenerDetallesUsuario();
+        
+        console.log('=== DATOS A ENVIAR ===');
+        console.log('Detalles del usuario:', detalles);
+        
+        Swal.fire({
+            title: '¿Crear nuevo usuario?',
+            html: `
+                <div class="confirmation-details">
+                    <p><strong>¿Está seguro que desea crear este usuario?</strong></p>
+                    <p><i class="fas fa-user"></i> <strong>Nombre:</strong> ${detalles.nombres} ${detalles.apellidos}</p>
+                    <p><i class="fas fa-id-card"></i> <strong>RUT:</strong> ${detalles.rut}</p>
+                    <p><i class="fas fa-envelope"></i> <strong>Correo:</strong> ${detalles.correo}</p>
+                    <p><i class="fas fa-phone"></i> <strong>Teléfono:</strong> ${detalles.telefono}</p>
+                    <p><i class="fas fa-user-tag"></i> <strong>Rol:</strong> ${detalles.rol}</p>
+                    ${detalles.detalleRol ? `<p><i class="fas fa-info-circle"></i> <strong>Detalle:</strong> ${detalles.detalleRol}</p>` : ''}
+                    <p><i class="fas fa-toggle-on"></i> <strong>Estado:</strong> Activo</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            denyButtonColor: '#007bff',
+            confirmButtonText: '<i class="fas fa-user-plus"></i> Sí, crear usuario',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            denyButtonText: '<i class="fas fa-edit"></i> Corregir información',
+            customClass: {
+                popup: 'swal-wide'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Proceder con la creación
+                proceedWithCreation();
+            } else if (result.isDenied) {
+                // Abrir modal de corrección
+                showCorrectionModal();
+            }
+            // Si cancela, no hacer nada
+        });
+    }
+
+    function proceedWithCreation() {
+        // Mostrar loading
+        Swal.fire({
+            title: 'Creando usuario...',
+            html: '<i class="fas fa-spinner fa-spin"></i> Por favor espere mientras se registra el usuario',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Deshabilitar botón de envío
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+        }
+        
+        console.log('Enviando formulario...');
+        
+        // Enviar formulario
+        setTimeout(() => {
+            form.submit();
+        }, 1000); // Pequeña pausa para mostrar el loading
     }
 
     // ========== EVENT LISTENERS ==========
@@ -661,89 +1099,144 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ========== VALIDACIÓN DEL FORMULARIO ==========
+    // ========== VALIDACIÓN DEL FORMULARIO CON MODAL ==========
     
     form.addEventListener('submit', function(e) {
-        console.log('Enviando formulario...');
-        console.log('Valor del rol:', rolInput.value);
+        e.preventDefault(); // Prevenir envío inmediato
+        
+        console.log('=== VALIDANDO FORMULARIO ===');
+        console.log('Valor del rol antes de validar:', rolInput.value);
         
         let formularioValido = true;
+        let errores = [];
         
         // Validar que se haya seleccionado un rol
         if (!rolInput.value) {
-            e.preventDefault();
+            formularioValido = false;
+            errores.push('Debe seleccionar un tipo de usuario');
             errorRol.classList.add('show');
-            alert('Debe seleccionar un tipo de usuario');
-            return false;
         }
         
         // Validar dropdown condicional según el rol
         if (rolInput.value === 'usuario') {
             if (!tipoUsuarioSelect.value) {
-                e.preventDefault();
+                formularioValido = false;
+                errores.push('Debe seleccionar el nivel de usuario');
                 tipoUsuarioSelect.classList.add('is-invalid');
-                alert('Debe seleccionar el nivel de usuario');
-                tipoUsuarioSelect.focus();
-                return false;
             }
         } else if (rolInput.value === 'profesor') {
             if (!asignaturaSelect.value) {
-                e.preventDefault();
+                formularioValido = false;
+                errores.push('Debe seleccionar una asignatura');
                 asignaturaSelect.classList.add('is-invalid');
-                alert('Debe seleccionar una asignatura');
-                asignaturaSelect.focus();
-                return false;
             }
         }
         
         // Validar campos requeridos
         const validaciones = [
-            { input: rutInput, fn: validarRUT, nombre: 'RUT' },
-            { input: passwordInput, fn: (valor) => valor.length >= 6, nombre: 'contraseña' },
-            { input: nombresInput, fn: (valor) => valor.length >= 2, nombre: 'nombres' },
-            { input: apellidosInput, fn: (valor) => valor.length >= 2, nombre: 'apellidos' },
-            { input: correoInput, fn: validarEmail, nombre: 'correo electrónico' }
+            { input: rutInput, fn: validarRUT, nombre: 'RUT', mensaje: 'El RUT no es válido' },
+            { input: passwordInput, fn: (valor) => valor.length >= 6, nombre: 'contraseña', mensaje: 'La contraseña debe tener al menos 6 caracteres' },
+            { input: nombresInput, fn: (valor) => valor.length >= 2, nombre: 'nombres', mensaje: 'Los nombres son requeridos' },
+            { input: apellidosInput, fn: (valor) => valor.length >= 2, nombre: 'apellidos', mensaje: 'Los apellidos son requeridos' },
+            { input: correoInput, fn: validarEmail, nombre: 'correo electrónico', mensaje: 'El correo electrónico no es válido' }
         ];
         
         for (let validacion of validaciones) {
             if (validacion.input && !validacion.fn(validacion.input.value)) {
-                e.preventDefault();
+                formularioValido = false;
+                errores.push(validacion.mensaje);
                 aplicarValidacion(validacion.input, false);
-                alert(`El campo ${validacion.nombre} no es válido`);
-                validacion.input.focus();
-                return false;
             }
         }
         
         // Validar teléfono si tiene valor
         if (telefonoInput.value.trim() !== '+56 9 ' && telefonoInput.value.trim() !== '') {
             if (!validarTelefono(telefonoInput.value)) {
-                e.preventDefault();
+                formularioValido = false;
+                errores.push('El formato del teléfono no es válido');
                 aplicarValidacion(telefonoInput, false);
-                alert('El formato del teléfono no es válido');
-                telefonoInput.focus();
-                return false;
             }
         }
         
-        // Si todo está válido, deshabilitar botón y mostrar loading
-        if (btnSubmit) {
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        // Si hay errores, mostrarlos y no continuar
+        if (!formularioValido) {
+            console.log('Errores encontrados:', errores);
+            
+            Swal.fire({
+                title: 'Errores en el formulario',
+                html: `
+                    <div class="error-summary">
+                        <p><strong>Por favor corrige los siguientes errores:</strong></p>
+                        <ul style="text-align: left; margin: 1rem 0;">
+                            ${errores.map(error => `<li>${error}</li>`).join('')}
+                        </ul>
+                    </div>
+                `,
+                icon: 'error',
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: '<i class="fas fa-check"></i> Entendido'
+            });
+            
+            // Enfocar el primer campo con error
+            const primerCampoError = form.querySelector('.is-invalid, .form-control:invalid');
+            if (primerCampoError) {
+                primerCampoError.focus();
+            }
+            
+            return false;
         }
         
-        return true;
+        // Si todo está válido, mostrar modal de confirmación final
+        showFinalConfirmation();
+        
+        return false; // Prevenir envío directo
     });
+
+    // ========== DEBUGGING ADICIONAL ==========
+    
+    // Verificar cambios en el campo rol
+    if (rolInput) {
+        rolInput.addEventListener('change', function() {
+            console.log('Campo rol cambió a:', this.value);
+        });
+        
+        // Observer para detectar cambios en el valor
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                    console.log('Valor del rol cambió por atributo a:', rolInput.value);
+                }
+            });
+        });
+        
+        observer.observe(rolInput, {
+            attributes: true,
+            attributeFilter: ['value']
+        });
+    }
+
+    // ========== FUNCIONES GLOBALES ==========
+    
+    // Hacer funciones accesibles globalmente para onclick
+    window.closeCorrectionModal = closeCorrectionModal;
+    window.applyCorrectionAndProceed = applyCorrectionAndProceed;
 
     // ========== INICIALIZACIÓN ==========
     
     // Ocultar dropdowns al cargar
     ocultarTodosDropdowns();
     
+    // Limpiar valor del rol al inicio
+    if (rolInput) {
+        rolInput.value = '';
+        console.log('Valor inicial del rol limpiado:', rolInput.value);
+    }
+    
     // Enfocar el primer campo
     rutInput.focus();
     
     console.log('JavaScript inicializado correctamente');
+    console.log('Estado inicial del rol:', rolInput.value);
 });
 </script>
 {% endblock %}

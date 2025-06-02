@@ -376,6 +376,7 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     animation: bounceIn 0.6s ease-out;
+    min-width: fit-content;
 }
 
 @keyframes bounceIn {
@@ -1241,4 +1242,86 @@ html, body {
 
 * {
     box-sizing: border-box;
+}
+
+/* Estilos específicos para roles de Usuario y Profesor */
+.role-badge.role-user {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: var(--white);
+    border: 1px solid #138496;
+    box-shadow: 0 2px 6px rgba(23, 162, 184, 0.3);
+}
+
+.role-badge.role-user:hover {
+    background: linear-gradient(135deg, #138496, #117a8b);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
+}
+
+.role-badge.role-teacher {
+    background: linear-gradient(135deg, #fd7e14, #e76500);
+    color: var(--white);
+    border: 1px solid #e76500;
+    box-shadow: 0 2px 6px rgba(253, 126, 20, 0.3);
+}
+
+.role-badge.role-teacher:hover {
+    background: linear-gradient(135deg, #e76500, #dc5f00);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(253, 126, 20, 0.4);
+}
+
+/* Asegurar que los badges tengan el estilo correcto */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    animation: bounceIn 0.6s ease-out;
+    min-width: fit-content;
+}
+
+/* Iconos específicos para cada rol */
+.role-badge.role-user i {
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+}
+
+.role-badge.role-teacher i {
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+}
+
+/* Responsivo para dispositivos móviles */
+@media (max-width: 768px) {
+    .role-badge.role-user,
+    .role-badge.role-teacher {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.625rem;
+    }
+    
+    .role-badge.role-user i,
+    .role-badge.role-teacher i {
+        font-size: 0.65rem;
+    }
+}
+
+/* Para el modal de detalles - mantener consistencia */
+.detail-modal .role-badge.role-user {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: var(--white);
+    border: 1px solid #138496;
+}
+
+.detail-modal .role-badge.role-teacher {
+    background: linear-gradient(135deg, #fd7e14, #e76500);
+    color: var(--white);
+    border: 1px solid #e76500;
 }
