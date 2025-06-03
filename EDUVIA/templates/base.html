@@ -82,8 +82,8 @@
                 <div class="nav-section">
                     <h4>Evaluación</h4>
                     <ul>
-                        <li class="{% if 'calificaciones' in request.path %}active{% endif %}">
-                            <a href="/calificaciones/">
+                        <li class="{% if 'notas' in request.path or 'calificaciones' in request.path %}active{% endif %}">
+                            <a href="{% url 'notas:notas_generales' %}">
                                 <i class="fas fa-star"></i>
                                 <span>Notas Generales</span>
                             </a>
