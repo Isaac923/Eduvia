@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load asistencia_filters %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                    <small>
+                        Fecha: {{ fecha_hoy|date:"d/m/Y" }} - 
+                        {{ asignatura_curso.asignatura }} - 
+                        Curso: {{ asignatura_curso.curso }}
+                    </small>
+                </div>
+                <div class="card-body">
+                    {% if asistencia_existente %}
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Ya existe un registro de asistencia para hoy. Al guardar, se actualizará la información.
+                        </div>
+                    {% endif %}
+
+                    <form method="post" id="asistenciaForm">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-outline-success w-100" onclick="marcarTodos('presente')">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Todos Presentes
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-outline-danger w-100" onclick="marcarTodos('ausente')">
+                                    <i class="fas fa-times-circle me-2"></i>
+                                    Todos Ausentes
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-outline-warning w-100" onclick="marcarTodos('tardanza')">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Todos Tardanza
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-outline-info w-100" onclick="marcarTodos('justificado')">
+                                    <i class="fas fa-file-medical me-2"></i>
+                                    Todos Justificados
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="30%">Estudiante</th>
+                                        <th width="40%">Estado</th>
+                                        <th width="30%">Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for alumno in alumnos %}
+                                        {% with estado_actual=asistencias_actuales|get_estado:alumno.id %}
+                                        {% with observaciones_actuales=asistencias_actuales|get_observaciones:alumno.id %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                        {{ alumno.nombre.0 }}{{ alumno.apellido.0 }}
+                                                    </div>
+                                                    <div>
+                                                        <strong>{{ alumno.apellido }}, {{ alumno.nombre }}</strong><br>
+                                                        <small class="text-muted">{{ alumno.rut }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <input type="radio" class="btn-check" name="alumno_{{ alumno.id }}" 
+                                                           id="presente_{{ alumno.id }}" value="presente" 
+                                                           {% if estado_actual == 'presente' %}checked{% endif %}>
+                                                    <label class="btn btn-outline-success btn-sm" for="presente_{{ alumno.id }}">
+                                                        <i class="fas fa-check"></i>
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="alumno_{{ alumno.id }}" 
+                                                           id="ausente_{{ alumno.id }}" value="ausente"
+                                                           {% if estado_actual == 'ausente' or not estado_actual %}checked{% endif %}>
+                                                    <label class="btn btn-outline-danger btn-sm" for="ausente_{{ alumno.id }}">
+                                                        <i class="fas fa-times"></i>
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="alumno_{{ alumno.id }}" 
+                                                           id="tardanza_{{ alumno.id }}" value="tardanza"
+                                                           {% if estado_actual == 'tardanza' %}checked{% endif %}>
+                                                    <label class="btn btn-outline-warning btn-sm" for="tardanza_{{ alumno.id }}">
+                                                        <i class="fas fa-clock"></i>
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="alumno_{{ alumno.id }}" 
+                                                           id="justificado_{{ alumno.id }}" value="justificado"
+                                                           {% if estado_actual == 'justificado' %}checked{% endif %}>
+                                                    <label class="btn btn-outline-info btn-sm" for="justificado_{{ alumno.id }}">
+                                                        <i class="fas fa-file-medical"></i>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm" 
+                                                       name="observaciones_{{ alumno.id }}" 
+                                                       placeholder="Observaciones..."
+                                                       value="{{ observaciones_actuales }}">
+                                            </td>
+                                        </tr>
+                                        {% endwith %}
+                                        {% endwith %}
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center">
+                                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                                No hay estudiantes registrados en este curso.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Volver
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i>
+                                Guardar Asistencia
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function marcarTodos(estado) {
+    const radios = document.querySelectorAll(`input[type="radio"][value="${estado}"]`);
+    radios.forEach(radio => {
+        radio.checked = true;
+    });
+}
+
+document.getElementById('asistenciaForm').addEventListener('submit', function(e) {
+    if (!confirm('¿Está seguro de guardar la asistencia? Esta acción actualizará los registros existentes.')) {
+        e.preventDefault();
+    }
+});
+</script>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

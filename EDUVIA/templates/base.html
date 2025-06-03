@@ -51,12 +51,6 @@
                                 <span>Inicio</span>
                             </a>
                         </li>
-                        <li class="{% if 'calendario' in request.path %}active{% endif %}">
-                            <a href="/calendario/">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>Calendario</span>
-                            </a>
-                        </li>
                     </ul>
                 </div>
 
@@ -70,27 +64,20 @@
                                 <span>Estudiantes</span>
                             </a>
                         </li>
-                        <li class="{% if 'profesores' in request.path %}active{% endif %}">
-                            <a href="/profesores/">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                                <span>Profesores</span>
-                            </a>
-                        </li>
                         <li class="{% if request.resolver_match.url_name == 'gestion_cursos' or request.resolver_match.url_name == 'crear_curso' or request.resolver_match.url_name == 'editar_curso' or request.resolver_match.url_name == 'detalle_curso' or request.resolver_match.url_name == 'eliminar_curso' %}active{% endif %}">
                             <a href="{% url 'cursos:gestion_cursos' %}">
                                 <i class="fas fa-book"></i>
                                 <span>Cursos</span>
                             </a>
                         </li>
-                        <li class="{% if request.resolver_match.url_name == 'gestion_asignaturas' or request.resolver_match.url_name == 'crear_asignatura' or request.resolver_match.url_name == 'editar_asignatura' or request.resolver_match.url_name == 'eliminar_asignatura' %}active{% endif %}">
-                            <a href="{% url 'cursos:gestion_asignaturas' %}">
-                                <i class="fas fa-book-open"></i>
-                                <span>Asignaturas</span>
+                        <li class="{% if request.resolver_match.namespace == 'asistencia' %}active{% endif %}">
+                            <a href="{% url 'asistencia:seleccionar_asignatura' %}">
+                                <i class="fas fa-clipboard-check"></i>
+                                <span>Asistencia</span>
                             </a>
                         </li>
                     </ul>
                 </div>
-
                 <!-- Módulo de Evaluación -->
                 <div class="nav-section">
                     <h4>Evaluación</h4>
@@ -98,7 +85,7 @@
                         <li class="{% if 'calificaciones' in request.path %}active{% endif %}">
                             <a href="/calificaciones/">
                                 <i class="fas fa-star"></i>
-                                <span>Calificaciones</span>
+                                <span>Notas Generales</span>
                             </a>
                         </li>
                     </ul>
@@ -115,12 +102,13 @@
                                 <span>Usuarios</span>
                             </a>
                         </li>
-                        <!---  <li class="{% if 'reportes' in request.path %}active{% endif %}">
-                            <a href="/reportes/">
+                        
+                          <li class="{% if 'reportes' in request.path %}active{% endif %}">
+                            <a href="#">
                                 <i class="fas fa-chart-bar"></i>
-                                <span>Reportes</span>
+                                <span>Reportes Generales</span>
                             </a>
-                        </li> -->
+                        </li> 
                     </ul>
                 </div>
                 {% endif %}

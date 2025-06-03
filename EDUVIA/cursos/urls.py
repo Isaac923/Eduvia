@@ -14,9 +14,4 @@ urlpatterns = [
     path('alumno/<int:id>/', views.detalle_alumno, name='detalle_alumno'),
 
 
-    #URLs de las asignaturas
-    path('asignaturas/', views.gestion_asignaturas, name='gestion_asignaturas'),
-    path('asignaturas/crear/', views.crear_asignatura, name='crear_asignatura'),
-    path('asignaturas/editar/<int:id>/', views.editar_asignatura, name='editar_asignatura'),
-    path('asignaturas/eliminar/<int:id>/', views.eliminar_asignatura, name='eliminar_asignatura'),
 ]

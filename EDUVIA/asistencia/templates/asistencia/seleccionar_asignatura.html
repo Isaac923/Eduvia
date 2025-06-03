@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if asignaturas %}
+                        <div class="row">
+                            {% for asignatura_curso in asignaturas %}
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card h-100 border-0 shadow-sm hover-card">
+                                        <div class="card-body text-center">
+                                            <div class="mb-3">
+                                                <i class="fas fa-book fa-3x text-primary"></i>
+                                            </div>
+                                            <h5 class="card-title">{{ asignatura_curso.asignatura }}</h5>
+                                            <p class="card-text text-muted">
+                                                <strong>Curso:</strong> {{ asignatura_curso.curso }}<br>
+                                                {% if asignatura_curso.profesor %}
+                                                    <strong>Profesor:</strong> {{ asignatura_curso.profesor.nombre_completo }}
+                                                {% endif %}
+                                            </p>
+                                            <div class="d-grid gap-2">
+                                                <a href="{% url 'asistencia:tomar_asistencia' asignatura_curso.id %}" 
+                                                   class="btn btn-success">
+                                                    <i class="fas fa-clipboard-check me-2"></i>
+                                                    Tomar Asistencia
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'asistencia:ver_asistencias' %}" class="btn btn-outline-info">
+                                        <i class="fas fa-eye me-2"></i>
+                                        Ver Asistencias
+                                    </a>
+                                    <a href="{% url 'asistencia:estadisticas' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-chart-bar me-2"></i>
+                                        Estadísticas
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                            <h5>No hay asignaturas disponibles</h5>
+                            <p class="text-muted">
+                                {% if user.is_superuser %}
+                                    No hay asignaturas configuradas en el sistema.
+                                {% else %}
+                                    No tiene asignaturas asignadas o no tiene permisos para gestionar asistencias.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+}
+</style>
+{% endblock %}
