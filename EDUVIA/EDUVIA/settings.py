@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'usuarios', 'alumnos', 'cursos', 'asistencia'
+    'usuarios', 'alumnos', 'cursos', 'asistencia', 'notas',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'EDUVIA.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'DBEduvia',
+        'NAME': 'BDEduvia',
         'USER': 'postgres',
         'PASSWORD': '1234',
         'HOST': 'localhost',

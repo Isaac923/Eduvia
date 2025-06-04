@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Filtros -->
+                    <form method="get" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="asignatura_curso" class="form-label">Asignatura y Curso</label>
+                                <select name="asignatura_curso" id="asignatura_curso" class="form-select">
+                                    <option value="">Seleccionar...</option>
+                                    {% for asignatura in asignaturas %}
+                                        <option value="{{ asignatura.id }}" 
+                                                {% if asignatura_curso_seleccionada and asignatura.id == asignatura_curso_seleccionada.id %}selected{% endif %}>
+                                            {{ asignatura.asignatura }} - {{ asignatura.curso }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                                <input type="date" name="fecha_inicio" id="fecha_inicio" 
+                                       class="form-control" value="{{ fecha_inicio }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                                <input type="date" name="fecha_fin" id="fecha_fin" 
+                                       class="form-control" value="{{ fecha_fin }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="estado" class="form-label">Estado</label>
+                                <select name="estado" id="estado" class="form-select">
+                                    <option value="">Todos</option>
+                                    {% for valor, nombre in estados_choices %}
+                                        <option value="{{ valor }}" {% if estado_filtro == valor %}selected{% endif %}>
+                                            {{ nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search me-2"></i>
+                                        Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Resultados -->
+                    {% if asistencias %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">
+                                Mostrando {{ asistencias.start_index }}-{{ asistencias.end_index }} 
+                                de {{ asistencias.paginator.count }} registros
+                            </span>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Estudiante</th>
+                                        <th>Asignatura</th>
+                                        <th>Curso</th>
+                                        <th>Estado</th>
+                                        <th>Observaciones</th>
+                                        <th>Registrado por</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for asistencia in asistencias %}
+                                        <tr>
+                                            <td>{{ asistencia.fecha|date:"d/m/Y" }}</td>
+                                            <td>
+                                                <strong>{{ asistencia.alumno.apellido }}, {{ asistencia.alumno.nombre }}</strong><br>
+                                                <small class="text-muted">{{ asistencia.alumno.rut }}</small>
+                                            </td>
+                                            <td>{{ asistencia.asignatura_curso.asignatura }}</td>
+                                            <td>{{ asistencia.asignatura_curso.curso }}</td>
+                                            <td>
+                                                {% if asistencia.estado == 'presente' %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>Presente
+                                                    </span>
+                                                {% elif asistencia.estado == 'ausente' %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-times me-1"></i>Ausente
+                                                    </span>
+                                                {% elif asistencia.estado == 'tardanza' %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-clock me-1"></i>Tardanza
+                                                    </span>
+                                                {% elif asistencia.estado == 'justificado' %}
+                                                    <span class="badge bg-info">
+                                                        <i class="fas fa-file-medical me-1"></i>Justificado
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ asistencia.observaciones|default:"-" }}</td>
+                                            <td>
+                                                {% if asistencia.registrado_por %}
+                                                    {{ asistencia.registrado_por.nombre_completo }}<br>
+                                                    <small class="text-muted">{{ asistencia.fecha_registro|date:"d/m/Y H:i" }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">Sistema</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginación -->
+                        {% if asistencias.has_other_pages %}
+                            <nav aria-label="Navegación de páginas">
+                                <ul class="pagination justify-content-center">
+                                    {% if asistencias.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ asistencias.previous_page_number }}">
+                                                <i class="fas fa-angle-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in asistencias.paginator.page_range %}
+                                        {% if asistencias.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > asistencias.number|add:'-3' and num < asistencias.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if asistencias.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ asistencias.next_page_number }}">
+                                                <i class="fas fa-angle-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ asistencias.paginator.num_pages }}">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+
+                    {% elif asignatura_curso_seleccionada %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5>No se encontraron registros</h5>
+                            <p class="text-muted">No hay asistencias registradas para los filtros seleccionados.</p>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-filter fa-3x text-muted mb-3"></i>
+                            <h5>Selecciona una asignatura</h5>
+                            <p class="text-muted">Elige una asignatura para ver las asistencias registradas.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Volver
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

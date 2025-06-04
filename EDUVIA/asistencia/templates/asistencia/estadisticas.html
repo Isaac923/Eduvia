@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if estadisticas %}
+                        <div class="row">
+                            {% for item in estadisticas %}
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-book me-2"></i>
+                                                {{ item.asignatura_curso.asignatura }}
+                                            </h6>
+                                            <small class="text-muted">{{ item.asignatura_curso.curso }}</small>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row text-center">
+                                                <div class="col-6">
+                                                    <div class="border-end">
+                                                        <h4 class="text-primary mb-0">{{ item.stats.total }}</h4>
+                                                        <small class="text-muted">Total Registros</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <h4 class="text-success mb-0">{{ item.stats.porcentaje_asistencia }}%</h4>
+                                                    <small class="text-muted">Asistencia</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <hr>
+                                            
+                                            <div class="row text-center">
+                                                <div class="col-3">
+                                                    <div class="text-success">
+                                                        <i class="fas fa-check-circle"></i>
+                                                        <div class="fw-bold">{{ item.stats.presentes }}</div>
+                                                        <small>Presentes</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="text-danger">
+                                                        <i class="fas fa-times-circle"></i>
+                                                        <div class="fw-bold">{{ item.stats.ausentes }}</div>
+                                                        <small>Ausentes</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="text-warning">
+                                                        <i class="fas fa-clock"></i>
+                                                        <div class="fw-bold">{{ item.stats.tardanzas }}</div>
+                                                        <small>Tardanzas</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="text-info">
+                                                        <i class="fas fa-file-medical"></i>
+                                                        <div class="fw-bold">{{ item.stats.justificados }}</div>
+                                                        <small>Justificados</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Barra de progreso -->
+                                            <div class="mt-3">
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" 
+                                                         style="width: {{ item.stats.porcentaje_asistencia }}%"
+                                                         title="Asistencia: {{ item.stats.porcentaje_asistencia }}%">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                            <h5>No hay datos disponibles</h5>
+                            <p class="text-muted">No se encontraron registros de asistencia para generar estadísticas.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Volver
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,9 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
-from .forms import CursoForm, AsignaturaForm
+from .forms import CursoForm
 from alumnos.models import Alumno
-from .models import Curso, Asignatura
+from .models import Curso
 
 def is_staff_or_superuser(user):
     return user.is_staff or user.is_superuser
@@ -139,70 +139,3 @@ def filtrar_alumnos_por_nivel_letra(request):
 def detalle_alumno(request, id):
     alumno = get_object_or_404(Alumno, id=id)
     return render(request, 'alumnos/detalle_alumno.html', {'alumno': alumno})
-
-@login_required
-@user_passes_test(is_staff_or_superuser)
-def gestion_asignaturas(request):
-    # Obtener todas las asignaturas sin agrupar por nivel
-    asignaturas = Asignatura.objects.all().order_by('nombre')
-    
-    context = {
-        'asignaturas': asignaturas,
-    }
-    
-    return render(request, 'asignaturas/gestion_asignaturas.html', context)
-
-@login_required
-@user_passes_test(is_staff_or_superuser)
-def crear_asignatura(request):
-    if request.method == 'POST':
-        form = AsignaturaForm(request.POST)
-        if form.is_valid():
-            asignatura = form.save(commit=False)
-            # Asignar un curso por defecto (por ejemplo, el primer curso)
-            # Esto es solo un ejemplo, deberías adaptarlo según tus necesidades
-            curso_default = Curso.objects.first()
-            if curso_default:
-                asignatura.curso = curso_default
-                asignatura.save()
-                messages.success(request, f'Asignatura "{asignatura.nombre}" creada exitosamente.')
-                return redirect('cursos:gestion_asignaturas')
-            else:
-                messages.error(request, 'No se pudo crear la asignatura porque no hay cursos disponibles.')
-        else:
-            messages.error(request, 'No se pudo crear la asignatura. Por favor, revise los campos marcados en rojo.')
-    else:
-        form = AsignaturaForm()
-    
-    return render(request, 'asignaturas/crear_asignatura.html', {'form': form})
-
-@login_required
-@user_passes_test(is_staff_or_superuser)
-def editar_asignatura(request, id):
-    asignatura = get_object_or_404(Asignatura, id=id)
-    
-    if request.method == 'POST':
-        form = AsignaturaForm(request.POST, instance=asignatura)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Asignatura "{asignatura.nombre}" actualizada exitosamente.')
-            return redirect('cursos:gestion_asignaturas')
-        else:
-            messages.error(request, 'No se pudo actualizar la asignatura. Por favor, revise los campos marcados en rojo.')
-    else:
-        form = AsignaturaForm(instance=asignatura)
-    
-    return render(request, 'asignaturas/crear_asignatura.html', {'form': form, 'asignatura': asignatura})
-
-@login_required
-@user_passes_test(is_staff_or_superuser)
-def eliminar_asignatura(request, id):
-    asignatura = get_object_or_404(Asignatura, id=id)
-    
-    if request.method == 'POST':
-        nombre_asignatura = asignatura.nombre
-        asignatura.delete()
-        messages.success(request, f'Asignatura "{nombre_asignatura}" eliminada exitosamente.')
-        return redirect('cursos:gestion_asignaturas')
-    
-    return render(request, 'asignaturas/confirmar_eliminar_asignatura.html', {'asignatura': asignatura})
