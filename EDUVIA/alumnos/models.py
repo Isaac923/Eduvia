@@ -165,12 +165,20 @@ class Alumno(models.Model):
 
     @property
     def nombre_completo(self):
-        return f"{self.primer_nombre} {self.segundo_nombre or ''} {self.apellido_paterno} {self.apellido_materno}".strip()
-
+        """Retorna el nombre completo del alumno"""
+        nombres = []
+        if self.primer_nombre:
+            nombres.append(self.primer_nombre)
+        if self.segundo_nombre:
+            nombres.append(self.segundo_nombre)
+        if self.apellido_paterno:
+            nombres.append(self.apellido_paterno)
+        if self.apellido_materno:
+            nombres.append(self.apellido_materno)
+        return ' '.join(nombres)
+    
     def __str__(self):
-        return self.nombre_completo
-
-    @property
+        return self.nombre_completo    @property
     def edad(self):
         today = date.today()
         return today.year - self.fecha_nacimiento.year - (
