@@ -1,0 +1,440 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                    <small>Seleccione la asignatura y curso para registrar asistencia</small>
+                    {% if es_superusuario %}
+                        <br><small><i class="fas fa-user-cog me-1"></i>Como administrador, también puede asignar profesores a cada curso específico</small>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if asignaturas %}
+                        <div class="row g-3">
+                            {% for asignatura_curso in asignaturas %}
+                                <div class="col-md-6 col-lg-4">
+                                    {% if asignatura_curso.curso.nivel == 1 %}
+                                        <div class="card border-primary h-100 hover-card">
+                                            <div class="card-body text-center">
+                                                <div class="mb-3">
+                                                    <i class="fas fa-book fa-3x text-primary"></i>
+                                                </div>
+                                                <h5 class="card-title">{{ asignatura_curso.asignatura }}</h5>
+                                                <p class="card-text">
+                                                    <strong>Curso:</strong> {{ asignatura_curso.curso }}<br>
+                                                    <strong>Profesor:</strong> 
+                                                    {% if asignatura_curso.profesor %}
+                                                        <span class="text-success">{{ asignatura_curso.profesor.nombres }} {{ asignatura_curso.profesor.apellidos }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">Sin asignar</span>
+                                                    {% endif %}
+                                                </p>
+                                                
+                                                {% if es_superusuario %}
+                                                    <!-- Formulario para asignar profesor -->
+                                                    <form method="post" class="mb-3 profesor-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="asignatura_curso_id" value="{{ asignatura_curso.id }}">
+                                                        <div class="mb-2">
+                                                            <select name="profesor_id" class="form-select form-select-sm profesor-select" 
+                                                                    data-curso-id="{{ asignatura_curso.id }}"
+                                                                    data-asignatura="{{ asignatura_curso.asignatura }}"
+                                                                    data-curso-nombre="{{ asignatura_curso.curso }}">
+                                                                <option value="">-- Sin profesor --</option>
+                                                                {% for profesor in profesores %}
+                                                                    <option value="{{ profesor.id }}" 
+                                                                            data-profesor-nombre="{{ profesor.nombres }} {{ profesor.apellidos }}"
+                                                                            {% if asignatura_curso.profesor and profesor.id == asignatura_curso.profesor.id %}selected{% endif %}>
+                                                                        {{ profesor.nombres }} {{ profesor.apellidos }}
+                                                                    </option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        {% if not asignatura_curso.profesor %}
+                                                            <button type="submit" class="btn btn-outline-primary btn-sm asignar-btn" id="btn-{{ asignatura_curso.id }}">
+                                                                <i class="fas fa-user-cog me-1"></i>
+                                                                Asignar
+                                                            </button>
+                                                        {% endif %}
+                                                    </form>
+                                                {% endif %}
+                                                
+                                                {% if not es_superusuario or asignatura_curso.profesor %}
+                                                    <a href="{% url 'asistencia:tomar_asistencia' asignatura_curso.id %}" class="btn btn-primary">
+                                                        <i class="fas fa-clipboard-check me-2"></i>
+                                                        Tomar Asistencia
+                                                    </a>
+                                                {% else %}
+                                                    <div class="alert alert-warning py-2 mt-2">
+                                                        <small><i class="fas fa-exclamation-triangle me-1"></i>Asigne un profesor primero</small>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% elif asignatura_curso.curso.nivel == 2 %}
+                                        <div class="card border-warning h-100 hover-card">
+                                            <div class="card-body text-center">
+                                                <div class="mb-3">
+                                                    <i class="fas fa-book fa-3x text-warning"></i>
+                                                </div>
+                                                <h5 class="card-title">{{ asignatura_curso.asignatura }}</h5>
+                                                <p class="card-text">
+                                                    <strong>Curso:</strong> {{ asignatura_curso.curso }}<br>
+                                                    <strong>Profesor:</strong> 
+                                                    {% if asignatura_curso.profesor %}
+                                                        <span class="text-success">{{ asignatura_curso.profesor.nombres }} {{ asignatura_curso.profesor.apellidos }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">Sin asignar</span>
+                                                    {% endif %}
+                                                </p>
+                                                
+                                                {% if es_superusuario %}
+                                                    <!-- Formulario para asignar profesor -->
+                                                    <form method="post" class="mb-3 profesor-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="asignatura_curso_id" value="{{ asignatura_curso.id }}">
+                                                        <div class="mb-2">
+                                                            <select name="profesor_id" class="form-select form-select-sm profesor-select" 
+                                                                    data-curso-id="{{ asignatura_curso.id }}"
+                                                                    data-asignatura="{{ asignatura_curso.asignatura }}"
+                                                                    data-curso-nombre="{{ asignatura_curso.curso }}">
+                                                                <option value="">-- Sin profesor --</option>
+                                                                {% for profesor in profesores %}
+                                                                    <option value="{{ profesor.id }}" 
+                                                                            data-profesor-nombre="{{ profesor.nombres }} {{ profesor.apellidos }}"
+                                                                            {% if asignatura_curso.profesor and profesor.id == asignatura_curso.profesor.id %}selected{% endif %}>
+                                                                        {{ profesor.nombres }} {{ profesor.apellidos }}
+                                                                    </option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        {% if not asignatura_curso.profesor %}
+                                                            <button type="submit" class="btn btn-outline-warning btn-sm asignar-btn" id="btn-{{ asignatura_curso.id }}">
+                                                                <i class="fas fa-user-cog me-1"></i>
+                                                                Asignar
+                                                            </button>
+                                                        {% endif %}
+                                                    </form>
+                                                {% endif %}
+                                                
+                                                {% if not es_superusuario or asignatura_curso.profesor %}
+                                                    <a href="{% url 'asistencia:tomar_asistencia' asignatura_curso.id %}" class="btn btn-warning">
+                                                        <i class="fas fa-clipboard-check me-2"></i>
+                                                        Tomar Asistencia
+                                                    </a>
+                                                {% else %}
+                                                    <div class="alert alert-warning py-2 mt-2">
+                                                        <small><i class="fas fa-exclamation-triangle me-1"></i>Asigne un profesor primero</small>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% elif asignatura_curso.curso.nivel == 3 %}
+                                        <div class="card border-danger h-100 hover-card">
+                                            <div class="card-body text-center">
+                                                <div class="mb-3">
+                                                    <i class="fas fa-book fa-3x text-danger"></i>
+                                                </div>
+                                                <h5 class="card-title">{{ asignatura_curso.asignatura }}</h5>
+                                                <p class="card-text">
+                                                    <strong>Curso:</strong> {{ asignatura_curso.curso }}<br>
+                                                    <strong>Profesor:</strong> 
+                                                    {% if asignatura_curso.profesor %}
+                                                        <span class="text-success">{{ asignatura_curso.profesor.nombres }} {{ asignatura_curso.profesor.apellidos }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">Sin asignar</span>
+                                                    {% endif %}
+                                                </p>
+                                                
+                                                {% if es_superusuario %}
+                                                    <!-- Formulario para asignar profesor -->
+                                                    <form method="post" class="mb-3 profesor-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="asignatura_curso_id" value="{{ asignatura_curso.id }}">
+                                                        <div class="mb-2">
+                                                            <select name="profesor_id" class="form-select form-select-sm profesor-select" 
+                                                                    data-curso-id="{{ asignatura_curso.id }}"
+                                                                    data-asignatura="{{ asignatura_curso.asignatura }}"
+                                                                    data-curso-nombre="{{ asignatura_curso.curso }}">
+                                                                <option value="">-- Sin profesor --</option>
+                                                                {% for profesor in profesores %}
+                                                                    <option value="{{ profesor.id }}" 
+                                                                            data-profesor-nombre="{{ profesor.nombres }} {{ profesor.apellidos }}"
+                                                                            {% if asignatura_curso.profesor and profesor.id == asignatura_curso.profesor.id %}selected{% endif %}>
+                                                                        {{ profesor.nombres }} {{ profesor.apellidos }}
+                                                                    </option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        {% if not asignatura_curso.profesor %}
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm asignar-btn" id="btn-{{ asignatura_curso.id }}">
+                                                                <i class="fas fa-user-cog me-1"></i>
+                                                                Asignar
+                                                            </button>
+                                                        {% endif %}
+                                                    </form>
+                                                {% endif %}
+                                                
+                                                {% if not es_superusuario or asignatura_curso.profesor %}
+                                                    <a href="{% url 'asistencia:tomar_asistencia' asignatura_curso.id %}" class="btn btn-danger">
+                                                        <i class="fas fa-clipboard-check me-2"></i>
+                                                        Tomar Asistencia
+                                                    </a>
+                                                {% else %}
+                                                    <div class="alert alert-warning py-2 mt-2">
+                                                        <small><i class="fas fa-exclamation-triangle me-1"></i>Asigne un profesor primero</small>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                            <h5>No hay asignaturas disponibles</h5>
+                            <p class="text-muted">No se encontraron asignaturas asignadas para su usuario.</p>
+                            {% if request.user.is_superuser %}
+                                <p class="text-info">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Como administrador, asegúrese de que existan asignaturas y cursos configurados.
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-4 d-flex gap-2">
+                        <a href="{% url 'asistencia:index' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Volver al Menú Principal
+                        </a>
+                        <a href="{% url 'asistencia:ver_asistencias' %}" class="btn btn-outline-info">
+                            <i class="fas fa-eye me-2"></i>
+                            Ver Asistencias Registradas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.form-select-sm {
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// SweetAlert2 para asignación de profesores
+document.addEventListener('DOMContentLoaded', function() {
+    const selectores = document.querySelectorAll('select[name="profesor_id"]');
+    
+    selectores.forEach(function(select) {
+        select.addEventListener('change', function(e) {
+            e.preventDefault();
+            
+            const cursoId = this.getAttribute('data-curso-id');
+            const asignatura = this.getAttribute('data-asignatura');
+            const cursoNombre = this.getAttribute('data-curso-nombre');
+            const botonAsignar = document.getElementById('btn-' + cursoId);
+            const form = this.closest('.profesor-form');
+            
+            const selectedOption = this.options[this.selectedIndex];
+            const profesorNombre = selectedOption.getAttribute('data-profesor-nombre');
+            
+            if (this.value !== '') {
+                // Asignar profesor
+                Swal.fire({
+                    title: '¿Asignar Profesor?',
+                    html: `
+                        <div class="text-start">
+                            <p><strong>Asignatura:</strong> ${asignatura}</p>
+                            <p><strong>Curso:</strong> ${cursoNombre}</p>
+                            <p><strong>Profesor:</strong> ${profesorNombre}</p>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-check me-2"></i>Sí, asignar',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+                    customClass: {
+                        popup: 'swal2-popup-custom',
+                        title: 'swal2-title-custom',
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Mostrar loading
+                        Swal.fire({
+                            title: 'Asignando profesor...',
+                            html: 'Por favor espere',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // Enviar formulario
+                        form.submit();
+                    } else {
+                        // Revertir selección
+                        this.selectedIndex = 0;
+                    }
+                });
+            } else {
+                // Remover profesor
+                Swal.fire({
+                    title: '¿Remover Profesor?',
+                    html: `
+                        <div class="text-start">
+                            <p><strong>Asignatura:</strong> ${asignatura}</p>
+                            <p><strong>Curso:</strong> ${cursoNombre}</p>
+                            <p class="text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Se quitará el profesor asignado</p>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-trash me-2"></i>Sí, remover',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+                    customClass: {
+                        popup: 'swal2-popup-custom',
+                        title: 'swal2-title-custom',
+                        confirmButton: 'btn btn-danger',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Mostrar loading
+                        Swal.fire({
+                            title: 'Removiendo profesor...',
+                            html: 'Por favor espere',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // Enviar formulario
+                        form.submit();
+                    } else {
+                        // Revertir a la selección anterior
+                        const profesorActual = form.querySelector('option[selected]');
+                        if (profesorActual) {
+                            this.value = profesorActual.value;
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+    // SweetAlert2 para botones de asignar (cuando no hay profesor)
+    const botonesAsignar = document.querySelectorAll('.asignar-btn');
+    botonesAsignar.forEach(function(boton) {
+        boton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const form = this.closest('.profesor-form');
+            const select = form.querySelector('.profesor-select');
+            const asignatura = select.getAttribute('data-asignatura');
+            const cursoNombre = select.getAttribute('data-curso-nombre');
+            
+            if (select.value === '') {
+                Swal.fire({
+                    title: 'Seleccione un Profesor',
+                    text: 'Debe seleccionar un profesor antes de asignar',
+                    icon: 'warning',
+                    confirmButtonColor: '#ffc107',
+                    confirmButtonText: '<i class="fas fa-check me-2"></i>Entendido',
+                    customClass: {
+                        popup: 'swal2-popup-custom',
+                        confirmButton: 'btn btn-warning'
+                    },
+                    buttonsStyling: false
+                });
+                return;
+            }
+            
+            const selectedOption = select.options[select.selectedIndex];
+            const profesorNombre = selectedOption.getAttribute('data-profesor-nombre');
+            
+            Swal.fire({
+                title: '¿Asignar Profesor?',
+                html: `
+                    <div class="text-start">
+                        <p><strong>Asignatura:</strong> ${asignatura}</p>
+                        <p><strong>Curso:</strong> ${cursoNombre}</p>
+                        <p><strong>Profesor:</strong> ${profesorNombre}</p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-check me-2"></i>Sí, asignar',
+                cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+                customClass: {
+                    popup: 'swal2-popup-custom',
+                    title: 'swal2-title-custom',
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Mostrar loading
+                    Swal.fire({
+                        title: 'Asignando profesor...',
+                        html: 'Por favor espere',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Enviar formulario
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                    <small>Consulte los registros de asistencia por asignatura, fecha y estado</small>
+                </div>
+                <div class="card-body">
+                    <!-- Filtros -->
+                    <form method="get" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="asignatura_curso" class="form-label">Asignatura y Curso</label>
+                                <select name="asignatura_curso" id="asignatura_curso" class="form-select">
+                                    <option value="">Seleccionar asignatura...</option>
+                                    {% for asignatura in asignaturas %}
+                                        <option value="{{ asignatura.id }}" 
+                                                {% if asignatura_curso_seleccionada and asignatura.id == asignatura_curso_seleccionada.id %}selected{% endif %}>
+                                            {{ asignatura.asignatura }} - {{ asignatura.curso }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                                <input type="date" name="fecha_inicio" id="fecha_inicio" 
+                                       class="form-control" value="{{ fecha_inicio }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                                <input type="date" name="fecha_fin" id="fecha_fin" 
+                                       class="form-control" value="{{ fecha_fin }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="estado" class="form-label">Estado</label>
+                                <select name="estado" id="estado" class="form-select">
+                                    <option value="">Todos los estados</option>
+                                    {% for valor, nombre in estados_choices %}
+                                        <option value="{{ valor }}" {% if estado_filtro == valor %}selected{% endif %}>
+                                            {{ nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search me-2"></i>
+                                        Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Resultados -->
+                    {% if asistencias %}
+                        <!-- Información de resultados -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <span class="text-muted">
+                                    Mostrando {{ asistencias.start_index }}-{{ asistencias.end_index }} 
+                                    de {{ asistencias.paginator.count }} registros
+                                </span>
+                            </div>
+                            {% if asignatura_curso_seleccionada %}
+                                <div>
+                                    <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-plus me-1"></i>
+                                        Registrar Nueva Asistencia
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if asistencias_por_curso %}
+                            <!-- Vista agrupada por cursos -->
+                            {% for curso, asistencias_curso in asistencias_por_curso %}
+                                <div class="mb-4">
+                                    <h5 class="text-primary border-bottom pb-2">
+                                        <i class="fas fa-users me-2"></i>
+                                        Curso {{ curso }}
+                                    </h5>
+                                    
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>Fecha</th>
+                                                    <th>Estudiante</th>
+                                                    <th>Estado</th>
+                                                    <th>Observaciones</th>
+                                                    <th>Registrado por</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for asistencia in asistencias_curso %}
+                                                    <tr>
+                                                        <td>
+                                                            <strong>{{ asistencia.fecha|date:"d/m/Y" }}</strong><br>
+                                                            <small class="text-muted">{{ asistencia.fecha|date:"l" }}</small>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="avatar-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                                    {{ asistencia.alumno.primer_nombre.0 }}{{ asistencia.alumno.apellido_paterno.0 }}
+                                                                </div>
+                                                                <div>
+                                                                    <strong>{{ asistencia.alumno.apellido_paterno }} {{ asistencia.alumno.apellido_materno }}, {{ asistencia.alumno.primer_nombre }}</strong><br>
+                                                                    <small class="text-muted">{{ asistencia.alumno.rut }}</small>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            {% if asistencia.estado == 'presente' %}
+                                                                <span class="badge bg-success">
+                                                                    <i class="fas fa-check me-1"></i>Presente
+                                                                </span>
+                                                            {% elif asistencia.estado == 'ausente' %}
+                                                                <span class="badge bg-danger">
+                                                                    <i class="fas fa-times me-1"></i>Ausente
+                                                                </span>
+                                                            {% elif asistencia.estado == 'tardanza' %}
+                                                                <span class="badge bg-warning">
+                                                                    <i class="fas fa-clock me-1"></i>Tardanza
+                                                                </span>
+                                                            {% elif asistencia.estado == 'justificado' %}
+                                                                <span class="badge bg-info">
+                                                                    <i class="fas fa-file-medical me-1"></i>Justificado
+                                                                </span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if asistencia.observaciones %}
+                                                                <span class="text-dark">{{ asistencia.observaciones }}</span>
+                                                            {% else %}
+                                                                <span class="text-muted">-</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if asistencia.registrado_por %}
+                                                                <strong>{{ asistencia.registrado_por.nombres }} {{ asistencia.registrado_por.apellidos }}</strong><br>
+                                                                <small class="text-muted">{{ asistencia.fecha_registro|date:"d/m/Y H:i" }}</small>
+                                                            {% else %}
+                                                                <span class="text-muted">Sistema</span><br>
+                                                                <small class="text-muted">{{ asistencia.fecha_registro|date:"d/m/Y H:i" }}</small>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Vista tradicional sin agrupar -->
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Estudiante</th>
+                                            <th>Estado</th>
+                                            <th>Observaciones</th>
+                                            <th>Registrado por</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for asistencia in asistencias %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ asistencia.fecha|date:"d/m/Y" }}</strong><br>
+                                                    <small class="text-muted">{{ asistencia.fecha|date:"l" }}</small>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                            {{ asistencia.alumno.primer_nombre.0 }}{{ asistencia.alumno.apellido_paterno.0 }}
+                                                        </div>
+                                                        <div>
+                                                            <strong>{{ asistencia.alumno.apellido_paterno }} {{ asistencia.alumno.apellido_materno }}, {{ asistencia.alumno.primer_nombre }}</strong><br>
+                                                            <small class="text-muted">{{ asistencia.alumno.rut }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% if asistencia.estado == 'presente' %}
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-check me-1"></i>Presente
+                                                        </span>
+                                                    {% elif asistencia.estado == 'ausente' %}
+                                                        <span class="badge bg-danger">
+                                                            <i class="fas fa-times me-1"></i>Ausente
+                                                        </span>
+                                                    {% elif asistencia.estado == 'tardanza' %}
+                                                        <span class="badge bg-warning">
+                                                            <i class="fas fa-clock me-1"></i>Tardanza
+                                                        </span>
+                                                    {% elif asistencia.estado == 'justificado' %}
+                                                        <span class="badge bg-info">
+                                                            <i class="fas fa-file-medical me-1"></i>Justificado
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if asistencia.observaciones %}
+                                                        <span class="text-dark">{{ asistencia.observaciones }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if asistencia.registrado_por %}
+                                                        <strong>{{ asistencia.registrado_por.nombres }} {{ asistencia.registrado_por.apellidos }}</strong><br>
+                                                        <small class="text-muted">{{ asistencia.fecha_registro|date:"d/m/Y H:i" }}</small>
+                                                    {% else %}
+                                                        <span class="text-muted">Sistema</span><br>
+                                                        <small class="text-muted">{{ asistencia.fecha_registro|date:"d/m/Y H:i" }}</small>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+
+                        <!-- Paginación -->
+                        {% if asistencias.has_other_pages %}
+                            <nav aria-label="Navegación de páginas">
+                                <ul class="pagination justify-content-center">
+                                    {% if asistencias.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% if asignatura_curso_seleccionada %}asignatura_curso={{ asignatura_curso_seleccionada.id }}&{% endif %}{% if fecha_inicio %}fecha_inicio={{ fecha_inicio }}&{% endif %}{% if fecha_fin %}fecha_fin={{ fecha_fin }}&{% endif %}{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page={{ asistencias.previous_page_number }}">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in asistencias.paginator.page_range %}
+                                        {% if asistencias.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > asistencias.number|add:'-3' and num < asistencias.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?{% if asignatura_curso_seleccionada %}asignatura_curso={{ asignatura_curso_seleccionada.id }}&{% endif %}{% if fecha_inicio %}fecha_inicio={{ fecha_inicio }}&{% endif %}{% if fecha_fin %}fecha_fin={{ fecha_fin }}&{% endif %}{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if asistencias.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?{% if asignatura_curso_seleccionada %}asignatura_curso={{ asignatura_curso_seleccionada.id }}&{% endif %}{% if fecha_inicio %}fecha_inicio={{ fecha_inicio }}&{% endif %}{% if fecha_fin %}fecha_fin={{ fecha_fin }}&{% endif %}{% if estado_filtro %}estado={{ estado_filtro }}&{% endif %}page={{ asistencias.next_page_number }}">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+
+                    {% elif asignatura_curso_seleccionada %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5>No se encontraron registros</h5>
+                            <p class="text-muted">No hay asistencias registradas para los filtros seleccionados.</p>
+                            <div class="mt-3">
+                                <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-success">
+                                    <i class="fas fa-plus me-2"></i>
+                                    Registrar Primera Asistencia
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-filter fa-3x text-muted mb-3"></i>
+                            <h5>Selecciona una asignatura</h5>
+                            <p class="text-muted">Elige una asignatura para ver las asistencias registradas.</p>
+                            <div class="mt-3">
+                                <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-outline-success">
+                                    <i class="fas fa-plus me-2"></i>
+                                    Registrar Asistencia
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-4 d-flex gap-2">
+                        <a href="{% url 'asistencia:index' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Volver al Menú Principal
+                        </a>
+                        <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-outline-success">
+                            <i class="fas fa-plus me-2"></i>
+                            Registrar Nueva Asistencia
+                        </a>
+                        {% if request.user.is_superuser %}
+                            <a href="{% url 'asistencia:estadisticas' %}" class="btn btn-outline-warning">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Ver Estadísticas
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 35px;
+    height: 35px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.table th {
+    border-top: none;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+</style>
+
+<script>
+// Auto-submit form when date inputs change
+document.getElementById('fecha_inicio').addEventListener('change', function() {
+    if (document.getElementById('asignatura_curso').value) {
+        this.form.submit();
+    }
+});
+
+document.getElementById('fecha_fin').addEventListener('change', function() {
+    if (document.getElementById('asignatura_curso').value) {
+        this.form.submit();
+    }
+});
+
+document.getElementById('estado').addEventListener('change', function() {
+    if (document.getElementById('asignatura_curso').value) {
+        this.form.submit();
+    }
+});
+</script>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Curso, Asignatura
+from .models import Curso
 from alumnos.models import Alumno
 
 class CursoForm(forms.ModelForm):
@@ -69,23 +69,3 @@ class CursoForm(forms.ModelForm):
                 )
 
         return cleaned_data
-
-
-
-class AsignaturaForm(forms.ModelForm):
-    class Meta:
-        model = Asignatura
-        fields = ['nombre']
-        widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-        }
-    
-    def __init__(self, *args, **kwargs):
-        # Extraer curso_id antes de llamar a super().__init__
-        curso_id = kwargs.pop('curso_id', None)
-        super().__init__(*args, **kwargs)
-        
-        self.fields['nombre'].label = "Nombre de la asignatura"
-        
-        # Guardamos el curso_id para usarlo en save()
-        self.curso_id = curso_id
