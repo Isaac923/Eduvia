@@ -112,13 +112,20 @@
                     </ul>
                 </div>
                 {% endif %}
+
+                <!-- Botón de Cerrar Sesión - SIEMPRE VISIBLE -->
+                <div class="logout-section">
+                    <a href="{% url 'usuarios:logout' %}" class="logout-btn" onclick="return confirm('¿Estás seguro de que deseas cerrar sesión?')">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Cerrar Sesión</span>
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- Contenido principal -->
         <div class="main-content">
             <div class="content-wrapper">
-                </div>
                 <div class="content">
                     {% block content %}{% csrf_token %}
                     <div class="user-list-container">

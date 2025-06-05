@@ -197,39 +197,153 @@ background-attachment: fixed;
 
 /* Sidebar footer */
 .sidebar-footer {
-  padding: 15px 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1); /* Cambiado para tema claro */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-light); /* Cambiado para tema claro */
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.version {
-  font-size: 0.75rem;
-  color: var(--text-light);
-  white-space: nowrap;
-  opacity: 1;
-  transition: opacity var(--transition-speed);
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
 }
 
-.help-link {
-  display: flex;
-  align-items: center;
-  color: var(--text-color);
-  text-decoration: none;
-  font-size: 0.85rem;
+.user-avatar {
+    margin-right: 0.75rem;
 }
 
-.help-link i {
-  margin-right: 5px;
+.user-avatar i {
+    font-size: 2rem;
+    color: #fff;
 }
 
-.help-link span {
-  white-space: nowrap;
-  opacity: 1;
-  transition: opacity var(--transition-speed);
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.user-role {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.75rem;
+    color: #fff;
+    text-decoration: none;
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(220, 53, 69, 0.3);
+    border-color: rgba(220, 53, 69, 0.5);
+    color: #fff;
+    text-decoration: none;
+}
+
+.logout-btn i {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Estilos para el header del contenido */
+.content-header {
+    background: #fff;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-user-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.welcome-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #495057;
+}
+
+.header-actions {
+    position: relative;
+}
+
+.btn-header-action {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-header-action:hover,
+.btn-header-action.active {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 200px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+.user-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #495057;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+    color: #495057;
 }
 
 /* Main content */
@@ -481,4 +595,121 @@ background-attachment: fixed;
     top: 70px; /* Cambiado de 100px a 70px */
     /* resto de propiedades... */
 }
+}
+
+/* Sección de logout - SIEMPRE VISIBLE */
+.logout-section {
+    margin-top: auto !important;
+    padding: 1rem !important;
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Botón de logout */
+.logout-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.75rem 1rem !important;
+    color: #fff !important;
+    text-decoration: none !important;
+    background: rgba(220, 53, 69, 0.8) !important;
+    border: 2px solid rgba(220, 53, 69, 1) !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+    background: rgba(220, 53, 69, 1) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
+    text-decoration: none !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4) !important;
+}
+
+.logout-btn i {
+    margin-right: 0.75rem !important;
+    font-size: 1.1rem !important;
+}
+
+/* Asegurar que el sidebar tenga altura completa */
+.sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important;
+}
+
+.sidebar-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+}
+
+/* Cuando el sidebar está oculto, mantener visible el logout */
+.sidebar.hidden .logout-section {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}
+
+.sidebar.hidden .logout-btn {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .logout-section {
+        padding: 0.75rem !important;
+    }
+    
+    .logout-btn {
+        padding: 0.6rem 0.8rem !important;
+        font-size: 0.85rem;
+    }
+    
+    .logout-btn i {
+        font-size: 1rem !important;
+        margin-right: 0.5rem !important;
+    }
+}
+
+/* Animaciones */
+.logout-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.logout-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.logout-btn:hover::before {
+    left: 100%;
+}
+
+/* Estados de focus para accesibilidad */
+.logout-btn:focus {
+    outline: 3px solid #007bff !important;
+    outline-offset: 2px !important;
+}
+
+/* Asegurar que sea visible incluso en modo compacto */
+.sidebar-nav .logout-section {
+    min-height: auto !important;
+    flex-shrink: 0 !important;
 }

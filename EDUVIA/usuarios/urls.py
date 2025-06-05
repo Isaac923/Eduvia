@@ -6,6 +6,7 @@ app_name = 'usuarios'
 urlpatterns = [
      path('', views.login_view, name='login'),
     path('inicio/', views.inicio_view, name='inicio'),
+    path('logout/', views.logout_view, name='logout'),
     path('usuarios/', views.lista_usuarios, name='lista_usuarios'),
     path('usuarios/nuevo/', views.nuevo_usuario, name='nuevo_usuario'),
     path('usuarios/eliminar/<int:usuario_id>/', views.eliminar_usuario, name='eliminar_usuario'),

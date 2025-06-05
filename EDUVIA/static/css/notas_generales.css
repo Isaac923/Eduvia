@@ -337,22 +337,22 @@
 
 .notas-mini-grid {
     display: flex;
-    gap: 3px;
+    gap: 4px;
 }
 
 .nota-mini {
     display: inline-block;
-    width: 28px;
-    height: 22px;
-    border-radius: 3px;
-    font-size: 0.7rem;
+    width: 36px;
+    height: 30px;
+    border-radius: 4px;
+    font-size: 0.8rem;
     font-weight: 600;
     text-align: center;
-    line-height: 22px;
+    line-height: 30px;
     background: #f8f9fa;
     border: 1px solid #dee2e6;
     color: #6c757d;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .nota-mini.nota-excelente {
@@ -571,12 +571,12 @@
 
 .nota-mini {
     display: inline-block;
-    width: 35px;
-    height: 25px;
-    line-height: 25px;
+    width: 36px;
+    height: 30px;
+    line-height: 30px;
     text-align: center;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 600;
     border: 1px solid #dee2e6;
     background: white;
@@ -630,12 +630,22 @@
     font-weight: 600;
     padding: 4px 8px;
     border-radius: 6px;
-    background: #2c3e50;
-    color: white;
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    border-radius: 4px;
+    border: 1px solid #3498db;
+    height: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 4px;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+}
+
+.prom-label-horizontal {
+    font-size: 9px;
+    font-weight: 700;
+    color: white;
+    flex: 1;
 }
 
 .prom-val.nota-excelente {
@@ -723,4 +733,787 @@
         line-height: 20px;
         font-size: 0.65rem;
     }
+}
+
+/* Estilos optimizados para evitar scroll horizontal */
+.table-container-horizontal {
+    width: 100%;
+    overflow-x: auto;
+    margin: 0;
+    padding: 0;
+}
+
+.notas-table-horizontal {
+    width: 100%;
+    table-layout: fixed;
+    min-width: auto;
+}
+
+/* Ajustes de columnas para vista de todas las materias */
+.th-alumno { width: 180px; }
+.th-nivel { width: 80px; }
+.th-jornada { width: 80px; }
+.th-notas-todas-horizontales { width: 420px; }
+.th-promedio-todas-horizontales { width: 120px; }
+.th-estado { width: 80px; }
+.th-acciones { width: 90px; }
+
+/* Container principal más compacto */
+.todas-materias-horizontal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    max-width: 520px;
+    font-size: 11px;
+    background: #fafbfc;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.materia-horizontal-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    background: white;
+    border-left: 3px solid transparent;
+    height: 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.materia-horizontal-row:nth-child(1) { border-left-color: #007bff; } /* Matemáticas */
+.materia-horizontal-row:nth-child(2) { border-left-color: #28a745; } /* Lenguaje */
+.materia-horizontal-row:nth-child(3) { border-left-color: #ffc107; } /* Ciencias */
+.materia-horizontal-row:nth-child(4) { border-left-color: #dc3545; } /* Historia */
+.materia-horizontal-row:nth-child(5) { border-left-color: #6f42c1; } /* Inglés */
+
+.materia-label-horizontal {
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 50px;
+    width: 50px;
+    text-align: center;
+    color: #495057;
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.05);
+    border-radius: 3px;
+    padding: 4px 6px;
+}
+
+.semestres-horizontales {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.semestre-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    background: rgba(0,0,0,0.02);
+    border-radius: 3px;
+    padding: 4px 6px;
+}
+
+.sem-label-horizontal {
+    font-size: 10px;
+    font-weight: 700;
+    color: #6c757d;
+    min-width: 18px;
+    text-align: center;
+    background: white;
+    border-radius: 2px;
+    padding: 2px 4px;
+    flex-shrink: 0;
+}
+
+.notas-mini-grid-horizontal {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+}
+
+.nota-mini-horizontal {
+    display: inline-block;
+    width: 28px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 4px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    flex: 1;
+    min-width: 28px;
+    transition: all 0.2s ease;
+}
+
+.nota-mini-horizontal:hover {
+    transform: scale(1.1);
+    z-index: 10;
+    position: relative;
+}
+
+.nota-mini-horizontal.nota-excelente {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+    font-weight: 800;
+}
+
+.nota-mini-horizontal.nota-buena {
+    background: #d1ecf1;
+    color: #0c5460;
+    border-color: #bee5eb;
+    font-weight: 800;
+}
+
+.nota-mini-horizontal.nota-suficiente {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffeaa7;
+    font-weight: 800;
+}
+
+.nota-mini-horizontal.nota-insuficiente {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+    font-weight: 800;
+}
+
+.separador-semestres {
+    color: #495057;
+    font-weight: 900;
+    font-size: 14px;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+    background: #e9ecef;
+    border-radius: 2px;
+    height: 14px;
+    line-height: 14px;
+}
+
+/* Promedios mejorados */
+.promedios-todas-materias-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    max-width: 140px;
+    background: #fafbfc;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.prom-materia-horizontal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 3px;
+    background: white;
+    height: 20px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.prom-materia-horizontal:nth-child(1) { border-left: 3px solid #007bff; }
+.prom-materia-horizontal:nth-child(2) { border-left: 3px solid #28a745; }
+.prom-materia-horizontal:nth-child(3) { border-left: 3px solid #ffc107; }
+.prom-materia-horizontal:nth-child(4) { border-left: 3px solid #dc3545; }
+.prom-materia-horizontal:nth-child(5) { border-left: 3px solid #6f42c1; }
+
+.prom-label-horizontal {
+    font-size: 9px;
+    font-weight: 700;
+    color: #495057;
+    flex: 1;
+}
+
+.prom-val-horizontal {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 3px;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.prom-val-horizontal.nota-excelente {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.prom-val-horizontal.nota-buena {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.prom-val-horizontal.nota-suficiente {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.prom-val-horizontal.nota-insuficiente {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.prom-general-horizontal {
+    margin-top: 3px;
+    padding: 4px 6px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    height: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.prom-label-horizontal-general {
+    font-size: 9px;
+    font-weight: 700;
+    color: #495057;
+    flex: 1;
+}
+
+.prom-val-general-horizontal {
+    font-size: 11px;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 3px;
+    min-width: 32px;
+    text-align: center;
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+/* Ajustes de celdas mejorados */
+.td-notas-todas-horizontales {
+    padding: 8px 4px;
+    vertical-align: top;
+    width: 520px;
+    max-width: 520px;
+}
+
+.td-promedio-todas-horizontales {
+    padding: 8px 4px;
+    vertical-align: top;
+    width: 140px;
+    max-width: 140px;
+}
+
+/* Ajustes de columnas para mejor legibilidad */
+.th-notas-todas-horizontales { 
+    width: 520px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.th-promedio-todas-horizontales { 
+    width: 140px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Responsive mejorado */
+@media (max-width: 1400px) {
+    .th-notas-todas-horizontales { width: 480px; }
+    .th-promedio-todas-horizontales { width: 120px; }
+    .td-notas-todas-horizontales { width: 480px; max-width: 480px; }
+    .td-promedio-todas-horizontales { width: 120px; max-width: 120px; }
+    
+    .todas-materias-horizontal-container { max-width: 410px; }
+    .promedios-todas-materias-horizontal { max-width: 110px; }
+    
+    .nota-mini-horizontal {
+        width: 26px;
+        height: 22px;
+        line-height: 22px;
+        font-size: 9px;
+        min-width: 26px;
+    }
+    
+    .nota-mini {
+        width: 34px;
+        height: 28px;
+        line-height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    .materia-label-horizontal {
+        min-width: 45px;
+        width: 45px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .th-alumno { width: 160px; }
+    .th-notas-todas-horizontales { width: 440px; }
+    .th-promedio-todas-horizontales { width: 110px; }
+    .td-notas-todas-horizontales { width: 440px; max-width: 440px; }
+    .td-promedio-todas-horizontales { width: 110px; max-width: 110px; }
+    
+    .todas-materias-horizontal-container { max-width: 410px; }
+    .promedios-todas-materias-horizontal { max-width: 110px; }
+    
+    .nota-mini-horizontal {
+        width: 24px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 8px;
+        min-width: 24px;
+    }
+    
+    .nota-mini {
+        width: 32px;
+        height: 26px;
+        line-height: 26px;
+        font-size: 0.7rem;
+    }
+    
+    .materia-label-horizontal {
+        min-width: 45px;
+        width: 45px;
+        font-size: 10px;
+    }
+    
+    .sem-label-horizontal {
+        min-width: 16px;
+        font-size: 9px;
+    }
+    
+    .prom-val-horizontal {
+        font-size: 9px;
+        min-width: 24px;
+    }
+    
+    .prom-val-general-horizontal {
+        font-size: 10px;
+        min-width: 28px;
+    }
+}
+
+@media (max-width: 768px) {
+    .th-alumno { width: 160px; }
+    .th-notas-todas-horizontales { width: 440px; }
+    .th-promedio-todas-horizontales { width: 110px; }
+    .td-notas-todas-horizontales { width: 440px; max-width: 440px; }
+    .td-promedio-todas-horizontales { width: 110px; max-width: 110px; }
+    
+    .todas-materias-horizontal-container { max-width: 400px; }
+    .promedios-todas-materias-horizontal { max-width: 110px; }
+    
+    .nota-mini-horizontal {
+        width: 22px;
+        height: 18px;
+        line-height: 18px;
+        font-size: 7px;
+        min-width: 22px;
+    }
+    
+    .nota-mini {
+        width: 30px;
+        height: 24px;
+        line-height: 24px;
+        font-size: 0.65rem;
+    }
+    
+    .materia-horizontal-row {
+        gap: 8px;
+        padding: 4px 6px;
+        height: 28px;
+    }
+    
+    .materia-label-horizontal {
+        min-width: 40px;
+        width: 40px;
+        font-size: 9px;
+        padding: 3px 4px;
+    }
+}
+
+/* Estilos para materias no asignadas */
+.materia-no-asignada {
+    background: #f8f9fa !important;
+    opacity: 0.6;
+    border-left-color: #6c757d !important;
+}
+
+.materia-no-disponible {
+    background: #e9ecef !important;
+    color: #6c757d !important;
+}
+
+.materia-no-asignada-texto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    font-style: italic;
+}
+
+.texto-no-asignada {
+    font-size: 8px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.prom-no-asignada {
+    background: #f8f9fa !important;
+    opacity: 0.6;
+    border-left-color: #6c757d !important;
+}
+
+.prom-val-no-asignada {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+    background: #e9ecef;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    font-style: italic;
+}
+
+/* Hover effects para materias no asignadas */
+.materia-no-asignada:hover {
+    opacity: 0.8;
+}
+
+.prom-no-asignada:hover {
+    opacity: 0.8;
+}
+
+/* Responsive para materias no asignadas */
+@media (max-width: 1200px) {
+    .texto-no-asignada {
+        font-size: 7px;
+    }
+    
+    .prom-val-no-asignada {
+        font-size: 8px;
+        min-width: 24px;
+        padding: 1px 4px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .texto-no-asignada {
+        font-size: 6px;
+    }
+    
+    .prom-val-no-asignada {
+        font-size: 7px;
+        min-width: 20px;
+        padding: 1px 3px;
+    }
+}
+
+/* Estilos para notas clickeables */
+.clickeable-nota {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.clickeable-nota:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    border-width: 2px;
+}
+
+.clickeable-nota:hover::after {
+    content: "Click para asignar";
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2c3e50;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 8px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.clickeable-nota:active {
+    transform: scale(0.95);
+}
+
+/* Efecto de pulsación para feedback visual */
+.clickeable-nota.clicked {
+    animation: clickPulse 0.3s ease;
+}
+
+@keyframes clickPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); background-color: #3498db; }
+    100% { transform: scale(1); }
+}
+
+/* Mejorar visibilidad en hover para notas horizontales */
+.nota-mini-horizontal.clickeable-nota:hover {
+    transform: scale(1.1);
+    z-index: 20;
+}
+
+.nota-mini.clickeable-nota:hover {
+    transform: scale(1.08);
+    z-index: 20;
+}
+
+/* Responsive para tooltips */
+@media (max-width: 768px) {
+    .clickeable-nota:hover::after {
+        font-size: 7px;
+        padding: 1px 4px;
+        bottom: -20px;
+    }
+    
+    .nota-mini-horizontal {
+        width: 18px;
+        height: 15px;
+        line-height: 15px;
+        font-size: 6px;
+        min-width: 18px;
+    }
+    
+    .nota-mini {
+        width: 26px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 0.6rem;
+    }
+}
+
+/* Estilos para notas vacías (con +) */
+.nota-vacia {
+    background: #e8f4fd;
+    color: #2980b9;
+    border: 2px dashed #3498db;
+    font-weight: 900;
+    font-size: 14px;
+}
+
+.nota-mini-horizontal.nota-vacia {
+    background: #e8f4fd;
+    color: #2980b9;
+    border: 2px dashed #3498db;
+    font-weight: 900;
+    font-size: 12px;
+}
+
+/* Efectos hover para notas vacías */
+.nota-vacia:hover {
+    background: #d1ecf1;
+    color: #0c5460;
+    border-color: #2980b9;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.nota-vacia:hover::after {
+    content: "Click para agregar nota";
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2980b9;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 8px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Animación para notas vacías */
+.nota-vacia {
+    animation: pulseEmpty 2s infinite;
+}
+
+@keyframes pulseEmpty {
+    0% { 
+        border-color: #3498db; 
+        background: #e8f4fd;
+    }
+    50% { 
+        border-color: #2980b9; 
+        background: #d1ecf1;
+    }
+    100% { 
+        border-color: #3498db; 
+        background: #e8f4fd;
+    }
+}
+
+/* Detener animación en hover */
+.nota-vacia:hover {
+    animation: none;
+}
+
+/* Efecto de click para notas vacías */
+.nota-vacia:active {
+    transform: scale(0.9);
+    background: #bee5eb;
+    border-color: #17a2b8;
+}
+
+/* Estilos específicos para notas con valor asignado */
+.nota-asignada {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    animation: none;
+}
+
+.nota-asignada.nota-excelente {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+    font-weight: 700;
+}
+
+.nota-asignada.nota-buena {
+    background: #d1ecf1;
+    color: #0c5460;
+    border-color: #bee5eb;
+    font-weight: 700;
+}
+
+.nota-asignada.nota-suficiente {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffeaa7;
+    font-weight: 700;
+}
+
+.nota-asignada.nota-insuficiente {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+    font-weight: 700;
+}
+
+/* Hover diferente para notas asignadas */
+.nota-asignada:hover::after {
+    content: "Click para editar nota";
+    background: #6c757d;
+}
+
+/* Responsive para tooltips de notas vacías */
+@media (max-width: 768px) {
+    .nota-vacia:hover::after {
+        font-size: 7px;
+        padding: 1px 4px;
+        bottom: -20px;
+        content: "Agregar";
+    }
+    
+    .nota-asignada:hover::after {
+        content: "Editar";
+    }
+}
+
+@media (max-width: 576px) {
+    .nota-vacia:hover::after {
+        font-size: 6px;
+        padding: 1px 3px;
+        bottom: -18px;
+        content: "+";
+    }
+    
+    .nota-asignada:hover::after {
+        content: "✏️";
+    }
+}
+
+/* Mejorar la visibilidad del símbolo + */
+.nota-mini-horizontal.nota-vacia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Arial', sans-serif;
+}
+
+.nota-mini.nota-vacia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Efecto de brillo para llamar la atención */
+.nota-vacia::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, transparent, rgba(52, 152, 219, 0.3), transparent);
+    border-radius: 4px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.nota-vacia:hover::before {
+    opacity: 1;
+}
+
+/* Estilos para materias no asignadas */
+.materia-no-asignada {
+    background: #f8f9fa;
+    border-left-color: #6c757d !important;
+    opacity: 0.6;
+}
+
+.materia-no-disponible {
+    background: #e9ecef;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.materia-no-asignada-texto {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-style: italic;
+    color: #6c757d;
+    font-size: 10px;
+}
+
+.texto-no-asignada {
+    background: #e9ecef;
+    padding: 4px 8px;
+    border-radius: 3px;
+    border: 1px dashed #adb5bd;
 }

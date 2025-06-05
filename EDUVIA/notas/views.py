@@ -280,3 +280,96 @@ def estadisticas_materia(request):
         'materia': materia,
         'estadisticas': stats
     })
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+
+@require_POST
+def asignar_nota_ajax(request):
+    try:
+        alumno_id = request.POST.get('alumno_id')
+        materia = request.POST.get('materia')
+        semestre = request.POST.get('semestre')
+        nota_numero = request.POST.get('nota_numero')
+        calificacion = request.POST.get('calificacion')
+        fecha_evaluacion = request.POST.get('fecha_evaluacion')
+        tipo_evaluacion = request.POST.get('tipo_evaluacion')
+        observaciones = request.POST.get('observaciones')
+        
+        # Aquí debes crear o actualizar la nota en tu modelo
+        # Ejemplo (ajusta según tu modelo):
+        # nota, created = Nota.objects.update_or_create(
+        #     alumno_id=alumno_id,
+        #     materia=materia,
+        #     semestre=semestre,
+        #     numero_nota=nota_numero,
+        #     defaults={
+        #         'calificacion': calificacion,
+        #         'fecha_evaluacion': fecha_evaluacion,
+        #         'tipo_evaluacion': tipo_evaluacion,
+        #         'observaciones': observaciones,
+        #     }
+        # )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Nota asignada correctamente'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al asignar la nota: {str(e)}'
+        })
+
+def obtener_notas_ajax(request):
+    try:
+        # Obtener filtros de la URL
+        materia_filter = request.GET.get('materia', 'matematicas')
+        nivel_filter = request.GET.get('nivel', 'todos')
+        semestre_filter = request.GET.get('semestre', 'todos')
+        estado_filter = request.GET.get('estado', 'activo')
+        
+        # Aquí debes obtener las notas desde tu modelo
+        # Ejemplo (ajusta según tu modelo):
+        # notas = Nota.objects.filter(
+        #     alumno__activo=True if estado_filter == 'activo' else Q()
+        # )
+        # 
+        # if materia_filter != 'todas':
+        #     notas = notas.filter(materia=materia_filter)
+        # 
+        # if nivel_filter != 'todos':
+        #     notas = notas.filter(alumno__nivel=nivel_filter)
+        # 
+        # if semestre_filter != 'todos':
+        #     notas = notas.filter(semestre=semestre_filter)
+        
+        # notas_data = []
+        # for nota in notas:
+        #     notas_data.append({
+        #         'alumno_id': nota.alumno.id,
+        #         'materia': nota.materia,
+        #         'semestre': nota.semestre,
+        #         'numero_nota': nota.numero_nota,
+        #         'calificacion': float(nota.calificacion),
+        #         'fecha_evaluacion': nota.fecha_evaluacion.strftime('%Y-%m-%d'),
+        #         'tipo_evaluacion': nota.tipo_evaluacion,
+        #         'observaciones': nota.observaciones or ''
+        #     })
+        
+        # Por ahora devolvemos una lista vacía hasta que implementes tu modelo
+        notas_data = []
+        
+        return JsonResponse({
+            'success': True,
+            'notas': notas_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al obtener las notas: {str(e)}'
+        })
