@@ -16,6 +16,7 @@ def notas_generales(request):
     nivel_filter = request.GET.get('nivel', 'todos')
     semestre_filter = request.GET.get('semestre', 'todos')
     estado_filter = request.GET.get('estado', 'activo')
+    materia_filter = request.GET.get('materia', 'matematicas')  # Por defecto matemáticas
     
     # Aplicar filtros
     if alumno_busqueda:
@@ -44,7 +45,19 @@ def notas_generales(request):
     alumnos_activos = alumnos_queryset.filter(activo=True).count()
     
     # Estadísticas simuladas (puedes calcularlas según tus notas reales)
-    promedio_general = 5.5  # Calcular según tus notas
+    if materia_filter == 'todas':
+        promedio_general = 5.5  # Promedio general de todas las materias
+    else:
+        # Promedio específico por materia (simulado)
+        promedios_por_materia = {
+            'matematicas': 5.2,
+            'lenguaje': 5.8,
+            'ciencias': 5.4,
+            'historia': 5.6,
+            'ingles': 5.3
+        }
+        promedio_general = promedios_por_materia.get(materia_filter, 5.5)
+    
     alumnos_destacados = int(total_alumnos * 0.3)  # 30% destacados
     alumnos_riesgo = int(total_alumnos * 0.1)  # 10% en riesgo
     
@@ -52,6 +65,15 @@ def notas_generales(request):
     paginator = Paginator(alumnos_queryset, 10)  # 10 alumnos por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    # Lista de materias disponibles
+    materias_disponibles = [
+        ('matematicas', 'Matemáticas'),
+        ('lenguaje', 'Lenguaje y Comunicación'),
+        ('ciencias', 'Ciencias Naturales'),
+        ('historia', 'Historia y Geografía'),
+        ('ingles', 'Inglés'),
+    ]
     
     context = {
         'alumnos': page_obj,
@@ -61,7 +83,9 @@ def notas_generales(request):
         'nivel_filter': nivel_filter,
         'semestre_filter': semestre_filter,
         'estado_filter': estado_filter,
+        'materia_filter': materia_filter,  # Nuevo filtro
         'niveles': niveles,
+        'materias_disponibles': materias_disponibles,  # Lista de materias
         'total_alumnos': total_alumnos,
         'promedio_general': promedio_general,
         'alumnos_destacados': alumnos_destacados,
@@ -76,14 +100,183 @@ def guardar_notas(request):
     """API para guardar notas"""
     if request.method == 'POST':
         try:
-            # Aquí implementarías la lógica para guardar las notas
-            # Por ejemplo, usando un modelo Nota
+            # Obtener datos del formulario
+            alumno_id = request.POST.get('alumno_id')
+            materia = request.POST.get('materia')
+            semestre = request.POST.get('semestre')
+            calificacion = request.POST.get('calificacion')
+            fecha_evaluacion = request.POST.get('fecha_evaluacion')
+            observaciones = request.POST.get('observaciones', '')
             
-            messages.success(request, 'Notas guardadas correctamente')
-            return JsonResponse({'success': True})
+            # Validar datos
+            if not all([alumno_id, materia, semestre, calificacion]):
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Faltan datos obligatorios'
+                })
+            
+            # Validar que el alumno existe
+            try:
+                alumno = Alumno.objects.get(id=alumno_id)
+            except Alumno.DoesNotExist:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Alumno no encontrado'
+                })
+            
+            # Validar calificación
+            try:
+                calificacion_float = float(calificacion)
+                if calificacion_float < 1.0 or calificacion_float > 7.0:
+                    return JsonResponse({
+                        'success': False, 
+                        'error': 'La calificación debe estar entre 1.0 y 7.0'
+                    })
+            except ValueError:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Calificación inválida'
+                })
+            
+            # Aquí implementarías la lógica para guardar las notas
+            # Por ejemplo, usando un modelo Nota que crearías
+            
+            # Simulación de guardado exitoso
+            messages.success(request, f'Nota de {materia} guardada correctamente para {alumno.nombre_completo}')
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Nota guardada correctamente',
+                'data': {
+                    'alumno_id': alumno_id,
+                    'materia': materia,
+                    'semestre': semestre,
+                    'calificacion': calificacion_float,
+                    'fecha_evaluacion': fecha_evaluacion,
+                    'observaciones': observaciones
+                }
+            })
             
         except Exception as e:
-            messages.error(request, f'Error al guardar notas: {str(e)}')
-            return JsonResponse({'success': False, 'error': str(e)})
+            messages.error(request, f'Error al guardar nota: {str(e)}')
+            return JsonResponse({
+                'success': False, 
+                'error': f'Error interno: {str(e)}'
+            })
     
-    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+    return JsonResponse({
+        'success': False, 
+        'error': 'Método no permitido'
+    })
+
+
+@login_required
+def obtener_notas_alumno(request, alumno_id):
+    """API para obtener las notas de un alumno específico"""
+    try:
+        alumno = Alumno.objects.get(id=alumno_id)
+        materia = request.GET.get('materia', 'todas')
+        semestre = request.GET.get('semestre', 'todos')
+        
+        # Aquí implementarías la lógica para obtener las notas reales
+        # Por ahora, devolvemos datos simulados
+        
+        notas_simuladas = {
+            'matematicas': {
+                '1': [6.5, 5.8, 6.2, 0, 0],  # 5 notas por semestre
+                '2': [6.0, 5.5, 6.8, 0, 0]
+            },
+            'lenguaje': {
+                '1': [5.8, 6.2, 5.9, 0, 0],
+                '2': [6.1, 5.7, 6.3, 0, 0]
+            },
+            'ciencias': {
+                '1': [5.5, 5.8, 5.2, 0, 0],
+                '2': [5.9, 6.0, 5.6, 0, 0]
+            },
+            'historia': {
+                '1': [6.2, 5.9, 6.1, 0, 0],
+                '2': [5.8, 6.3, 6.0, 0, 0]
+            },
+            'ingles': {
+                '1': [5.7, 5.4, 5.9, 0, 0],
+                '2': [5.6, 5.8, 5.5, 0, 0]
+            }
+        }
+        
+        if materia == 'todas':
+            notas_response = notas_simuladas
+        else:
+            notas_response = {materia: notas_simuladas.get(materia, {'1': [0,0,0,0,0], '2': [0,0,0,0,0]})}
+        
+        return JsonResponse({
+            'success': True,
+            'alumno': {
+                'id': alumno.id,
+                'nombre': alumno.nombre_completo,
+                'nivel': alumno.nivel,
+                'jornada': alumno.jornada
+            },
+            'notas': notas_response
+        })
+        
+    except Alumno.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Alumno no encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@login_required
+def estadisticas_materia(request):
+    """API para obtener estadísticas por materia"""
+    materia = request.GET.get('materia', 'matematicas')
+    
+    # Aquí implementarías la lógica para calcular estadísticas reales
+    # Por ahora, devolvemos datos simulados
+    
+    estadisticas_simuladas = {
+        'matematicas': {
+            'promedio_general': 5.2,
+            'total_evaluaciones': 156,
+            'alumnos_destacados': 23,
+            'alumnos_riesgo': 8
+        },
+        'lenguaje': {
+            'promedio_general': 5.8,
+            'total_evaluaciones': 142,
+            'alumnos_destacados': 31,
+            'alumnos_riesgo': 5
+        },
+        'ciencias': {
+            'promedio_general': 5.4,
+            'total_evaluaciones': 138,
+            'alumnos_destacados': 27,
+            'alumnos_riesgo': 7
+        },
+        'historia': {
+            'promedio_general': 5.6,
+            'total_evaluaciones': 134,
+            'alumnos_destacados': 29,
+            'alumnos_riesgo': 6
+        },
+        'ingles': {
+            'promedio_general': 5.3,
+            'total_evaluaciones': 145,
+            'alumnos_destacados': 25,
+            'alumnos_riesgo': 9
+        }
+    }
+    
+    stats = estadisticas_simuladas.get(materia, estadisticas_simuladas['matematicas'])
+    
+    return JsonResponse({
+        'success': True,
+        'materia': materia,
+        'estadisticas': stats
+    })

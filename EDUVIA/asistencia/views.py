@@ -11,35 +11,115 @@ from alumnos.models import Alumno
 from cursos.models import Curso
 from usuarios.models import Usuario
 from datetime import date
+from django.urls import reverse
+from collections import defaultdict
 
 def get_user_asignaturas(user):
     """Obtiene las asignaturas que puede gestionar el usuario"""
     if user.is_superuser:
-        return AsignaturaCurso.objects.filter(activa=True)
+        return AsignaturaCurso.objects.filter(activa=True).order_by('curso__nivel', 'curso__letra', 'asignatura__nombre')
     
     try:
         usuario_eduvia = Usuario.objects.get(rut=user.username)
-        if usuario_eduvia.rol == 'profesor' and usuario_eduvia.funcion:
-            # La función contiene la especialidad del profesor
+        if usuario_eduvia.rol == 'profesor':
+            # Buscar asignaturas donde este usuario es el profesor asignado
             return AsignaturaCurso.objects.filter(
-                asignatura__nombre=usuario_eduvia.funcion,
+                profesor=usuario_eduvia,
                 activa=True
-            )
+            ).order_by('curso__nivel', 'curso__letra', 'asignatura__nombre')
     except Usuario.DoesNotExist:
         pass
     
     return AsignaturaCurso.objects.none()
 
 @login_required
+def index_asistencia(request):
+    """Vista principal del módulo de asistencia"""
+    context = {
+        'titulo': 'Módulo de Asistencia',
+    }
+    return render(request, 'asistencia/index.html', context)
+
+@login_required
 def seleccionar_asignatura(request):
-    """Vista para seleccionar asignatura y curso"""
+    """Vista para seleccionar asignatura y curso para registrar asistencia"""
+    # Manejar asignación de profesor si es POST
+    if request.method == 'POST' and request.user.is_superuser:
+        asignatura_curso_id = request.POST.get('asignatura_curso_id')
+        profesor_id = request.POST.get('profesor_id')
+        
+        try:
+            asignatura_curso = AsignaturaCurso.objects.get(id=asignatura_curso_id)
+            
+            if profesor_id:
+                profesor = Usuario.objects.get(id=profesor_id)
+                asignatura_curso.profesor = profesor
+                messages.success(request, f'Profesor {profesor.nombre_completo()} asignado a {asignatura_curso} exitosamente.')
+            else:
+                asignatura_curso.profesor = None
+                messages.success(request, f'Profesor removido de {asignatura_curso} exitosamente.')
+            
+            asignatura_curso.save()
+            
+        except (AsignaturaCurso.DoesNotExist, Usuario.DoesNotExist):
+            messages.error(request, 'Error al asignar profesor.')
+        
+        return redirect('asistencia:seleccionar_asignatura')
+    
     asignaturas_disponibles = get_user_asignaturas(request.user)
     
+    # Si es superusuario, mostrar todas las asignaturas-curso para gestión
+    if request.user.is_superuser:
+        todas_asignaturas_curso = AsignaturaCurso.objects.filter(activa=True).order_by('curso__nivel', 'curso__letra', 'asignatura__nombre')
+        profesores = Usuario.objects.filter(rol='profesor', estado='active').order_by('nombres', 'apellidos')
+    else:
+        todas_asignaturas_curso = asignaturas_disponibles
+        profesores = None
+    
     context = {
-        'titulo': 'Seleccionar Asignatura y Curso',
-        'asignaturas': asignaturas_disponibles,
+        'titulo': 'Registrar Asistencia - Seleccionar Asignatura y Curso',
+        'asignaturas': todas_asignaturas_curso,
+        'profesores': profesores,
+        'es_superusuario': request.user.is_superuser,
     }
     return render(request, 'asistencia/seleccionar_asignatura.html', context)
+
+@login_required
+def gestionar_profesores(request):
+    """Vista para asignar profesores a asignaturas (solo superusuarios)"""
+    if not request.user.is_superuser:
+        messages.error(request, 'No tiene permisos para acceder a esta sección.')
+        return redirect('asistencia:index')
+    
+    asignaturas = Asignatura.objects.all().order_by('nombre')
+    profesores = Usuario.objects.filter(rol='profesor', estado='active').order_by('nombres', 'apellidos')
+    
+    if request.method == 'POST':
+        asignatura_id = request.POST.get('asignatura_id')
+        profesor_id = request.POST.get('profesor_id')
+        
+        try:
+            asignatura = Asignatura.objects.get(id=asignatura_id)
+            
+            if profesor_id:
+                profesor = Usuario.objects.get(id=profesor_id)
+                asignatura.profesor = profesor
+                messages.success(request, f'Profesor {profesor.nombre_completo()} asignado a {asignatura} exitosamente.')
+            else:
+                asignatura.profesor = None
+                messages.success(request, f'Profesor removido de {asignatura} exitosamente.')
+            
+            asignatura.save()
+            
+        except (Asignatura.DoesNotExist, Usuario.DoesNotExist):
+            messages.error(request, 'Error al asignar profesor.')
+    
+    context = {
+        'titulo': 'Gestionar Profesores por Asignatura',
+        'asignaturas': asignaturas,
+        'profesores': profesores,
+    }
+    return render(request, 'asistencia/gestionar_profesores.html', context)
 
 @login_required
 def tomar_asistencia(request, asignatura_curso_id):
@@ -50,15 +130,15 @@ def tomar_asistencia(request, asignatura_curso_id):
     if not request.user.is_superuser:
         try:
             usuario_eduvia = Usuario.objects.get(rut=request.user.username)
-            if usuario_eduvia.rol != 'profesor' or usuario_eduvia.funcion != asignatura_curso.asignatura.nombre:
+            if usuario_eduvia.rol != 'profesor' or asignatura_curso.profesor != usuario_eduvia:
                 messages.error(request, 'No tiene permisos para gestionar esta asignatura.')
                 return redirect('asistencia:seleccionar_asignatura')
         except Usuario.DoesNotExist:
             messages.error(request, 'Usuario no encontrado.')
             return redirect('asistencia:seleccionar_asignatura')
     
-    # Obtener alumnos del curso
-    alumnos = asignatura_curso.curso.alumnos.filter(activo=True).order_by('apellido', 'nombre')
+    # Obtener alumnos del curso - CORREGIDO: usar los nombres de campos correctos
+    alumnos = asignatura_curso.curso.alumnos.filter(activo=True).order_by('apellido_paterno', 'apellido_materno', 'primer_nombre')
     fecha_hoy = timezone.now().date()
     
     # Verificar si ya existe asistencia para hoy
@@ -104,7 +184,11 @@ def tomar_asistencia(request, asignatura_curso_id):
                     )
                 
                 messages.success(request, 'Asistencia registrada exitosamente.')
-                return redirect('asistencia:asistencia_guardada')
+                
+                # Redirigir a ver asistencias con filtros del día y asignatura
+                url = reverse('asistencia:ver_asistencias')
+                url += f'?asignatura_curso={asignatura_curso.id}&fecha_inicio={fecha_hoy}&fecha_fin={fecha_hoy}'
+                return redirect(url)
                 
         except Exception as e:
             messages.error(request, f'Error al guardar la asistencia: {str(e)}')
@@ -133,6 +217,7 @@ def ver_asistencias(request):
     
     asistencias = Asistencia.objects.none()
     asignatura_curso_seleccionada = None
+    asistencias_por_curso = {}
     
     if asignatura_curso_id:
         try:
@@ -148,19 +233,34 @@ def ver_asistencias(request):
                 if estado_filtro:
                     asistencias = asistencias.filter(estado=estado_filtro)
                 
-                asistencias = asistencias.select_related('alumno', 'registrado_por').order_by('-fecha', 'alumno__apellido')
+                # CORREGIDO: usar los nombres de campos correctos para ordenar
+                asistencias = asistencias.select_related('alumno', 'registrado_por').order_by('-fecha', 'alumno__apellido_paterno', 'alumno__apellido_materno')
+                
+                # Agrupar asistencias por curso del alumno
+                asistencias_agrupadas = defaultdict(list)
+                for asistencia in asistencias:
+                    # Obtener todos los cursos del alumno
+                    cursos_alumno = asistencia.alumno.cursos.all()
+                    for curso in cursos_alumno:
+                        asistencias_agrupadas[curso].append(asistencia)
+                
+                # Ordenar los cursos por nivel y letra
+                cursos_ordenados = sorted(asistencias_agrupadas.keys(), key=lambda c: (c.nivel, c.letra))
+                asistencias_por_curso = [(curso, asistencias_agrupadas[curso]) for curso in cursos_ordenados]
+                
         except AsignaturaCurso.DoesNotExist:
             messages.error(request, 'Asignatura no encontrada.')
     
-    # Paginación
+    # Paginación (aplicar a todas las asistencias sin agrupar para mantener la funcionalidad)
     paginator = Paginator(asistencias, 50)
     page_number = request.GET.get('page')
     asistencias_paginadas = paginator.get_page(page_number)
     
     context = {
-        'titulo': 'Ver Asistencias',
+        'titulo': 'Ver Asistencias Registradas',
         'asignaturas': asignaturas_disponibles,
         'asistencias': asistencias_paginadas,
+        'asistencias_por_curso': asistencias_por_curso,
         'asignatura_curso_seleccionada': asignatura_curso_seleccionada,
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,

@@ -536,6 +536,7 @@
     let currentAlumnoId = null;
     let currentAlumnoNombre = null;
     let currentAlumnoEstado = null;
+    let modalInstance = null;
 
     // Función simple para auto-ocultar alertas en 5 segundos
     function autoHideAlerts() {
@@ -546,7 +547,7 @@
                 if (alert && alert.parentNode) {
                     alert.remove();
                 }
-            }, 5000); // 5 segundos
+            }, 5000);
         });
     }
 
@@ -564,20 +565,15 @@
         currentAlumnoNombre = button.getAttribute('data-nombre');
         currentAlumnoEstado = button.getAttribute('data-estado');
         
-        // Actualizar el modal con los datos
         document.getElementById('estado-modal-nombre').textContent = currentAlumnoNombre;
-        
-        // Configurar el formulario
         document.getElementById('estadoForm').action = `/alumnos/${currentAlumnoId}/cambiar-estado/`;
         
-        // Seleccionar el radio button correspondiente al estado actual
         if (currentAlumnoEstado === 'Inactivo') {
             document.getElementById('estadoInactivo').checked = true;
         } else {
             document.getElementById('estadoActivo').checked = true;
         }
         
-        // Mostrar el modal
         document.getElementById('estadoModal').style.display = 'flex';
     }
 
@@ -587,6 +583,147 @@
         currentAlumnoId = null;
         currentAlumnoNombre = null;
         currentAlumnoEstado = null;
+    }
+
+    // Función para limpiar completamente Bootstrap Modal
+    function limpiarBootstrapModal() {
+        // Remover todos los backdrops de Bootstrap
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        
+        // Remover clases del body
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        
+        // Limpiar instancia del modal
+        if (modalInstance) {
+            try {
+                modalInstance.dispose();
+            } catch (e) {
+                console.log('Error disposing modal:', e);
+            }
+            modalInstance = null;
+        }
+        
+        // Remover cualquier instancia existente del modal
+        const alumnoModal = document.getElementById('alumnoDetallesModal');
+        const existingInstance = bootstrap.Modal.getInstance(alumnoModal);
+        if (existingInstance) {
+            try {
+                existingInstance.dispose();
+            } catch (e) {
+                console.log('Error disposing existing instance:', e);
+            }
+        }
+    }
+
+    // Función para cargar los detalles del alumno
+    function cargarDetallesAlumno(alumnoId) {
+        console.log('Cargando detalles del alumno:', alumnoId);
+        
+        // Buscar la fila del alumno
+        const alumnoRow = document.querySelector(`.alumno-row[data-id="${alumnoId}"]`);
+        
+        if (!alumnoRow) {
+            console.error('No se encontró la fila del alumno');
+            return;
+        }
+
+        // Limpiar completamente antes de abrir nuevo modal
+        limpiarBootstrapModal();
+
+        // Resetear el modal
+        document.getElementById('alumno-modal-loading').style.display = 'block';
+        document.getElementById('alumno-modal-content').style.display = 'none';
+        document.getElementById('alumno-modal-error').style.display = 'none';
+
+        // Configurar modal
+        const alumnoModal = document.getElementById('alumnoDetallesModal');
+        alumnoModal.setAttribute('data-alumno-id', alumnoId);
+
+        // Crear nueva instancia del modal
+        modalInstance = new bootstrap.Modal(alumnoModal, {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+        });
+
+        // Mostrar el modal
+        modalInstance.show();
+
+        // Cargar datos después de mostrar el modal
+        setTimeout(() => {
+            mostrarDetallesAlumno(alumnoRow);
+            document.getElementById('alumno-modal-loading').style.display = 'none';
+            document.getElementById('alumno-modal-content').style.display = 'block';
+        }, 200);
+    }
+
+    // Función para mostrar los detalles del alumno en el modal
+    function mostrarDetallesAlumno(alumnoRow) {
+        // Función auxiliar para establecer texto de forma segura
+        function setTextSafely(id, text) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = (text && text !== 'undefined' && text !== 'null') ? text : 'No disponible';
+            }
+        }
+
+        // Función auxiliar para establecer HTML de forma segura
+        function setHtmlSafely(id, html) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = html;
+            }
+        }
+
+        // Información personal
+        setTextSafely('alumno-nombre', alumnoRow.dataset.nombre);
+        setTextSafely('alumno-rut', alumnoRow.dataset.rut);
+        setTextSafely('alumno-fecha-nacimiento', alumnoRow.dataset.fechaNacimiento);
+        setTextSafely('alumno-edad', alumnoRow.dataset.edad ? `${alumnoRow.dataset.edad} años` : null);
+        setTextSafely('alumno-sexo', alumnoRow.dataset.sexo);
+        setTextSafely('alumno-estado-civil', alumnoRow.dataset.estadoCivil);
+        
+        // Información académica
+        setTextSafely('alumno-nivel', alumnoRow.dataset.nivel);
+        setTextSafely('alumno-jornada', alumnoRow.dataset.jornada);
+        setTextSafely('alumno-fecha-ingreso', alumnoRow.dataset.fechaIngreso);
+        setTextSafely('alumno-ultimo-curso', alumnoRow.dataset.ultimoCurso);
+        setTextSafely('alumno-curso-repetido', alumnoRow.dataset.cursoRepetido);
+        
+        // Estado del alumno
+        const estadoHtml = alumnoRow.dataset.estado === 'activo' ? 
+            '<span class="status-badge status-active"><i class="fas fa-check-circle me-1"></i> Activo</span>' : 
+            '<span class="status-badge status-inactive"><i class="fas fa-times-circle me-1"></i> Inactivo</span>';
+        setHtmlSafely('alumno-estado', estadoHtml);
+        
+        // Información de contacto
+        setTextSafely('alumno-direccion', alumnoRow.dataset.direccion);
+        setTextSafely('alumno-telefono', alumnoRow.dataset.telefono);
+        setTextSafely('alumno-email', alumnoRow.dataset.email);
+        setTextSafely('alumno-religion', alumnoRow.dataset.religion);
+        setTextSafely('alumno-situacion-laboral', alumnoRow.dataset.situacionLaboral);
+        
+        // Información PIE
+        setTextSafely('alumno-programa-pie', alumnoRow.dataset.programaPie);
+        setTextSafely('alumno-profesional-apoyo', alumnoRow.dataset.profesionalApoyo);
+        setTextSafely('alumno-informe-psicosocial', alumnoRow.dataset.informePsicosocial);
+        
+        // Contacto de emergencia
+        setTextSafely('alumno-contacto-emergencia-nombre', alumnoRow.dataset.contactoEmergenciaNombre);
+        setTextSafely('alumno-contacto-emergencia-parentezco', alumnoRow.dataset.contactoEmergenciaParentezco);
+        setTextSafely('alumno-contacto-emergencia-telefono', alumnoRow.dataset.contactoEmergenciaTelefono);
+        
+        // Actualizar enlaces
+        document.getElementById('editar-alumno-link').href = alumnoRow.dataset.editUrl;
+        
+        // Actualizar el título del modal
+        const modalTitle = document.getElementById('alumnoDetallesModalLabel');
+        if (modalTitle) {
+            modalTitle.textContent = `Detalles del Alumno: ${alumnoRow.dataset.nombre}`;
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -611,19 +748,40 @@
             });
         }
 
-        // Modal de detalles del alumno
-        document.querySelectorAll('.ver-alumno-detallado').forEach(btn => {
-            btn.addEventListener('click', function(e) {
+        // Usar event delegation para los botones de ver detalles
+        document.body.addEventListener('click', function(e) {
+            if (e.target.closest('.ver-alumno-detallado')) {
                 e.preventDefault();
-                const alumnoId = this.closest('tr').dataset.id;
+                e.stopPropagation();
+                
+                const btn = e.target.closest('.ver-alumno-detallado');
+                const alumnoId = btn.closest('tr').dataset.id;
+                
+                console.log('Click en ver detalles, alumno ID:', alumnoId);
                 cargarDetallesAlumno(alumnoId);
-            });
+            }
+        });
+
+        // Limpiar cuando se cierra el modal
+        document.addEventListener('hidden.bs.modal', function(e) {
+            if (e.target.id === 'alumnoDetallesModal') {
+                console.log('Modal cerrado, limpiando...');
+                setTimeout(() => {
+                    limpiarBootstrapModal();
+                }, 100);
+            }
+        });
+
+        // Limpiar cuando se muestra el modal (por si acaso)
+        document.addEventListener('shown.bs.modal', function(e) {
+            if (e.target.id === 'alumnoDetallesModal') {
+                console.log('Modal mostrado');
+            }
         });
 
         // Botón para eliminar alumno
-        const eliminarAlumnoBtn = document.getElementById('eliminar-alumno-btn');
-        if (eliminarAlumnoBtn) {
-            eliminarAlumnoBtn.addEventListener('click', function() {
+        document.body.addEventListener('click', function(e) {
+            if (e.target.closest('#eliminar-alumno-btn')) {
                 const alumnoId = document.querySelector('#alumnoDetallesModal').getAttribute('data-alumno-id');
                 const alumnoNombre = document.getElementById('alumno-nombre').textContent;
                 
@@ -632,136 +790,15 @@
                 document.getElementById('form-eliminar-alumno').action = `/alumnos/${alumnoId}/eliminar/`;
                 
                 // Cerrar el modal de detalles
-                const detallesModal = bootstrap.Modal.getInstance(document.getElementById('alumnoDetallesModal'));
-                if (detallesModal) {
-                    detallesModal.hide();
+                if (modalInstance) {
+                    modalInstance.hide();
                 }
                 
                 // Mostrar el modal de confirmación
                 const confirmarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarAlumnoModal'));
                 confirmarModal.show();
-            });
-        }
-
-        // Función para cargar los detalles del alumno
-        function cargarDetallesAlumno(alumnoId) {
-            const alumnoModal = document.getElementById('alumnoDetallesModal');
-            alumnoModal.setAttribute('data-alumno-id', alumnoId);
-            const alumnoModalInstance = new bootstrap.Modal(alumnoModal);
-            alumnoModalInstance.show();
-            
-            // Mostrar loading y ocultar contenido y errores
-            document.getElementById('alumno-modal-loading').style.display = 'block';
-            document.getElementById('alumno-modal-content').style.display = 'none';
-            document.getElementById('alumno-modal-error').style.display = 'none';
-            
-            try {
-                // Buscar la fila del alumno
-                const alumnoRow = document.querySelector(`.alumno-row[data-id="${alumnoId}"]`);
-                
-                if (!alumnoRow) {
-                    throw new Error('No se encontró información del alumno');
-                }
-                
-                // Actualizar enlaces
-                document.getElementById('editar-alumno-link').href = alumnoRow.dataset.editUrl;
-                
-                // Mostrar los detalles
-                mostrarDetallesAlumno(alumnoRow);
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarErrorAlumno('Error al cargar los detalles del alumno: ' + error.message);
-            } finally {
-                document.getElementById('alumno-modal-loading').style.display = 'none';
             }
-        }
-
-        // Función para mostrar los detalles del alumno en el modal
-        function mostrarDetallesAlumno(alumnoRow) {
-            // Función auxiliar para establecer texto de forma segura
-            function setTextSafely(id, text) {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.textContent = (text && text !== 'undefined' && text !== 'null') ? text : 'No disponible';
-                } else {
-                    console.warn(`Elemento con ID '${id}' no encontrado`);
-                }
-            }
-
-            // Función auxiliar para establecer HTML de forma segura
-            function setHtmlSafely(id, html) {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.innerHTML = html;
-                } else {
-                    console.warn(`Elemento con ID '${id}' no encontrado`);
-                }
-            }
-
-            try {
-                // Información personal
-                setTextSafely('alumno-nombre', alumnoRow.dataset.nombre);
-                setTextSafely('alumno-rut', alumnoRow.dataset.rut);
-                setTextSafely('alumno-fecha-nacimiento', alumnoRow.dataset.fechaNacimiento);
-                setTextSafely('alumno-edad', alumnoRow.dataset.edad ? `${alumnoRow.dataset.edad} años` : null);
-                setTextSafely('alumno-sexo', alumnoRow.dataset.sexo);
-                setTextSafely('alumno-estado-civil', alumnoRow.dataset.estadoCivil);
-                
-                // Información académica
-                setTextSafely('alumno-nivel', alumnoRow.dataset.nivel);
-                setTextSafely('alumno-jornada', alumnoRow.dataset.jornada);
-                setTextSafely('alumno-fecha-ingreso', alumnoRow.dataset.fechaIngreso);
-                setTextSafely('alumno-ultimo-curso', alumnoRow.dataset.ultimoCurso);
-                setTextSafely('alumno-curso-repetido', alumnoRow.dataset.cursoRepetido);
-                
-                // Estado del alumno
-                const estadoHtml = alumnoRow.dataset.estado === 'activo' ? 
-                    '<span class="status-badge status-active"><i class="fas fa-check-circle me-1"></i> Activo</span>' : 
-                    '<span class="status-badge status-inactive"><i class="fas fa-times-circle me-1"></i> Inactivo</span>';
-                setHtmlSafely('alumno-estado', estadoHtml);
-                
-                // Información de contacto
-                setTextSafely('alumno-direccion', alumnoRow.dataset.direccion);
-                setTextSafely('alumno-telefono', alumnoRow.dataset.telefono);
-                setTextSafely('alumno-email', alumnoRow.dataset.email);
-                setTextSafely('alumno-religion', alumnoRow.dataset.religion);
-                setTextSafely('alumno-situacion-laboral', alumnoRow.dataset.situacionLaboral);
-                
-                // Información PIE
-                setTextSafely('alumno-programa-pie', alumnoRow.dataset.programaPie);
-                setTextSafely('alumno-profesional-apoyo', alumnoRow.dataset.profesionalApoyo);
-                setTextSafely('alumno-informe-psicosocial', alumnoRow.dataset.informePsicosocial);
-                
-                // Contacto de emergencia
-                setTextSafely('alumno-contacto-emergencia-nombre', alumnoRow.dataset.contactoEmergenciaNombre);
-                setTextSafely('alumno-contacto-emergencia-parentezco', alumnoRow.dataset.contactoEmergenciaParentezco);
-                setTextSafely('alumno-contacto-emergencia-telefono', alumnoRow.dataset.contactoEmergenciaTelefono);
-                
-                // Mostrar el contenido
-                document.getElementById('alumno-modal-content').style.display = 'block';
-                
-                // Actualizar el título del modal
-                const modalTitle = document.getElementById('alumnoDetallesModalLabel');
-                if (modalTitle) {
-                    modalTitle.textContent = `Detalles del Alumno: ${alumnoRow.dataset.nombre}`;
-                }
-            } catch (error) {
-                console.error('Error al mostrar detalles del alumno:', error);
-                mostrarErrorAlumno('Error al mostrar los detalles del alumno: ' + error.message);
-            }
-        }
-
-        // Función para mostrar errores en el modal de alumno
-        function mostrarErrorAlumno(mensaje) {
-            const errorElement = document.getElementById('alumno-modal-error');
-            const errorMessage = document.getElementById('alumno-error-message');
-            if (errorMessage) {
-                errorMessage.textContent = mensaje;
-            }
-            if (errorElement) {
-                errorElement.style.display = 'block';
-            }
-        }
+        });
 
         // Funcionalidad de búsqueda en tiempo real
         const searchInput = document.querySelector('.search-input');
@@ -824,11 +861,20 @@
                 estadoInput.value = selectedEstado.value;
                 form.appendChild(estadoInput);
                 
-                // Enviar formulario
+                // Enviar el formulario
                 document.body.appendChild(form);
                 form.submit();
             }
         });
+
+        // Limpiar al cargar la página por si quedaron elementos
+        limpiarBootstrapModal();
     });
+
+    // Funciones globales para usar desde el HTML
+    window.openEstadoModal = openEstadoModal;
+    window.closeEstadoModal = closeEstadoModal;
+    window.clearFilters = clearFilters;
+    window.cargarDetallesAlumno = cargarDetallesAlumno;
 </script>
 {% endblock %}

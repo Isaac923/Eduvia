@@ -50,6 +50,16 @@
                 <option value="2" {% if semestre_filter == '2' %}selected{% endif %}>2do Semestre</option>
             </select>
 
+            <!-- Filtro de Materia -->
+            <select class="form-select-compact" id="materiaFilter" name="materia">
+                <option value="matematicas" {% if materia_filter == 'matematicas' %}selected{% endif %}>📐 Matemáticas</option>
+                <option value="lenguaje" {% if materia_filter == 'lenguaje' %}selected{% endif %}>📝 Lenguaje</option>
+                <option value="ciencias" {% if materia_filter == 'ciencias' %}selected{% endif %}>🔬 Ciencias</option>
+                <option value="historia" {% if materia_filter == 'historia' %}selected{% endif %}>🏛️ Historia</option>
+                <option value="ingles" {% if materia_filter == 'ingles' %}selected{% endif %}>🇺🇸 Inglés</option>
+                <option value="todas" {% if materia_filter == 'todas' %}selected{% endif %}>📚 Todas las Materias</option>
+            </select>
+
             <select class="form-select-compact" id="estadoFilter" name="estado">
                 <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>✅ Solo Activos</option>
                 <option value="todos" {% if estado_filter == 'todos' %}selected{% endif %}>📋 Todos</option>
@@ -108,6 +118,22 @@
         </div>
     </div>
 
+    <!-- Indicador de materia seleccionada -->
+    <div class="materia-indicator">
+        <div class="materia-badge">
+            <i class="fas fa-book"></i>
+            <span id="materia-actual">
+                {% if materia_filter == 'matematicas' %}📐 Matemáticas
+                {% elif materia_filter == 'lenguaje' %}📝 Lenguaje y Comunicación
+                {% elif materia_filter == 'ciencias' %}🔬 Ciencias Naturales
+                {% elif materia_filter == 'historia' %}🏛️ Historia y Geografía
+                {% elif materia_filter == 'ingles' %}🇺🇸 Inglés
+                {% else %}📚 Todas las Materias
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
     <!-- Tabla horizontal compacta -->
     <div class="table-container-horizontal">
         <table class="notas-table-horizontal">
@@ -116,7 +142,11 @@
                     <th class="th-alumno">Alumno</th>
                     <th class="th-nivel">Nivel</th>
                     <th class="th-jornada">Jornada</th>
-                    <th class="th-notas">Notas por Semestre</th>
+                    {% if materia_filter == 'todas' %}
+                        <th class="th-notas-todas-completas">Notas por Materia (1er Sem | 2do Sem)</th>
+                    {% else %}
+                        <th class="th-notas">Notas (1er Sem | 2do Sem)</th>
+                    {% endif %}
                     <th class="th-promedio">Promedios</th>
                     <th class="th-estado">Estado</th>
                     <th class="th-acciones">Acciones</th>
@@ -138,31 +168,188 @@
                         <span class="badge-jornada">{{ alumno.jornada }}</span>
                     </td>
                     <td class="td-notas">
-                        <div class="notas-horizontal-container">
-                            <div class="semestre-compact">
-                                <span class="sem-label">1°</span>
-                                <div class="notas-mini-grid">
-                                    {% for i in "12345" %}
-                                    <span class="nota-mini" data-semestre="1" data-nota="{{ i }}">-</span>
-                                    {% endfor %}
+                        {% if materia_filter == 'todas' %}
+                            <!-- Vista de todas las materias con semestres horizontales -->
+                            <div class="todas-materias-horizontales-container">
+                                <!-- Matemáticas -->
+                                <div class="materia-horizontal-row">
+                                    <div class="materia-label-horizontal">📐 Mat</div>
+                                    <div class="semestres-horizontales">
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">1°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="matematicas" data-semestre="1" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="separador-semestres">|</div>
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">2°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="matematicas" data-semestre="2" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Lenguaje -->
+                                <div class="materia-horizontal-row">
+                                    <div class="materia-label-horizontal">📝 Len</div>
+                                    <div class="semestres-horizontales">
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">1°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="lenguaje" data-semestre="1" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="separador-semestres">|</div>
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">2°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="lenguaje" data-semestre="2" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Ciencias -->
+                                <div class="materia-horizontal-row">
+                                    <div class="materia-label-horizontal">🔬 Cie</div>
+                                    <div class="semestres-horizontales">
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">1°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="ciencias" data-semestre="1" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="separador-semestres">|</div>
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">2°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="ciencias" data-semestre="2" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Historia -->
+                                <div class="materia-horizontal-row">
+                                    <div class="materia-label-horizontal">🏛️ His</div>
+                                    <div class="semestres-horizontales">
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">1°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="historia" data-semestre="1" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="separador-semestres">|</div>
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">2°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="historia" data-semestre="2" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Inglés -->
+                                <div class="materia-horizontal-row">
+                                    <div class="materia-label-horizontal">🇺🇸 Ing</div>
+                                    <div class="semestres-horizontales">
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">1°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="ingles" data-semestre="1" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="separador-semestres">|</div>
+                                        <div class="semestre-horizontal">
+                                            <span class="sem-label-horizontal">2°</span>
+                                            <div class="notas-mini-grid-horizontal">
+                                                {% for i in "12345" %}
+                                                <span class="nota-mini-horizontal" data-materia="ingles" data-semestre="2" data-nota="{{ i }}">-</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="semestre-compact">
-                                <span class="sem-label">2°</span>
-                                <div class="notas-mini-grid">
-                                    {% for i in "12345" %}
-                                    <span class="nota-mini" data-semestre="2" data-nota="{{ i }}">-</span>
-                                    {% endfor %}
+                        {% else %}
+                            <!-- Vista de materia específica -->
+                            <div class="notas-horizontal-container">
+                                <div class="semestre-compact">
+                                    <span class="sem-label">1°</span>
+                                    <div class="notas-mini-grid">
+                                        {% for i in "12345" %}
+                                        <span class="nota-mini" data-materia="{{ materia_filter }}" data-semestre="1" data-nota="{{ i }}">-</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="semestre-compact">
+                                    <span class="sem-label">2°</span>
+                                    <div class="notas-mini-grid">
+                                        {% for i in "12345" %}
+                                        <span class="nota-mini" data-materia="{{ materia_filter }}" data-semestre="2" data-nota="{{ i }}">-</span>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </td>
                     <td class="td-promedio">
-                        <div class="promedios-compact">
-                            <span class="prom-item">1°: <strong class="prom-val" data-semestre="1">-</strong></span>
-                            <span class="prom-item">2°: <strong class="prom-val" data-semestre="2">-</strong></span>
-                            <span class="prom-item prom-anual">Anual: <strong class="prom-val-anual">-</strong></span>
-                        </div>
+                        {% if materia_filter == 'todas' %}
+                            <!-- Promedios de todas las materias -->
+                            <div class="promedios-todas-materias-completas">
+                                <div class="prom-materia-completa">
+                                    <span class="prom-label">📐 Mat:</span>
+                                    <span class="prom-val" data-materia="matematicas">-</span>
+                                </div>
+                                <div class="prom-materia-completa">
+                                    <span class="prom-label">📝 Len:</span>
+                                    <span class="prom-val" data-materia="lenguaje">-</span>
+                                </div>
+                                <div class="prom-materia-completa">
+                                    <span class="prom-label">🔬 Cie:</span>
+                                    <span class="prom-val" data-materia="ciencias">-</span>
+                                </div>
+                                <div class="prom-materia-completa">
+                                    <span class="prom-label">🏛️ His:</span>
+                                    <span class="prom-val" data-materia="historia">-</span>
+                                </div>
+                                <div class="prom-materia-completa">
+                                    <span class="prom-label">🇺🇸 Ing:</span>
+                                    <span class="prom-val" data-materia="ingles">-</span>
+                                </div>
+                                <div class="prom-general-completa">
+                                    <span class="prom-label">📊 General:</span>
+                                    <span class="prom-val-general">-</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Promedios por semestre para materia específica -->
+                            <div class="promedios-compact">
+                                <span class="prom-item">1°: <strong class="prom-val" data-materia="{{ materia_filter }}" data-semestre="1">-</strong></span>
+                                <span class="prom-item">2°: <strong class="prom-val" data-materia="{{ materia_filter }}" data-semestre="2">-</strong></span>
+                                <span class="prom-item prom-anual">Anual: <strong class="prom-val-anual" data-materia="{{ materia_filter }}">-</strong></span>
+                            </div>
+                        {% endif %}
                     </td>
                     <td class="td-estado">
                         {% if alumno.activo %}
@@ -204,15 +391,15 @@
         <nav>
             <ul class="pagination-compact">
                 {% if page_obj.has_previous %}
-                    <li><a href="?page=1{% if request.GET.alumno %}&alumno={{ request.GET.alumno }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.semestre %}&semestre={{ request.GET.semestre }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}"><i class="fas fa-angle-double-left"></i></a></li>
-                    <li><a href="?page={{ page_obj.previous_page_number }}{% if request.GET.alumno %}&alumno={{ request.GET.alumno }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.semestre %}&semestre={{ request.GET.semestre }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}"><i class="fas fa-angle-left"></i></a></li>
+                    <li><a href="?page=1{% if request.GET.alumno %}&alumno={{ request.GET.alumno }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.semestre %}&semestre={{ request.GET.semestre }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.materia %}&materia={{ request.GET.materia }}{% endif %}"><i class="fas fa-angle-double-left"></i></a></li>
+                    <li><a href="?page={{ page_obj.previous_page_number }}{% if request.GET.alumno %}&alumno={{ request.GET.alumno }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.semestre %}&semestre={{ request.GET.semestre }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.materia %}&materia={{ request.GET.materia }}{% endif %}"><i class="fas fa-angle-left"></i></a></li>
                 {% endif %}
                 
                 <li class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</li>
                 
                 {% if page_obj.has_next %}
-                    <li><a href="?page={{ page_obj.next_page_number }}{% if request.GET.alumno %}&alumno={{ request.GET.alumno }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.semestre %}&semestre={{ request.GET.semestre }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}"><i class="fas fa-angle-right"></i></a></li>
-                    <li><a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.alumno %}&alumno={{ request.GET.alumno }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.semestre %}&semestre={{ request.GET.semestre }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}"><i class="fas fa-angle-double-right"></i></a></li>
+                    <li><a href="?page={{ page_obj.next_page_number }}{% if request.GET.alumno %}&alumno={{ request.GET.alumno }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.semestre %}&semestre={{ request.GET.semestre }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.materia %}&materia={{ request.GET.materia }}{% endif %}"><i class="fas fa-angle-right"></i></a></li>
+                    <li><a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.alumno %}&alumno={{ request.GET.alumno }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.semestre %}&semestre={{ request.GET.semestre }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.materia %}&materia={{ request.GET.materia }}{% endif %}"><i class="fas fa-angle-double-right"></i></a></li>
                 {% endif %}
             </ul>
         </nav>
@@ -251,40 +438,65 @@
                             <label for="materia-select" class="form-label">Materia</label>
                             <select class="form-select" id="materia-select" name="materia" required>
                                 <option value="">Seleccionar</option>
-                                <option value="Matemáticas">Matemáticas</option>
-                                <option value="Lenguaje">Lenguaje</option>
-                                <option value="Ciencias">Ciencias</option>
-                                <option value="Historia">Historia</option>
-                                <option value="Inglés">Inglés</option>
+                                <option value="matematicas">📐 Matemáticas</option>
+                                <option value="lenguaje">📝 Lenguaje</option>
+                                <option value="ciencias">🔬 Ciencias</option>
+                                <option value="historia">🏛️ Historia</option>
+                                <option value="ingles">🇺🇸 Inglés</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label for="nota-numero" class="form-label">Número de Nota</label>
+                            <select class="form-select" id="nota-numero" name="nota_numero" required>
+                                <option value="">Seleccionar</option>
+                                <option value="1">Nota 1</option>
+                                <option value="2">Nota 2</option>
+                                <option value="3">Nota 3</option>
+                                <option value="4">Nota 4</option>
+                                <option value="5">Nota 5</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
                             <label for="calificacion-input" class="form-label">Calificación (1.0 - 7.0)</label>
-                                                    <input type="number" class="form-control" id="calificacion-input" name="calificacion" min="1.0" max="7.0" step="0.1" required>
-                                                </div>
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="fecha-evaluacion" class="form-label">Fecha</label>
-                                                    <input type="date" class="form-control" id="fecha-evaluacion" name="fecha_evaluacion" required>
-                                                </div>
-                                            </div>
+                            <input type="number" class="form-control" id="calificacion-input" name="calificacion" 
+                                   min="1.0" max="7.0" step="0.1" required>
+                        </div>
+                    </div>
                     
-                                            <div class="mb-3">
-                                                <label for="observaciones-input" class="form-label">Observaciones</label>
-                                                <textarea class="form-control" id="observaciones-input" name="observaciones" rows="2"></textarea>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                        <button type="submit" form="asignar-nota-form" class="btn btn-primary">
-                                            <i class="fas fa-save me-1"></i> Guardar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="fecha-evaluacion" class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="fecha-evaluacion" name="fecha_evaluacion" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="tipo-evaluacion" class="form-label">Tipo de Evaluación</label>
+                            <select class="form-select" id="tipo-evaluacion" name="tipo_evaluacion">
+                                <option value="prueba">Prueba</option>
+                                <option value="tarea">Tarea</option>
+                                <option value="proyecto">Proyecto</option>
+                                <option value="examen">Examen</option>
+                                <option value="participacion">Participación</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observaciones-input" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observaciones-input" name="observaciones" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="asignar-nota-form" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
@@ -292,163 +504,361 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-                            // Auto-hide alerts
-                            setTimeout(() => {
-                                document.querySelectorAll('.auto-hide-alert').forEach(alert => {
-                                    alert.remove();
-                                });
-                            }, 5000);
+    // Auto-hide alerts
+    setTimeout(() => {
+        document.querySelectorAll('.auto-hide-alert').forEach(alert => {
+            alert.remove();
+        });
+    }, 5000);
 
-                            // Filtros automáticos
-                            ['nivelFilter', 'semestreFilter', 'estadoFilter'].forEach(id => {
-                                document.getElementById(id)?.addEventListener('change', () => {
-                                    document.getElementById('filtro-form').submit();
-                                });
-                            });
+    // Filtros automáticos (incluyendo materia)
+    ['nivelFilter', 'semestreFilter', 'estadoFilter', 'materiaFilter'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', () => {
+            document.getElementById('filtro-form').submit();
+        });
+    });
 
-                            // Búsqueda en tiempo real
-                            const searchInput = document.getElementById('alumno-busqueda');
-                            if (searchInput) {
-                                searchInput.addEventListener('input', function() {
-                                    const term = this.value.toLowerCase();
-                                    document.querySelectorAll('.alumno-row-horizontal').forEach(row => {
-                                        const nombre = row.querySelector('.alumno-info-compact strong').textContent.toLowerCase();
-                                        row.style.display = nombre.includes(term) ? '' : 'none';
-                                    });
-                                });
-                            }
+    // Búsqueda en tiempo real
+    const searchInput = document.getElementById('alumno-busqueda');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const term = this.value.toLowerCase();
+            document.querySelectorAll('.alumno-row-horizontal').forEach(row => {
+                const nombre = row.querySelector('.alumno-info-compact strong').textContent.toLowerCase();
+                row.style.display = nombre.includes(term) ? '' : 'none';
+            });
+        });
+    }
 
-                            // Asignar nota
-                            document.querySelectorAll('.btn-assign').forEach(btn => {
-                                btn.addEventListener('click', function() {
-                                    const alumnoId = this.dataset.alumnoId;
-                                    const alumnoNombre = this.dataset.alumnoNombre;
+    // Asignar nota
+    document.querySelectorAll('.btn-assign').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const alumnoId = this.dataset.alumnoId;
+            const alumnoNombre = this.dataset.alumnoNombre;
             
-                                    document.getElementById('alumno-id-hidden').value = alumnoId;
-                                    document.getElementById('alumno-seleccionado-nombre').textContent = alumnoNombre;
+            document.getElementById('alumno-id-hidden').value = alumnoId;
+            document.getElementById('alumno-seleccionado-nombre').textContent = alumnoNombre;
             
-                                    // Establecer fecha actual
-                                    const today = new Date().toISOString().split('T')[0];
-                                    document.getElementById('fecha-evaluacion').value = today;
+            // Establecer fecha actual
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha-evaluacion').value = today;
             
-                                    new bootstrap.Modal(document.getElementById('asignarNotaModal')).show();
-                                });
-                            });
-
-                            // Enviar formulario de nota
-                            document.getElementById('asignar-nota-form').addEventListener('submit', function(e) {
-                                e.preventDefault();
-        
-                                // Simular guardado exitoso
-                                const modal = bootstrap.Modal.getInstance(document.getElementById('asignarNotaModal'));
-                                modal.hide();
-        
-                                // Mostrar mensaje de éxito
-                                showAlert('Nota asignada correctamente', 'success');
-        
-                                // Actualizar contadores
-                                updateCounters();
-        
-                                // Limpiar formulario
-                                this.reset();
-                            });
-
-                            // Función para mostrar alertas
-                            function showAlert(message, type) {
-                                const alertDiv = document.createElement('div');
-                                alertDiv.className = `alert alert-${type} alert-dismissible fade show auto-hide-alert`;
-                                alertDiv.innerHTML = `
-                                    <i class="fas fa-check-circle me-2"></i>${message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                `;
-        
-                                const container = document.querySelector('.messages-container') || 
-                                                 document.querySelector('.notas-container');
-                                container.insertBefore(alertDiv, container.firstChild);
-        
-                                setTimeout(() => alertDiv.remove(), 5000);
-                            }
-
-                            // Función para actualizar contadores
-                            function updateCounters() {
-                                const totalAlumnos = document.querySelectorAll('.alumno-row-horizontal').length;
-                                const alumnosActivos = document.querySelectorAll('.status-active').length;
-        
-                                // Simular datos para los contadores
-                                document.getElementById('total-alumnos-counter').textContent = totalAlumnos;
-                                document.getElementById('destacados-counter').textContent = Math.floor(totalAlumnos * 0.3);
-                                document.getElementById('riesgo-counter').textContent = Math.floor(totalAlumnos * 0.1);
-        
-                                // Animar contadores
-                                animateCounters();
-                            }
-
-                            // Función para animar contadores
-                            function animateCounters() {
-                                document.querySelectorAll('.stat-number').forEach(counter => {
-                                    const target = parseInt(counter.textContent) || 0;
-                                    let current = 0;
-                                    const increment = target / 20;
+            // Pre-seleccionar materia si no es "todas"
+            const materiaActual = new URLSearchParams(window.location.search).get('materia');
+            if (materiaActual && materiaActual !== 'todas') {
+                document.getElementById('materia-select').value = materiaActual;
+            }
             
-                                    const timer = setInterval(() => {
-                                        current += increment;
-                                        if (current >= target) {
-                                            counter.textContent = target;
-                                            clearInterval(timer);
-                                        } else {
-                                            counter.textContent = Math.floor(current);
-                                        }
-                                    }, 50);
-                                });
-                            }
+            new bootstrap.Modal(document.getElementById('asignarNotaModal')).show();
+        });
+    });
 
-                            // Limpiar filtros
-                            window.clearFilters = function() {
-                                document.getElementById('alumno-busqueda').value = '';
-                                document.getElementById('nivelFilter').value = 'todos';
-                                document.getElementById('semestreFilter').value = 'todos';
-                                document.getElementById('estadoFilter').value = 'activo';
-                                document.getElementById('filtro-form').submit();
-                            };
+    // Enviar formulario de nota
+    document.getElementById('asignar-nota-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const alumnoId = formData.get('alumno_id');
+        const materia = formData.get('materia');
+        const semestre = formData.get('semestre');
+        const notaNumero = formData.get('nota_numero');
+        const calificacion = formData.get('calificacion');
+        
+        // Actualizar la nota en la tabla
+        actualizarNotaEnTabla(alumnoId, materia, semestre, notaNumero, calificacion);
+        
+        // Simular guardado exitoso
+        const modal = bootstrap.Modal.getInstance(document.getElementById('asignarNotaModal'));
+        modal.hide();
+        
+        // Mostrar mensaje de éxito
+        showAlert(`Nota ${notaNumero} de ${materia} asignada correctamente`, 'success');
+        
+        // Actualizar contadores
+        updateCounters();
+        
+        // Limpiar formulario
+        this.reset();
+    });
 
-                            // Cargar notas existentes (simulado)
-                            loadExistingNotes();
-
-                            function loadExistingNotes() {
-                                // Simular carga de notas para demostración
-                                document.querySelectorAll('.alumno-row-horizontal').forEach((row, index) => {
-                                    if (index < 3) { // Solo para los primeros 3 alumnos como ejemplo
-                                        const notasMini = row.querySelectorAll('.nota-mini');
-                                        const promedios = row.querySelectorAll('.prom-val');
+    // Función para actualizar nota en la tabla
+    function actualizarNotaEnTabla(alumnoId, materia, semestre, notaNumero, calificacion) {
+        const row = document.querySelector(`[data-alumno-id="${alumnoId}"]`);
+        if (row) {
+            const notaElement = row.querySelector(`[data-materia="${materia}"][data-semestre="${semestre}"][data-nota="${notaNumero}"]`);
+            if (notaElement) {
+                notaElement.textContent = parseFloat(calificacion).toFixed(1);
+                notaElement.className = `nota-mini ${getNotaClass(parseFloat(calificacion))}`;
                 
-                                        // Simular algunas notas
-                                        notasMini.forEach((nota, i) => {
-                                            if (i < 3) {
-                                                const valor = (Math.random() * 3 + 4).toFixed(1); // Entre 4.0 y 7.0
-                                                nota.textContent = valor;
-                                                nota.className = `nota-mini ${getNotaClass(parseFloat(valor))}`;
-                                            }
-                                        });
-                
-                                        // Calcular promedios simulados
-                                        promedios.forEach(prom => {
-                                            const promedio = (Math.random() * 2 + 5).toFixed(1);
-                                            prom.textContent = promedio;
-                                            prom.className = `prom-val ${getNotaClass(parseFloat(promedio))}`;
-                                        });
-                                    }
-                                });
-                            }
+                // Recalcular promedios
+                recalcularPromedios(alumnoId, materia);
+            }
+        }
+    }
 
-                            function getNotaClass(nota) {
-                                if (nota >= 6.0) return 'nota-excelente';
-                                if (nota >= 5.0) return 'nota-buena';
-                                if (nota >= 4.0) return 'nota-suficiente';
-                                return 'nota-insuficiente';
-                            }
+    // Función para recalcular promedios
+    function recalcularPromedios(alumnoId, materia) {
+        const row = document.querySelector(`[data-alumno-id="${alumnoId}"]`);
+        if (!row) return;
 
-                            // Inicializar contadores al cargar
-                            updateCounters();
+        const materiaActual = new URLSearchParams(window.location.search).get('materia') || 'matematicas';
+        
+        if (materiaActual === 'todas') {
+            // Recalcular promedio de la materia específica
+            recalcularPromedioMateria(row, materia);
+            // Recalcular promedio general
+            recalcularPromedioGeneral(row);
+        } else {
+            // Recalcular promedios por semestre y anual
+            recalcularPromediosSemestre(row, materia);
+        }
+    }
+
+    function recalcularPromedioMateria(row, materia) {
+        const notasMateria = row.querySelectorAll(`[data-materia="${materia}"]`);
+        let suma = 0;
+        let count = 0;
+        
+        notasMateria.forEach(nota => {
+            const valor = parseFloat(nota.textContent);
+            if (!isNaN(valor) && valor > 0) {
+                suma += valor;
+                count++;
+            }
+        });
+        
+        if (count > 0) {
+            const promedio = (suma / count).toFixed(1);
+            const promElement = row.querySelector(`[data-materia="${materia}"].prom-val`);
+            if (promElement) {
+                promElement.textContent = promedio;
+                promElement.className = `prom-val ${getNotaClass(parseFloat(promedio))}`;
+            }
+        }
+    }
+
+    function recalcularPromediosSemestre(row, materia) {
+        [1, 2].forEach(sem => {
+            const notasSemestre = row.querySelectorAll(`[data-materia="${materia}"][data-semestre="${sem}"]`);
+            let suma = 0;
+            let count = 0;
+            
+            notasSemestre.forEach(nota => {
+                const valor = parseFloat(nota.textContent);
+                if (!isNaN(valor) && valor > 0) {
+                    suma += valor;
+                    count++;
+                }
+            });
+            
+            if (count > 0) {
+                const promedio = (suma / count).toFixed(1);
+                const promElement = row.querySelector(`[data-materia="${materia}"][data-semestre="${sem}"].prom-val`);
+                if (promElement) {
+                    promElement.textContent = promedio;
+                    promElement.className = `prom-val ${getNotaClass(parseFloat(promedio))}`;
+                }
+            }
+        });
+        
+        // Calcular promedio anual
+        const prom1 = parseFloat(row.querySelector(`[data-materia="${materia}"][data-semestre="1"].prom-val`)?.textContent || 0);
+        const prom2 = parseFloat(row.querySelector(`[data-materia="${materia}"][data-semestre="2"].prom-val`)?.textContent || 0);
+        
+        if (prom1 > 0 && prom2 > 0) {
+            const promedioAnual = ((prom1 + prom2) / 2).toFixed(1);
+            const promAnualElement = row.querySelector(`[data-materia="${materia}"].prom-val-anual`);
+            if (promAnualElement) {
+                promAnualElement.textContent = promedioAnual;
+                promAnualElement.className = `prom-val-anual ${getNotaClass(parseFloat(promedioAnual))}`;
+            }
+        }
+    }
+
+    function recalcularPromedioGeneral(row) {
+        const materias = ['matematicas', 'lenguaje', 'ciencias', 'historia', 'ingles'];
+        let sumaTotal = 0;
+        let countMaterias = 0;
+        
+        materias.forEach(materia => {
+            const promElement = row.querySelector(`[data-materia="${materia}"].prom-val`);
+            if (promElement) {
+                const valor = parseFloat(promElement.textContent);
+                if (!isNaN(valor) && valor > 0) {
+                    sumaTotal += valor;
+                    countMaterias++;
+                }
+            }
+        });
+        
+        if (countMaterias > 0) {
+            const promedioGeneral = (sumaTotal / countMaterias).toFixed(1);
+            const promGeneralElement = row.querySelector('.prom-val-general');
+            if (promGeneralElement) {
+                promGeneralElement.textContent = promedioGeneral;
+                promGeneralElement.className = `prom-val-general ${getNotaClass(parseFloat(promedioGeneral))}`;
+            }
+        }
+    }
+
+    // Función para mostrar alertas
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show auto-hide-alert`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const container = document.querySelector('.messages-container') || 
+                         document.querySelector('.notas-container');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        setTimeout(() => alertDiv.remove(), 5000);
+    }
+
+    // Función para actualizar contadores
+    function updateCounters() {
+        const totalAlumnos = document.querySelectorAll('.alumno-row-horizontal').length;
+        
+        // Simular datos para los contadores
+        document.getElementById('total-alumnos-counter').textContent = totalAlumnos;
+        document.getElementById('destacados-counter').textContent = Math.floor(totalAlumnos * 0.3);
+        document.getElementById('riesgo-counter').textContent = Math.floor(totalAlumnos * 0.1);
+        
+        // Animar contadores
+        animateCounters();
+    }
+
+    // Función para animar contadores
+    function animateCounters() {
+        document.querySelectorAll('.stat-number').forEach(counter => {
+            const target = parseInt(counter.textContent) || 0;
+            let current = 0;
+            const increment = target / 20;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    counter.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    counter.textContent = Math.floor(current);
+                }
+            }, 50);
+        });
+    }
+
+    // Limpiar filtros
+    window.clearFilters = function() {
+        document.getElementById('alumno-busqueda').value = '';
+        document.getElementById('nivelFilter').value = 'todos';
+        document.getElementById('semestreFilter').value = 'todos';
+        document.getElementById('estadoFilter').value = 'activo';
+        document.getElementById('materiaFilter').value = 'matematicas';
+        document.getElementById('filtro-form').submit();
+    };
+
+    // Cargar notas existentes (simulado)
+    loadExistingNotes();
+
+    function loadExistingNotes() {
+        const materiaActual = new URLSearchParams(window.location.search).get('materia') || 'matematicas';
+        
+        // Simular carga de notas para demostración
+        document.querySelectorAll('.alumno-row-horizontal').forEach((row, index) => {
+            if (index < 3) { // Solo para los primeros 3 alumnos como ejemplo
+                if (materiaActual === 'todas') {
+                    // Cargar notas para todas las materias
+                    const materias = ['matematicas', 'lenguaje', 'ciencias', 'historia', 'ingles'];
+                    materias.forEach(materia => {
+                        // Cargar notas para ambos semestres
+                        [1, 2].forEach(semestre => {
+                            const notasMini = row.querySelectorAll(`[data-materia="${materia}"][data-semestre="${semestre}"]`);
+                            notasMini.forEach((nota, i) => {
+                                if (i < 3) { // Solo las primeras 3 notas
+                                    const valor = (Math.random() * 3 + 4).toFixed(1);
+                                    nota.textContent = valor;
+                                    nota.className = `nota-mini ${getNotaClass(parseFloat(valor))}`;
+                                }
+                            });
+                        });
+                        
+                        // Calcular promedio por materia
+                        const promedioMateria = (Math.random() * 2 + 5).toFixed(1);
+                        const promElement = row.querySelector(`[data-materia="${materia}"].prom-val`);
+                        if (promElement) {
+                            promElement.textContent = promedioMateria;
+                            promElement.className = `prom-val ${getNotaClass(parseFloat(promedioMateria))}`;
+                        }
+                    });
+                    
+                    // Calcular promedio general
+                    const promedioGeneral = (Math.random() * 2 + 5).toFixed(1);
+                    const promGeneralElement = row.querySelector('.prom-val-general');
+                    if (promGeneralElement) {
+                        promGeneralElement.textContent = promedioGeneral;
+                        promGeneralElement.className = `prom-val-general ${getNotaClass(parseFloat(promedioGeneral))}`;
+                    }
+                } else {
+                    // Cargar notas para materia específica
+                    [1, 2].forEach(semestre => {
+                        const notasMini = row.querySelectorAll(`[data-materia="${materiaActual}"][data-semestre="${semestre}"]`);
+                        notasMini.forEach((nota, i) => {
+                            if (i < 3) { // Solo las primeras 3 notas
+                                const valor = (Math.random() * 3 + 4).toFixed(1);
+                                nota.textContent = valor;
+                                nota.className = `nota-mini ${getNotaClass(parseFloat(valor))}`;
+                            }
+                        });
+                        
+                        // Calcular promedio por semestre
+                        const promedio = (Math.random() * 2 + 5).toFixed(1);
+                        const promElement = row.querySelector(`[data-materia="${materiaActual}"][data-semestre="${semestre}"].prom-val`);
+                        if (promElement) {
+                            promElement.textContent = promedio;
+                            promElement.className = `prom-val ${getNotaClass(parseFloat(promedio))}`;
+                        }
+                    });
+                    
+                    // Calcular promedio anual
+                    const promedioAnual = (Math.random() * 2 + 5).toFixed(1);
+                    const promAnualElement = row.querySelector(`[data-materia="${materiaActual}"].prom-val-anual`);
+                    if (promAnualElement) {
+                        promAnualElement.textContent = promedioAnual;
+                        promAnualElement.className = `prom-val-anual ${getNotaClass(parseFloat(promedioAnual))}`;
+                    }
+                }
+            }
+        });
+    }
+
+    function getNotaClass(nota) {
+        if (nota >= 6.0) return 'nota-excelente';
+        if (nota >= 5.0) return 'nota-buena';
+        if (nota >= 4.0) return 'nota-suficiente';
+        return 'nota-insuficiente';
+    }
+
+    // Inicializar contadores al cargar
+    updateCounters();
+
+    // Actualizar indicador de materia cuando cambie el filtro
+    document.getElementById('materiaFilter')?.addEventListener('change', function() {
+        const materiaTextos = {
+            'matematicas': '📐 Matemáticas',
+            'lenguaje': '📝 Lenguaje y Comunicación',
+            'ciencias': '🔬 Ciencias Naturales',
+            'historia': '🏛️ Historia y Geografía',
+            'ingles': '🇺🇸 Inglés',
+            'todas': '📚 Todas las Materias'
+        };
+        
+        const indicador = document.getElementById('materia-actual');
+        if (indicador) {
+            indicador.textContent = materiaTextos[this.value] || '📚 Todas las Materias';
+        }
+    });
 });
 </script>
-{% endblock %}                                   min="1.0" max="7.0" step="0.1" required>
+{% endblock %}</script>

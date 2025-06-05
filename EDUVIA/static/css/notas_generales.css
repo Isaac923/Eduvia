@@ -507,3 +507,220 @@
     text-align: center;
     padding: 40px 20px;
     color: #6c757
+
+}
+
+/* ===== ESTILOS PARA INDICADOR DE MATERIA ===== */
+.materia-indicator {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.materia-badge {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* ===== ESTILOS PARA VISTA DE TODAS LAS MATERIAS ===== */
+.todas-materias-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 300px;
+}
+
+.materia-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #f8f9fa;
+}
+
+.materia-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: center;
+    background: white;
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
+
+.notas-mini-grid {
+    display: flex;
+    gap: 4px;
+}
+
+.nota-mini {
+    display: inline-block;
+    width: 35px;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #6c757d;
+}
+
+.nota-mini.nota-excelente {
+    background: #d5f4e6;
+    color: #27ae60;
+    border-color: #27ae60;
+}
+
+.nota-mini.nota-buena {
+    background: #e8f4fd;
+    color: #2980b9;
+    border-color: #3498db;
+}
+
+.nota-mini.nota-suficiente {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffc107;
+}
+
+.nota-mini.nota-insuficiente {
+    background: #f8d7da;
+    color: #e74c3c;
+    border-color: #e74c3c;
+}
+
+/* ===== ESTILOS PARA PROMEDIOS DE TODAS LAS MATERIAS ===== */
+.promedios-todas-materias {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 120px;
+}
+
+.prom-materia {
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.prom-general {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #2c3e50;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.prom-val.nota-excelente {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.prom-val.nota-buena {
+    color: #2980b9;
+    font-weight: 600;
+}
+
+.prom-val.nota-suficiente {
+    color: #856404;
+    font-weight: 600;
+}
+
+.prom-val.nota-insuficiente {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+/* ===== RESPONSIVE PARA NUEVOS ELEMENTOS ===== */
+@media (max-width: 768px) {
+    .todas-materias-container {
+        min-width: 250px;
+    }
+    
+    .materia-row {
+        gap: 6px;
+        padding: 2px 4px;
+    }
+    
+    .materia-label {
+        min-width: 35px;
+        font-size: 0.7rem;
+        padding: 2px 4px;
+    }
+    
+    .nota-mini {
+        width: 30px;
+        height: 22px;
+        line-height: 22px;
+        font-size: 0.7rem;
+    }
+    
+    .promedios-todas-materias {
+        min-width: 100px;
+    }
+    
+    .prom-materia {
+        font-size: 0.75rem;
+        padding: 1px 4px;
+    }
+    
+    .prom-general {
+        font-size: 0.8rem;
+        padding: 3px 6px;
+    }
+    
+    .materia-badge {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .materia-indicator {
+        margin-bottom: 15px;
+    }
+    
+    .materia-badge {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+    
+    .todas-materias-container {
+        min-width: 200px;
+    }
+    
+    .nota-mini {
+        width: 25px;
+        height: 20px;
+        line-height: 20px;
+        font-size: 0.65rem;
+    }
+}

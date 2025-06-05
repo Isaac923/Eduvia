@@ -1,1 +1,1 @@
-# Archivo vacío para hacer que sea un paquete Python
+# Archivo vacío para hacer que Python reconozca este directorio como un paquete# Archivo vacío para hacer que sea un paquete Python
