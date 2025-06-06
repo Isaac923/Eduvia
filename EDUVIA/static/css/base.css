@@ -482,3 +482,57 @@ background-attachment: fixed;
     /* resto de propiedades... */
 }
 }
+
+/* Prevenir conflictos entre sidebar y modales */
+.modal {
+    z-index: 1060 !important;
+}
+
+.modal-backdrop {
+    z-index: 1055 !important;
+}
+
+.sidebar {
+    z-index: 1000;
+}
+
+.sidebar.mobile-visible {
+    z-index: 1050; /* Menor que los modales */
+}
+
+/* Evitar que el sidebar interfiera con modales */
+body.modal-open .sidebar {
+    pointer-events: none;
+}
+
+body.modal-open .sidebar-trigger {
+    pointer-events: none;
+}
+
+/* Mejorar la transición de los modales */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Prevenir scroll issues */
+body.modal-open {
+    overflow: hidden;
+    padding-right: 0 !important;
+}
+
+/* Mejorar botones para evitar clicks múltiples */
+.btn:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Animación suave para alertas */
+.alert.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}

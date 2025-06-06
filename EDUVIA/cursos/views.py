@@ -6,13 +6,19 @@ from .forms import CursoForm
 from alumnos.models import Alumno
 from .models import Curso
 
+def is_superuser(user):
+    """Función para verificar si el usuario es superusuario"""
+    return user.is_superuser
+
 def is_staff_or_superuser(user):
+    """Función para verificar si el     usuario es staff o superusuario"""
     return user.is_staff or user.is_superuser
 
 @login_required
-@user_passes_test(is_staff_or_superuser)
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def gestion_cursos(request):
-    # Obtener parámetros de filtrado
+    """Vista para la gestión de cursos - Solo superusuarios"""
+    # Obtener parámetros de filtro
     nivel_filter = request.GET.get('nivel', 'todos')
     jornada_filter = request.GET.get('jornada', 'todos')
     
@@ -26,7 +32,7 @@ def gestion_cursos(request):
         cursos = cursos.filter(letra=jornada_filter)
     
     context = {
-        'cursos': cursos,
+        'cursos': cursos.order_by('nivel', 'letra'),
         'nivel_filter': nivel_filter,
         'jornada_filter': jornada_filter,
     }
@@ -34,8 +40,9 @@ def gestion_cursos(request):
     return render(request, 'gestion_cursos.html', context)
 
 @login_required
-@user_passes_test(is_staff_or_superuser)
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def crear_curso(request):
+    """Vista para crear un nuevo curso - Solo superusuarios"""
     if request.method == 'POST':
         form = CursoForm(request.POST)
         if form.is_valid():
@@ -51,8 +58,9 @@ def crear_curso(request):
     return render(request, 'crear_curso.html', {'form': form})
 
 @login_required
-@user_passes_test(is_staff_or_superuser)
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def editar_curso(request, id):
+    """Vista para editar un curso - Solo superusuarios"""
     curso = get_object_or_404(Curso, id=id)
     
     if request.method == 'POST':
@@ -69,14 +77,16 @@ def editar_curso(request, id):
     return render(request, 'crear_curso.html', {'form': form, 'curso': curso})
 
 @login_required
-@user_passes_test(is_staff_or_superuser)
+@user_passes_test(is_staff_or_superuser, login_url='usuarios:inicio')
 def detalle_curso(request, id):
+    """Vista para ver detalles de un curso - Staff y superusuarios"""
     curso = Curso.objects.prefetch_related('alumnos').get(id=id)
     return render(request, 'cursos/detalle_curso.html', {'curso': curso})
 
 @login_required
-@user_passes_test(is_staff_or_superuser)
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def eliminar_curso(request, id):
+    """Vista para eliminar un curso - Solo superusuarios"""
     curso = get_object_or_404(Curso, id=id)
     
     if request.method == 'POST':
@@ -88,9 +98,9 @@ def eliminar_curso(request, id):
     return render(request, 'cursos/confirmar_eliminar_curso.html', {'curso': curso})
 
 @login_required
-@user_passes_test(is_staff_or_superuser)
+@user_passes_test(is_staff_or_superuser, login_url='usuarios:inicio')
 def obtener_detalles_curso(request, id):
-    """API para obtener detalles de un curso en formato JSON"""
+    """API para obtener detalles de un curso en formato JSON - Staff y superusuarios"""
     try:
         curso = Curso.objects.get(id=id)
         
@@ -123,7 +133,9 @@ def obtener_detalles_curso(request, id):
         print(traceback.format_exc())
         return JsonResponse({'success': False, 'error': str(e)})
 
+@login_required
 def filtrar_alumnos_por_nivel_letra(request):
+    """Vista para filtrar alumnos por nivel y letra - Todos los usuarios autenticados"""
     nivel = request.GET.get('nivel')
     letra = request.GET.get('letra')
 
@@ -136,6 +148,8 @@ def filtrar_alumnos_por_nivel_letra(request):
 
     return JsonResponse({'alumnos': alumnos_data})
 
+@login_required
 def detalle_alumno(request, id):
+    """Vista para ver detalles de un alumno - Todos los usuarios autenticados"""
     alumno = get_object_or_404(Alumno, id=id)
     return render(request, 'alumnos/detalle_alumno.html', {'alumno': alumno})

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebarTrigger.classList.remove('active');
     }
     
-    // Ocultar sidebar inicialmente (cambiado de mostrar a ocultar)
+    // Ocultar sidebar inicialmente
     hideSidebar();
     
     // Mostrar sidebar al pasar el cursor por el área de activación
@@ -46,15 +46,20 @@ document.addEventListener('DOMContentLoaded', function() {
         hideSidebar();
     });
     
-    // Cerrar alertas
+    // Cerrar alertas - MEJORADO para no interferir con modales
     const closeAlerts = document.querySelectorAll('.close-alert');
     closeAlerts.forEach(function(button) {
-        button.addEventListener('click', function() {
-            const alert = this.closest('.alert');
-            alert.classList.add('fade-out');
-            setTimeout(function() {
-                alert.remove();
-            }, 300);
+        button.addEventListener('click', function(e) {
+            // Verificar que no esté dentro de un modal
+            if (!this.closest('.modal')) {
+                const alert = this.closest('.alert');
+                if (alert) {
+                    alert.classList.add('fade-out');
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 300);
+                }
+            }
         });
     });
     
@@ -62,28 +67,34 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleMobileView() {
         if (window.innerWidth < 992) {
             // En móviles, usar un botón para mostrar/ocultar
-            const mobileToggle = document.createElement('button');
-            mobileToggle.className = 'mobile-sidebar-toggle';
-            mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
-            document.body.appendChild(mobileToggle);
+            let mobileToggle = document.querySelector('.mobile-sidebar-toggle');
+            if (!mobileToggle) {
+                mobileToggle = document.createElement('button');
+                mobileToggle.className = 'mobile-sidebar-toggle';
+                mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                document.body.appendChild(mobileToggle);
+                
+                mobileToggle.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Evitar conflictos con otros event listeners
+                    if (sidebar.classList.contains('hidden')) {
+                        showSidebar();
+                        sidebar.classList.add('mobile-visible');
+                    } else {
+                        hideSidebar();
+                        sidebar.classList.remove('mobile-visible');
+                    }
+                });
+            }
             
             // En móviles, iniciar con el sidebar oculto
             hideSidebar();
             
-            mobileToggle.addEventListener('click', function() {
-                if (sidebar.classList.contains('hidden')) {
-                    showSidebar();
-                    sidebar.classList.add('mobile-visible');
-                } else {
-                    hideSidebar();
-                    sidebar.classList.remove('mobile-visible');
-                }
-            });
-            
-            // Cerrar al hacer clic fuera
+            // Cerrar al hacer clic fuera - MEJORADO
             document.addEventListener('click', function(e) {
-                if (!sidebar.contains(e.target) || 
+                // Solo cerrar si no es un click en modal o sidebar
+                if (!sidebar.contains(e.target) && 
                     !mobileToggle.contains(e.target) && 
+                    !e.target.closest('.modal') &&
                     sidebar.classList.contains('mobile-visible')) {
                     hideSidebar();
                     sidebar.classList.remove('mobile-visible');
@@ -100,29 +111,34 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sidebarHint) {
         // Ocultar el indicador después de un tiempo
         setTimeout(function() {
-            sidebarHint.style.opacity = '0.7';
-        }, 5000);
+            sidebarHint.style.opacity = '0';
+            setTimeout(function() {
+                sidebarHint.style.display = 'none';
+            }, 500);
+        }, 3000);
         
         // Mostrar sidebar al hacer clic en el indicador
         sidebarHint.addEventListener('click', function() {
             showSidebar();
-            // Ocultar el indicador
-            sidebarHint.style.opacity = '0';
-            setTimeout(function() {
-                sidebarHint.style.display = 'none';
-            }, 300);
-        });
-        
-        // Gestionar visibilidad del indicador con el sidebar
-        sidebar.addEventListener('mouseenter', function() {
-            sidebarHint.style.opacity = '0';
-        });
-        
-        sidebar.addEventListener('mouseleave', function() {
-            // Solo mostrar el indicador si no ha sido ocultado permanentemente
-            if (sidebarHint.style.display !== 'none') {
-                sidebarHint.style.opacity = '0.7';
-            }
+            this.style.display = 'none';
         });
     }
+    
+    // Verificar cambios de tamaño de ventana
+    window.addEventListener('resize', function() {
+        handleMobileView();
+    });
+    
+    // Función global para evitar conflictos con modales
+    window.preventSidebarConflicts = function() {
+        // Deshabilitar temporalmente los event listeners del sidebar
+        sidebar.style.pointerEvents = 'none';
+        sidebarTrigger.style.pointerEvents = 'none';
+        
+        // Rehabilitar después de un tiempo
+        setTimeout(function() {
+            sidebar.style.pointerEvents = '';
+            sidebarTrigger.style.pointerEvents = '';
+        }, 500);
+    };
 });

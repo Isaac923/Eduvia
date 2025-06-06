@@ -64,6 +64,9 @@ class Usuario(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
     fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name="Última Modificación")
     
+    # Campo interno para controlar cuándo hashear la contraseña
+    _password_changed = False
+    
     class Meta:
         verbose_name = "Usuario"
         verbose_name_plural = "Usuarios"
@@ -75,13 +78,42 @@ class Usuario(models.Model):
     def nombre_completo(self):
         return f"{self.nombres} {self.apellidos}"
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Guardar la contraseña original para detectar cambios
+        self._original_password = self.password
+    
     def save(self, *args, **kwargs):
-        # Hash de la contraseña si es nueva o se está actualizando
-        if self.pk is None or 'password' in kwargs.get('update_fields', []):
-            # Solo hashear si no está ya hasheada
-            if not self.password.startswith('pbkdf2_'):
+        # Solo hashear la contraseña si:
+        # 1. Es un nuevo usuario (pk is None) Y la contraseña no está hasheada
+        # 2. O si la contraseña cambió explícitamente
+        
+        if self.pk is None:
+            # Usuario nuevo - hashear si no está ya hasheada
+            if not self._is_password_hashed(self.password):
                 self.password = make_password(self.password)
+        else:
+            # Usuario existente - solo hashear si la contraseña cambió
+            if (hasattr(self, '_original_password') and 
+                self.password != self._original_password and 
+                not self._is_password_hashed(self.password)):
+                self.password = make_password(self.password)
+        
         super().save(*args, **kwargs)
+        
+        # Actualizar la contraseña original después de guardar
+        self._original_password = self.password
+    
+    def _is_password_hashed(self, password):
+        """Verifica si una contraseña ya está hasheada"""
+        if not password:
+            return False
+        return (password.startswith('pbkdf2_') or 
+                password.startswith('argon2') or 
+                password.startswith('bcrypt') or
+                password.startswith('sha1$') or
+                password.startswith('md5$') or
+                password.startswith('crypt$'))
     
     def check_password(self, raw_password):
         """Verificar contraseña"""
@@ -90,3 +122,4 @@ class Usuario(models.Model):
     def set_password(self, raw_password):
         """Establecer nueva contraseña"""
         self.password = make_password(raw_password)
+        self._original_password = self.password
