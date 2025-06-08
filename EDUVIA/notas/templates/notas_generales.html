@@ -1,904 +1,207 @@
-<UPDATED_CODE>{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Notas Generales{% endblock %}
+{% block title %}Gestión de Notas - EDUVIA{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/notas_generales.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 {% endblock %}
 
 {% block content %}
 <div class="notas-container">
-    <!-- Encabezado compacto -->
+    <!-- Encabezado -->
     <div class="page-header">
-        <h2><i class="fas fa-clipboard-list me-2"></i>Gestión de Notas general</h2>
+        <h2><i class="fas fa-clipboard-list me-3"></i>Gestión de Notas</h2>
     </div>
 
     <!-- Mensajes -->
     {% if messages %}
-        <div class="messages-container">
+        <div class="messages-container mb-4">
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show auto-hide-alert" role="alert">
-                    <i class="fas fa-info-circle me-2"></i>{{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 
-    <!-- Filtros horizontales compactos -->
-    <div class="filters-horizontal">
-        <form method="get" id="filtro-form" class="filters-form-horizontal">
-            <div class="search-group-horizontal">
-                <input type="text" name="alumno" id="alumno-busqueda" class="form-control-compact" 
-                       placeholder="🔍 Buscar alumno..." value="{{ alumno_busqueda }}">
+    <!-- Filtros Horizontales Compactos -->
+    <div class="filters-horizontal-container">
+        <form method="get" id="filtros-form" class="filters-horizontal-form">
+            <div class="filters-horizontal-row">
+                <!-- Búsqueda por alumno -->
+                <div class="filter-item">
+                    <input type="text" 
+                           name="alumno" 
+                           id="buscar-alumno" 
+                           class="form-control-sm" 
+                           placeholder="🔍 Buscar alumno..." 
+                           value="{{ alumno_busqueda }}">
+                </div>
+
+                <!-- Filtro por materia -->
+                <div class="filter-item">
+                    <select class="form-select-sm" id="materia-filter" name="materia">
+                        <option value="" {% if not materia_filter %}selected{% endif %}>Seleccionar materia</option>
+                        <option value="matematicas" {% if materia_filter == 'matematicas' %}selected{% endif %}>📐 Matemáticas</option>
+                        <option value="lenguaje" {% if materia_filter == 'lenguaje' %}selected{% endif %}>📝 Lenguaje</option>
+                        <option value="ciencias" {% if materia_filter == 'ciencias' %}selected{% endif %}>🔬 Ciencias</option>
+                        <option value="historia" {% if materia_filter == 'historia' %}selected{% endif %}>🏛️ Historia</option>
+                        <option value="ingles" {% if materia_filter == 'ingles' %}selected{% endif %}>🇺🇸 Inglés</option>
+                    </select>
+                </div>
+
+                <!-- Filtro por semestre -->
+                <div class="filter-item">
+                    <select class="form-select-sm" id="semestre-filter" name="semestre">
+                        <option value="1" {% if semestre_filter == '1' %}selected{% endif %}>1° Semestre</option>
+                        <option value="2" {% if semestre_filter == '2' %}selected{% endif %}>2° Semestre</option>
+                    </select>
+                </div>
+
+                <!-- Filtro por nivel -->
+                <div class="filter-item">
+                    <select class="form-select-sm" id="nivel-filter" name="nivel">
+                        <option value="todos" {% if nivel_filter == 'todos' %}selected{% endif %}>Todos los niveles</option>
+                        {% for nivel in niveles %}
+                            <option value="{{ nivel }}" {% if nivel_filter == nivel %}selected{% endif %}>{{ nivel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filtro por estado -->
+                <div class="filter-item">
+                    <select class="form-select-sm" id="estado-filter" name="estado">
+                        <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>Solo Activos</option>
+                        <option value="todos" {% if estado_filter == 'todos' %}selected{% endif %}>Todos</option>
+                    </select>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="filter-buttons">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="limpiarFiltros()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
-            
-            <select class="form-select-compact" id="nivelFilter" name="nivel">
-                <option value="todos" {% if nivel_filter == 'todos' %}selected{% endif %}>📚 Todos los niveles</option>
-                {% for nivel in niveles %}
-                    <option value="{{ nivel }}" {% if nivel_filter == nivel %}selected{% endif %}>{{ nivel }}</option>
-                {% endfor %}
-            </select>
-
-            <!-- Filtro de Materia -->
-            <select class="form-select-compact" id="materiaFilter" name="materia">
-                <option value="matematicas" {% if materia_filter == 'matematicas' %}selected{% endif %}>📐 Matemáticas</option>
-                <option value="lenguaje" {% if materia_filter == 'lenguaje' %}selected{% endif %}>📝 Lenguaje</option>
-                <option value="ciencias" {% if materia_filter == 'ciencias' %}selected{% endif %}>🔬 Ciencias</option>
-                <option value="historia" {% if materia_filter == 'historia' %}selected{% endif %}>🏛️ Historia</option>
-                <option value="ingles" {% if materia_filter == 'ingles' %}selected{% endif %}>🇺🇸 Inglés</option>
-                <option value="todas" {% if materia_filter == 'todas' %}selected{% endif %}>📚 Todas las Materias</option>
-            </select>
-
-            <select class="form-select-compact" id="estadoFilter" name="estado">
-                <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>✅ Solo Activos</option>
-                <option value="todos" {% if estado_filter == 'todos' %}selected{% endif %}>📋 Todos</option>
-            </select>
-            
-            <button type="submit" class="btn-search-compact">
-                <i class="fas fa-search"></i>
-            </button>
-            
-            <button type="button" class="btn-clear-compact" onclick="clearFilters()">
-                <i class="fas fa-times"></i>
-            </button>
         </form>
     </div>
 
-    <!-- Estadísticas horizontales compactas -->
-    <div class="stats-horizontal">
-        <div class="stat-card-compact">
-            <div class="stat-icon-compact bg-primary">
-                <i class="fas fa-user-graduate"></i>
-            </div>
-            <div class="stat-info-compact">
-                <span class="stat-number" id="total-alumnos-counter">{{ total_alumnos|default:0 }}</span>
-                <span class="stat-label">Total Alumnos</span>
-            </div>
-        </div>
-        
-        <div class="stat-card-compact">
-            <div class="stat-icon-compact bg-info">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="stat-info-compact">
-                <span class="stat-number" id="promedio-general-counter">{{ promedio_general|floatformat:1|default:"0.0" }}</span>
-                <span class="stat-label">Promedio General</span>
-            </div>
-        </div>
-        
-        <div class="stat-card-compact">
-            <div class="stat-icon-compact bg-success">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <div class="stat-info-compact">
-                <span class="stat-number" id="destacados-counter">{{ alumnos_destacados|default:0 }}</span>
-                <span class="stat-label">Destacados</span>
-            </div>
-        </div>
-        
-        <div class="stat-card-compact">
-            <div class="stat-icon-compact bg-warning">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="stat-info-compact">
-                <span class="stat-number" id="riesgo-counter">{{ alumnos_riesgo|default:0 }}</span>
-                <span class="stat-label">En Riesgo</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Indicador de materia seleccionada y Switch de Semestre -->
-    <div class="materia-indicator">
-        <div class="materia-badge">
-            <i class="fas fa-book"></i>
-            <span id="materia-actual">
+    <!-- Información de la materia seleccionada -->
+    {% if materia_filter %}
+    <div class="materia-info-compact">
+        <div class="materia-header-inline">
+            <h4 class="materia-title">
                 {% if materia_filter == 'matematicas' %}📐 Matemáticas
                 {% elif materia_filter == 'lenguaje' %}📝 Lenguaje y Comunicación
                 {% elif materia_filter == 'ciencias' %}🔬 Ciencias Naturales
                 {% elif materia_filter == 'historia' %}🏛️ Historia y Geografía
                 {% elif materia_filter == 'ingles' %}🇺🇸 Inglés
-                {% else %}📚 Todas las Materias
                 {% endif %}
-            </span>
-        </div>
-        
-        <!-- Switch de Semestre -->
-        <div class="semestre-switch-container">
-            <div class="semestre-switch">
-                <input type="radio" id="semestre1" name="semestre-view" value="1" checked>
-                <label for="semestre1" class="semestre-label">
-                    <i class="fas fa-calendar-alt"></i>
-                    1er Semestre
-                </label>
-                
-                <input type="radio" id="semestre2" name="semestre-view" value="2">
-                <label for="semestre2" class="semestre-label">
-                    <i class="fas fa-calendar-alt"></i>
-                    2do Semestre
-                </label>
-                
-                <input type="radio" id="ambos-semestres" name="semestre-view" value="ambos">
-                <label for="ambos-semestres" class="semestre-label">
-                    <i class="fas fa-calendar-check"></i>
-                    Ambos Semestres
-                </label>
-                
-                <div class="switch-slider"></div>
+                - {{ semestre_filter }}° Semestre
+            </h4>
+            <div class="materia-stats-inline">
+                <span class="stat-badge">
+                    <i class="fas fa-users"></i> {{ total_alumnos }} alumnos
+                </span>
+                <span class="stat-badge">
+                    <i class="fas fa-chart-line"></i> Promedio: {{ promedio_general|floatformat:1 }}
+                </span>
             </div>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Tabla horizontal compacta -->
-    <div class="table-container-horizontal">
-        <table class="notas-table-horizontal">
+    <!-- Tabla de notas -->
+    {% if alumnos %}
+    <div class="notas-table-container">
+        <table class="notas-table">
             <thead>
                 <tr>
-                    <th class="th-alumno">Alumno</th>
-                    <th class="th-nivel">Nivel</th>
-                    <th class="th-jornada">Jornada</th>
-                    {% if materia_filter == 'todas' %}
-                        <th class="th-notas-todas-horizontales">
-                            <span class="header-semestre-indicator">
-                                <span class="semestre-1-header">Notas por Materia (1er Sem)</span>
-                                <span class="semestre-2-header" style="display: none;">Notas por Materia (2do Sem)</span>
-                                <span class="ambos-semestres-header" style="display: none;">Notas por Materia (1er Sem | 2do Sem)</span>
-                            </span>
-                        </th>
-                    {% else %}
-                        <th class="th-notas">
-                            <span class="header-semestre-indicator">
-                                <span class="semestre-1-header">Notas (1er Sem)</span>
-                                <span class="semestre-2-header" style="display: none;">Notas (2do Sem)</span>
-                                <span class="ambos-semestres-header" style="display: none;">Notas (1er Sem | 2do Sem)</span>
-                            </span>
-                        </th>
-                    {% endif %}
-                    {% if materia_filter == 'todas' %}
-                        <th class="th-promedio-todas-horizontales">Promedios</th>
-                    {% else %}
-                        <th class="th-promedio">Promedios</th>
-                    {% endif %}
-                    <th class="th-estado">Estado</th>
-                    <th class="th-acciones">Situacion</th>
+                    <th class="alumno-col">
+                        <i class="fas fa-user-graduate me-2"></i>
+                        Alumno
+                    </th>
+                    <th class="nivel-col">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Nivel
+                    </th>
+                    <th class="nota-col">Nota 1</th>
+                    <th class="nota-col">Nota 2</th>
+                    <th class="nota-col">Nota 3</th>
+                    <th class="nota-col">Nota 4</th>
+                    <th class="nota-col">Nota 5</th>
+                    <th class="nota-col">Nota 6</th>
+                    <th class="promedio-col">
+                        <i class="fas fa-calculator me-2"></i>
+                        Promedio
+                    </th>
+                    <th class="acciones-col">
+                        <i class="fas fa-cogs me-2"></i>
+                        Acciones
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 {% for alumno in alumnos %}
-                <tr class="alumno-row-horizontal" data-alumno-id="{{ alumno.id }}">
-                    <td class="td-alumno">
-                        <div class="alumno-info-compact">
+                <tr class="alumno-row" data-alumno-id="{{ alumno.id }}">
+                    <td class="alumno-info">
+                        <div class="alumno-details">
                             <strong>{{ alumno.nombre_completo }}</strong>
-                            <small>ID: {{ alumno.id }} | RUT: {{ alumno.rut }}</small>
+                            <small class="text-muted d-block">{{ alumno.rut }}</small>
                         </div>
                     </td>
-                    <td class="td-nivel">
-                        <span class="badge-nivel">{{ alumno.nivel }}</span>
+                    <td class="nivel-info">
+                        <span class="nivel-badge">{{ alumno.nivel }}</span>
                     </td>
-                    <td class="td-jornada">
-                        <span class="badge-jornada">{{ alumno.jornada }}</span>
-                    </td>
-                    {% if materia_filter == 'todas' %}
-                    <td class="td-notas-todas-horizontales">
-                        <!-- Vista para 1er Semestre -->
-                        <div class="todas-materias-horizontal-container semestre-1-view">
-                            <!-- Matemáticas -->
-                            {% if 'matematicas' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">📐 MAT</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="matematicas" 
-                                              data-semestre="1" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 1er Semestre - Matemáticas">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">📐 MAT</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Lenguaje -->
-                            {% if 'lenguaje' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">📝 LEN</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="lenguaje" 
-                                              data-semestre="1" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 1er Semestre - Lenguaje">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">📝 LEN</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Ciencias -->
-                            {% if 'ciencias' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🔬 CIE</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="ciencias" 
-                                              data-semestre="1" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 1er Semestre - Ciencias">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🔬 CIE</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Historia -->
-                            {% if 'historia' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🏛️ HIS</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="historia" 
-                                              data-semestre="1" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 1er Semestre - Historia">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🏛️ HIS</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Inglés -->
-                            {% if 'ingles' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🇺🇸 ING</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="ingles" 
-                                              data-semestre="1" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 1er Semestre - Inglés">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🇺🇸 ING</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Vista para 2do Semestre -->
-                        <div class="todas-materias-horizontal-container semestre-2-view" style="display: none;">
-                            <!-- Matemáticas -->
-                            {% if 'matematicas' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">📐 MAT</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="matematicas" 
-                                              data-semestre="2" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 2do Semestre - Matemáticas">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">📐 MAT</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Lenguaje -->
-                            {% if 'lenguaje' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">📝 LEN</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="lenguaje" 
-                                              data-semestre="2" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 2do Semestre - Lenguaje">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">📝 LEN</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Ciencias -->
-                            {% if 'ciencias' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🔬 CIE</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="ciencias" 
-                                              data-semestre="2" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 2do Semestre - Ciencias">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🔬 CIE</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Historia -->
-                            {% if 'historia' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🏛️ HIS</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="historia" 
-                                              data-semestre="2" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 2do Semestre - Historia">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🏛️ HIS</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Inglés -->
-                            {% if 'ingles' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🇺🇸 ING</div>
-                                <div class="semestre-unico">
-                                    <div class="notas-mini-grid-horizontal">
-                                        {% for i in "123456" %}
-                                        <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                              data-materia="ingles" 
-                                              data-semestre="2" 
-                                              data-nota="{{ i }}" 
-                                              data-alumno-id="{{ alumno.id }}"
-                                              data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                              title="Click para asignar Nota {{ i }} - 2do Semestre - Inglés">+</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🇺🇸 ING</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Vista para Ambos Semestres -->
-                        <div class="todas-materias-horizontal-container ambos-semestres-view" style="display: none;">
-                            <!-- Matemáticas -->
-                            {% if 'matematicas' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">📐 MAT</div>
-                                <div class="semestres-horizontales">
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">1°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="matematicas" 
-                                                  data-semestre="1" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 1er Semestre - Matemáticas">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    <div class="separador-semestres">|</div>
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">2°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="matematicas" 
-                                                  data-semestre="2" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 2do Semestre - Matemáticas">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">📐 MAT</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Lenguaje -->
-                            {% if 'lenguaje' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">📝 LEN</div>
-                                <div class="semestres-horizontales">
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">1°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="lenguaje" 
-                                                  data-semestre="1" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 1er Semestre - Lenguaje">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    <div class="separador-semestres">|</div>
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">2°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="lenguaje" 
-                                                  data-semestre="2" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 2do Semestre - Lenguaje">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">📝 LEN</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Ciencias -->
-                            {% if 'ciencias' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🔬 CIE</div>
-                                <div class="semestres-horizontales">
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">1°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="ciencias" 
-                                                  data-semestre="1" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 1er Semestre - Ciencias">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    <div class="separador-semestres">|</div>
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">2°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="ciencias" 
-                                                  data-semestre="2" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 2do Semestre - Ciencias">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🔬 CIE</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Historia -->
-                            {% if 'historia' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🏛️ HIS</div>
-                                <div class="semestres-horizontales">
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">1°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="historia" 
-                                                  data-semestre="1" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 1er Semestre - Historia">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    <div class="separador-semestres">|</div>
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">2°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="historia" 
-                                                  data-semestre="2" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 2do Semestre - Historia">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🏛️ HIS</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Inglés -->
-                            {% if 'ingles' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="materia-horizontal-row">
-                                <div class="materia-label-horizontal">🇺🇸 ING</div>
-                                <div class="semestres-horizontales">
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">1°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="ingles" 
-                                                  data-semestre="1" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 1er Semestre - Inglés">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    <div class="separador-semestres">|</div>
-                                    <div class="semestre-horizontal">
-                                        <span class="sem-label-horizontal">2°</span>
-                                        <div class="notas-mini-grid-horizontal">
-                                            {% for i in "123456" %}
-                                            <span class="nota-mini-horizontal clickeable-nota nota-vacia" 
-                                                  data-materia="ingles" 
-                                                  data-semestre="2" 
-                                                  data-nota="{{ i }}" 
-                                                  data-alumno-id="{{ alumno.id }}"
-                                                  data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                                  title="Click para asignar Nota {{ i }} - 2do Semestre - Inglés">+</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="materia-horizontal-row materia-no-asignada">
-                                <div class="materia-label-horizontal materia-no-disponible">🇺🇸 ING</div>
-                                <div class="materia-no-asignada-texto">
-                                    <span class="texto-no-asignada">No asignada para este nivel</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </td>
-                    {% else %}
-                    <td class="td-notas">
-                        <!-- Vista para 1er Semestre - Materia específica -->
-                        <div class="notas-horizontal-container semestre-1-view">
-                            <div class="semestre-compact">
-                                <span class="sem-label">1°</span>
-                                <div class="notas-mini-grid">
-                                    {% for i in "123456" %}
-                                    <span class="nota-mini clickeable-nota nota-vacia" 
-                                          data-materia="{{ materia_filter }}" 
-                                          data-semestre="1" 
-                                          data-nota="{{ i }}" 
-                                          data-alumno-id="{{ alumno.id }}"
-                                          data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                          title="Click para asignar Nota {{ i }} - 1er Semestre">+</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Vista para 2do Semestre - Materia específica -->
-                        <div class="notas-horizontal-container semestre-2-view" style="display: none;">
-                            <div class="semestre-compact">
-                                <span class="sem-label">2°</span>
-                                <div class="notas-mini-grid">
-                                    {% for i in "123456" %}
-                                    <span class="nota-mini clickeable-nota nota-vacia" 
-                                          data-materia="{{ materia_filter }}" 
-                                          data-semestre="2" 
-                                          data-nota="{{ i }}" 
-                                          data-alumno-id="{{ alumno.id }}"
-                                          data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                          title="Click para asignar Nota {{ i }} - 2do Semestre">+</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Vista para Ambos Semestres - Materia específica -->
-                        <div class="notas-horizontal-container ambos-semestres-view" style="display: none;">
-                            <div class="semestre-compact">
-                                <span class="sem-label">1°</span>
-                                <div class="notas-mini-grid">
-                                    {% for i in "123456" %}
-                                    <span class="nota-mini clickeable-nota nota-vacia" 
-                                          data-materia="{{ materia_filter }}" 
-                                          data-semestre="1" 
-                                          data-nota="{{ i }}" 
-                                          data-alumno-id="{{ alumno.id }}"
-                                          data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                          title="Click para asignar Nota {{ i }} - 1er Semestre">+</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <div class="semestre-compact">
-                                <span class="sem-label">2°</span>
-                                <div class="notas-mini-grid">
-                                    {% for i in "123456" %}
-                                    <span class="nota-mini clickeable-nota nota-vacia" 
-                                          data-materia="{{ materia_filter }}" 
-                                          data-semestre="2" 
-                                          data-nota="{{ i }}" 
-                                          data-alumno-id="{{ alumno.id }}"
-                                          data-alumno-nombre="{{ alumno.nombre_completo }}"
-                                          title="Click para asignar Nota {{ i }} - 2do Semestre">+</span>
-                                    {% endfor %}
-                                </div>
+                    
+                    <!-- Notas individuales -->
+                    {% for i in "123456" %}
+                    <td class="nota-cell">
+                        <div class="nota-input-container">
+                            <input type="number" 
+                                   class="nota-input" 
+                                   data-alumno-id="{{ alumno.id }}"
+                                   data-materia="{{ materia_filter }}"
+                                   data-semestre="{{ semestre_filter }}"
+                                   data-numero-nota="{{ i }}"
+                                   min="1.0" 
+                                   max="7.0" 
+                                   step="0.1"
+                                   placeholder="--"
+                                   title="Nota {{ i }} - {{ semestre_filter }}° Semestre">
+                            <div class="nota-status">
+                                <i class="fas fa-save nota-saved" style="display: none;" title="Nota guardada"></i>
+                                <i class="fas fa-exclamation-triangle nota-error" style="display: none;" title="Error al guardar"></i>
                             </div>
                         </div>
                     </td>
-                    {% endif %}
-                    {% if materia_filter == 'todas' %}
-                    <td class="td-promedio-todas-horizontales">
-                        <!-- Promedios de todas las materias -->
-                        <div class="promedios-todas-materias-horizontal">
-                            <!-- Matemáticas -->
-                            {% if 'matematicas' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="prom-materia-horizontal">
-                                <span class="prom-label-horizontal">📐 MAT</span>
-                                <span class="prom-val-horizontal prom-val-excelente">-</span>
-                            </div>
-                            {% else %}
-                            <div class="prom-materia-horizontal prom-no-asignada">
-                                <span class="prom-label-horizontal">📐 MAT</span>
-                                <span class="prom-val-horizontal prom-val-no-asignada">N/A</span>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Lenguaje -->
-                            {% if 'lenguaje' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="prom-materia-horizontal">
-                                <span class="prom-label-horizontal">📝 LEN</span>
-                                <span class="prom-val-horizontal prom-val-excelente">-</span>
-                            </div>
-                            {% else %}
-                            <div class="prom-materia-horizontal prom-no-asignada">
-                                <span class="prom-label-horizontal">📝 LEN</span>
-                                <span class="prom-val-horizontal prom-val-no-asignada">N/A</span>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Ciencias -->
-                            {% if 'ciencias' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="prom-materia-horizontal">
-                                <span class="prom-label-horizontal">🔬 CIE</span>
-                                <span class="prom-val-horizontal prom-val-excelente">-</span>
-                            </div>
-                            {% else %}
-                            <div class="prom-materia-horizontal prom-no-asignada">
-                                <span class="prom-label-horizontal">🔬 CIE</span>
-                                <span class="prom-val-horizontal prom-val-no-asignada">N/A</span>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Historia -->
-                            {% if 'historia' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="prom-materia-horizontal">
-                                <span class="prom-label-horizontal">🏛️ HIS</span>
-                                <span class="prom-val-horizontal prom-val-excelente">-</span>
-                            </div>
-                            {% else %}
-                            <div class="prom-materia-horizontal prom-no-asignada">
-                                <span class="prom-label-horizontal">🏛️ HIS</span>
-                                <span class="prom-val-horizontal prom-val-no-asignada">N/A</span>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Inglés -->
-                            {% if 'ingles' in alumno.materias_asignadas|default_if_none:'' or not alumno.materias_asignadas %}
-                            <div class="prom-materia-horizontal">
-                                <span class="prom-label-horizontal">🇺🇸 ING</span>
-                                <span class="prom-val-horizontal prom-val-excelente">-</span>
-                            </div>
-                            {% else %}
-                            <div class="prom-materia-horizontal prom-no-asignada">
-                                <span class="prom-label-horizontal">🇺🇸 ING</span>
-                                <span class="prom-val-horizontal prom-val-no-asignada">N/A</span>
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Promedio General -->
-                            <div class="prom-general-horizontal">
-                                <div class="prom-materia-horizontal">
-                                    <span class="prom-label-horizontal-general">📊 GRAL</span>
-                                    <span class="prom-val-general-horizontal prom-val-excelente">-</span>
-                                </div>
-                            </div>
-                        </div>
+                    {% endfor %}
+                    
+                    <!-- Promedio -->
+                    <td class="promedio-cell">
+                        <span class="promedio-value" data-alumno-id="{{ alumno.id }}">--</span>
                     </td>
-                    {% else %}
-                    <td class="td-promedio">
-                        <!-- Promedios para materia específica -->
-                        <div class="promedios-compact">
-                            <div class="prom-item">
-                                <span class="prom-label">1er Sem:</span>
-                                <span class="prom-val prom-val-excelente">-</span>
-                            </div>
-                            <div class="prom-item">
-                                <span class="prom-label">2do Sem:</span>
-                                <span class="prom-val prom-val-excelente">-</span>
-                            </div>
-                            <div class="prom-item prom-anual">
-                                <span class="prom-label">Anual:</span>
-                                <span class="prom-val-anual prom-val-excelente">-</span>
-                            </div>
-                        </div>
-                    </td>
-                    {% endif %}
-                    <td class="td-estado">
-                        {% if alumno.activo %}
-                            <span class="status-active">
-                                <i class="fas fa-check-circle"></i>
-                                Activo
-                            </span>
-                        {% else %}
-                            <span class="status-inactive">
-                                <i class="fas fa-times-circle"></i>
-                                Inactivo
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td class="td-situacion">
-                        <span class="situacion-badge situacion-sin-notas">
-                            <i class="fas fa-clock"></i>
-                            <span class="situacion-texto">Sin notas</span>
-                        </span>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center">
-                        <div class="empty-state-compact">
-                            <i class="fas fa-user-graduate fa-3x"></i>
-                            <p>No se encontraron alumnos con los filtros aplicados</p>
+                    
+                    <!-- Acciones -->
+                    <td class="acciones-cell">
+                        <div class="action-buttons">
+                            <button class="btn-action btn-view" 
+                                    onclick="verHistorialNotas({{ alumno.id }})"
+                                    title="Ver historial de notas">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-action btn-edit" 
+                                    onclick="editarNotasAlumno({{ alumno.id }})"
+                                    title="Editar todas las notas">
+                                <i class="fas fa-edit"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -906,351 +209,694 @@
             </tbody>
         </table>
     </div>
-
-    <!-- Paginación horizontal -->
-    {% if alumnos.has_other_pages %}
-    <div class="pagination-horizontal">
-        <ul class="pagination-compact">
-            {% if alumnos.has_previous %}
-                <li><a href="?page=1&{{ request.GET.urlencode }}">&laquo; Primera</a></li>
-                <li><a href="?page={{ alumnos.previous_page_number }}&{{ request.GET.urlencode }}">&lsaquo; Anterior</a></li>
-            {% endif %}
-            
-            {% for num in alumnos.paginator.page_range %}
-                {% if num == alumnos.number %}
-                    <li><span class="current">{{ num }}</span></li>
-                {% elif num > alumnos.number|add:'-3' and num < alumnos.number|add:'3' %}
-                    <li><a href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a></li>
-                {% endif %}
-            {% endfor %}
-            
-            {% if alumnos.has_next %}
-                <li><a href="?page={{ alumnos.next_page_number }}&{{ request.GET.urlencode }}">Siguiente &rsaquo;</a></li>
-                <li><a href="?page={{ alumnos.paginator.num_pages }}&{{ request.GET.urlencode }}">Última &raquo;</a></li>
-            {% endif %}
-        </ul>
+    {% else %}
+    <!-- Estado vacío -->
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-clipboard-list fa-4x"></i>
+        </div>
+        {% if not materia_filter %}
+            <h3>Selecciona una materia para comenzar</h3>
+            <p>Por favor, selecciona una materia en los filtros para ver las notas de los alumnos.</p>
+        {% else %}
+            <h3>No hay alumnos para mostrar</h3>
+            <p>No se encontraron alumnos que coincidan con los filtros seleccionados.</p>
+        {% endif %}
+        <button class="btn-eduvia btn-primary" onclick="limpiarFiltros()">
+            <i class="fas fa-refresh me-2"></i>
+            Limpiar Filtros
+        </button>
     </div>
     {% endif %}
 </div>
 
-<!-- Modal para asignar nota -->
-<div class="modal" id="asignarNotaModal" tabindex="-1">
+<!-- Modal para editar nota individual -->
+<div class="modal fade" id="editarNotaModal" tabindex="-1" aria-labelledby="editarNotaModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-edit"></i>
-                    Asignar Nota
+                <h5 class="modal-title" id="editarNotaModalLabel">
+                    <i class="fas fa-edit me-2"></i>
+                    Editar Nota
                 </h5>
-                <button type="button" class="modal-close" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="asignarNotaForm" class="nota-form-container">
+                <form id="editarNotaForm">
                     {% csrf_token %}
+                    <input type="hidden" id="modal-alumno-id" name="alumno_id">
+                    <input type="hidden" id="modal-materia" name="materia">
+                    <input type="hidden" id="modal-semestre" name="semestre">
+                    <input type="hidden" id="modal-numero-nota" name="numero_nota">
                     
-                    <!-- Información del alumno -->
-                    <div class="alumno-info-section">
-                        <div class="alumno-name">
-                            <i class="fas fa-user"></i>
-                            <span id="modal-alumno-nombre">Nombre del Alumno</span>
-                        </div>
-                        <div class="alumno-details">
-                            <div class="detail-item">
-                                <i class="fas fa-id-card"></i>
-                                <span>ID: <span id="modal-alumno-id">000</span></span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-book"></i>
-                                <span>Materia: <span id="modal-materia">Materia</span></span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-calendar"></i>
-                                <span>Semestre: <span id="modal-semestre">1</span></span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-hashtag"></i>
-                                <span>Nota #: <span id="modal-numero-nota">1</span></span>
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Alumno:</label>
+                        <p id="modal-alumno-nombre" class="fw-bold"></p>
                     </div>
-
-                    <!-- Campos del formulario -->
-                    <div class="form-group">
-                        <label for="nota-valor" class="form-label">
-                            <i class="fas fa-star"></i>
-                            Calificación (1.0 - 7.0)
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Materia y Semestre:</label>
+                        <p id="modal-materia-info" class="fw-bold"></p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal-calificacion" class="form-label">
+                            Calificación (1.0 - 7.0):
                         </label>
                         <input type="number" 
                                class="form-control" 
-                               id="nota-valor" 
-                               name="valor" 
+                               id="modal-calificacion" 
+                               name="calificacion"
                                min="1.0" 
                                max="7.0" 
                                step="0.1" 
-                               placeholder="Ej: 6.5"
                                required>
                     </div>
-
-                    <div class="form-group">
-                        <label for="nota-descripcion" class="form-label">
-                            <i class="fas fa-comment"></i>
-                            Descripción (Opcional)
-                        </label>
-                        <input type="text" 
-                               class="form-control" 
-                               id="nota-descripcion" 
-                               name="descripcion" 
-                               placeholder="Ej: Prueba de matemáticas, Trabajo en clase..."
-                               maxlength="200">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nota-fecha" class="form-label">
-                            <i class="fas fa-calendar-alt"></i>
-                            Fecha de Evaluación
+                    
+                    <div class="mb-3">
+                        <label for="modal-fecha" class="form-label">
+                            Fecha de Evaluación:
                         </label>
                         <input type="date" 
                                class="form-control" 
-                               id="nota-fecha" 
+                               id="modal-fecha" 
                                name="fecha_evaluacion"
                                required>
                     </div>
-
-                    <!-- Campos ocultos -->
-                    <input type="hidden" id="hidden-alumno-id" name="alumno_id">
-                    <input type="hidden" id="hidden-materia" name="materia">
-                    <input type="hidden" id="hidden-semestre" name="semestre">
-                    <input type="hidden" id="hidden-numero-nota" name="numero_nota">
+                    
+                    <div class="mb-3">
+                        <label for="modal-observaciones" class="form-label">
+                            Observaciones (Opcional):
+                        </label>
+                        <textarea class="form-control" 
+                                  id="modal-observaciones" 
+                                  name="observaciones" 
+                                  rows="3" 
+                                  placeholder="Comentarios sobre la evaluación..."></textarea>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-modal btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
                     Cancelar
                 </button>
-                <button type="submit" form="asignarNotaForm" class="btn-modal btn-primary">
-                    <i class="fas fa-save"></i>
+                <button type="button" id="btn-eliminar-nota" class="btn btn-danger me-2" style="display: none;">
+                    <i class="fas fa-trash me-1"></i>
+                    Eliminar Nota
+                </button>
+                <button type="submit" form="editarNotaForm" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>
                     Guardar Nota
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal para ver historial de notas -->
+<div class="modal fade" id="historialNotasModal" tabindex="-1" aria-labelledby="historialNotasModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historialNotasModalLabel">
+                    <i class="fas fa-history me-2"></i>
+                    Historial de Notas
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="historial-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando historial de notas...</p>
+                </div>
+                
+                <div id="historial-content" style="display: none;">
+                    <!-- Información del alumno -->
+                    <div class="alumno-info-historial mb-4">
+                        <h6 id="historial-alumno-nombre"></h6>
+                        <p class="text-muted" id="historial-alumno-info"></p>
+                    </div>
+                    
+                    <!-- Tabs para semestres -->
+                    <ul class="nav nav-tabs" id="semestresTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="semestre1-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#semestre1" type="button" role="tab">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                1° Semestre
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="semestre2-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#semestre2" type="button" role="tab">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                2° Semestre
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="semestresTabContent">
+                        <!-- Primer Semestre -->
+                        <div class="tab-pane fade show active" id="semestre1" role="tabpanel">
+                            <div class="table-responsive mt-3">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Materia</th>
+                                            <th>Nota 1</th>
+                                            <th>Nota 2</th>
+                                            <th>Nota 3</th>
+                                            <th>Nota 4</th>
+                                            <th>Nota 5</th>
+                                            <th>Nota 6</th>
+                                            <th>Promedio</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="notas-semestre1">
+                                        <!-- Se llena dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Segundo Semestre -->
+                        <div class="tab-pane fade" id="semestre2" role="tabpanel">
+                            <div class="table-responsive mt-3">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Materia</th>
+                                            <th>Nota 1</th>
+                                            <th>Nota 2</th>
+                                            <th>Nota 3</th>
+                                            <th>Nota 4</th>
+                                            <th>Nota 5</th>
+                                            <th>Nota 6</th>
+                                            <th>Promedio</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="notas-semestre2">
+                                        <!-- Se llena dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="historial-error" class="alert alert-danger" style="display: none;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="historial-error-message">Error al cargar el historial de notas.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Cerrar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="exportarHistorialAlumno()">
+                    <i class="fas fa-download me-1"></i>
+                    Exportar Historial
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Paginación -->
+{% if alumnos.has_other_pages %}
+<div class="pagination-container">
+    <nav aria-label="Navegación de páginas">
+        <ul class="pagination justify-content-center">
+            {% if alumnos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&{{ request.GET.urlencode }}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ alumnos.previous_page_number }}&{{ request.GET.urlencode }}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in alumnos.paginator.page_range %}
+                {% if num == alumnos.number %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > alumnos.number|add:'-3' and num < alumnos.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if alumnos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ alumnos.next_page_number }}&{{ request.GET.urlencode }}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ alumnos.paginator.num_pages }}&{{ request.GET.urlencode }}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-hide alerts
-    setTimeout(function() {
+    console.log('Iniciando sistema de gestión de notas...');
+
+    // Variables globales
+    let currentNotaInput = null;
+    let editModal = null;
+    let historialModal = null;
+
+    // Inicializar modales
+    editModal = new bootstrap.Modal(document.getElementById('editarNotaModal'));
+    historialModal = new bootstrap.Modal(document.getElementById('historialNotasModal'));
+
+    // Función para limpiar filtros
+    window.limpiarFiltros = function() {
+        document.getElementById('buscar-alumno').value = '';
+        document.getElementById('materia-filter').value = '';
+        document.getElementById('nivel-filter').value = 'todos';
+        document.getElementById('estado-filter').value = 'activo';
+        document.getElementById('filtros-form').submit();
+    };
+
+    // Auto-submit para filtros
+    const materiaFilter = document.getElementById('materia-filter');
+    const nivelFilter = document.getElementById('nivel-filter');
+    const semestreFilter = document.getElementById('semestre-filter');
+    const estadoFilter = document.getElementById('estado-filter');
+
+    [materiaFilter, nivelFilter, semestreFilter, estadoFilter].forEach(filter => {
+        if (filter) {
+            filter.addEventListener('change', function() {
+                document.getElementById('filtros-form').submit();
+            });
+        }
+    });
+
+    // Función para calcular promedio
+    function calcularPromedio(alumnoId) {
+        const inputs = document.querySelectorAll(`input[data-alumno-id="${alumnoId}"]`);
+        let suma = 0;
+        let count = 0;
+
+        inputs.forEach(input => {
+            const valor = parseFloat(input.value);
+            if (!isNaN(valor) && valor > 0) {
+                suma += valor;
+                count++;
+            }
+        });
+
+        const promedio = count > 0 ? (suma / count).toFixed(1) : '--';
+        const promedioElement = document.querySelector(`span[data-alumno-id="${alumnoId}"]`);
+        if (promedioElement) {
+            promedioElement.textContent = promedio;
+            
+            // Aplicar clase según el promedio
+            promedioElement.className = 'promedio-value';
+            if (promedio !== '--') {
+                const valor = parseFloat(promedio);
+                if (valor >= 6.0) {
+                    promedioElement.classList.add('promedio-excelente');
+                } else if (valor >= 5.0) {
+                    promedioElement.classList.add('promedio-bueno');
+                } else if (valor >= 4.0) {
+                    promedioElement.classList.add('promedio-suficiente');
+                } else {
+                    promedioElement.classList.add('promedio-insuficiente');
+                }
+            }
+        }
+    }
+
+    // Event listeners para inputs de notas
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('nota-input')) {
+            const input = e.target;
+            const valor = parseFloat(input.value);
+            const statusContainer = input.nextElementSibling;
+            const savedIcon = statusContainer.querySelector('.nota-saved');
+            const errorIcon = statusContainer.querySelector('.nota-error');
+
+            // Validar rango
+            if (isNaN(valor) || valor < 1.0 || valor > 7.0) {
+                input.style.borderColor = '#dc3545';
+                if (input.value !== '') {
+                    errorIcon.style.display = 'inline';
+                    savedIcon.style.display = 'none';
+                }
+                return;
+            }
+
+            input.style.borderColor = '#28a745';
+            
+            // Simular guardado automático
+            setTimeout(() => {
+                savedIcon.style.display = 'inline';
+                errorIcon.style.display = 'none';
+                
+                // Calcular promedio
+                calcularPromedio(input.dataset.alumnoId);
+                
+                // Auto-hide después de 2 segundos
+                setTimeout(() => {
+                    savedIcon.style.display = 'none';
+                }, 2000);
+            }, 500);
+        }
+    });
+
+    // Event listener para doble click en inputs (editar nota)
+    document.addEventListener('dblclick', function(e) {
+        if (e.target.classList.contains('nota-input')) {
+            currentNotaInput = e.target;
+            abrirModalEdicion(e.target);
+        }
+    });
+
+    // Función para abrir modal de edición
+    function abrirModalEdicion(input) {
+        const alumnoRow = input.closest('tr');
+        const alumnoNombre = alumnoRow.querySelector('.alumno-details strong').textContent;
+        const materia = input.dataset.materia;
+        const semestre = input.dataset.semestre;
+        const numeroNota = input.dataset.numeroNota;
+
+        // Llenar información del modal
+        document.getElementById('modal-alumno-id').value = input.dataset.alumnoId;
+        document.getElementById('modal-materia').value = materia;
+        document.getElementById('modal-semestre').value = semestre;
+        document.getElementById('modal-numero-nota').value = numeroNota;
+        document.getElementById('modal-alumno-nombre').textContent = alumnoNombre;
+        document.getElementById('modal-calificacion').value = input.value || '';
+        document.getElementById('modal-fecha').value = new Date().toISOString().split('T')[0];
+
+        // Formatear información de materia
+        const materiaNames = {
+            'matematicas': 'Matemáticas',
+            'lenguaje': 'Lenguaje y Comunicación',
+            'ciencias': 'Ciencias Naturales',
+            'historia': 'Historia y Geografía',
+            'ingles': 'Inglés'
+        };
+
+        document.getElementById('modal-materia-info').textContent = 
+            `${materiaNames[materia] || materia} - Nota ${numeroNota} - ${semestre}° Semestre`;
+
+        // Mostrar/ocultar botón eliminar
+        const btnEliminar = document.getElementById('btn-eliminar-nota');
+        if (input.value && input.value.trim() !== '') {
+            btnEliminar.style.display = 'inline-block';
+        } else {
+            btnEliminar.style.display = 'none';
+        }
+
+        editModal.show();
+    }
+
+    // Función para guardar nota desde el modal
+    document.getElementById('editarNotaForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const calificacion = formData.get('calificacion');
+        
+        // Validar calificación
+        const valor = parseFloat(calificacion);
+        if (isNaN(valor) || valor < 1.0 || valor > 7.0) {
+            Swal.fire({
+                title: 'Error',
+                text: 'La calificación debe estar entre 1.0 y 7.0',
+                icon: 'error'
+            });
+            return;
+        }
+
+        // Actualizar el input correspondiente
+        if (currentNotaInput) {
+            currentNotaInput.value = valor.toFixed(1);
+            currentNotaInput.style.borderColor = '#28a745';
+            
+            // Mostrar indicador de guardado
+            const statusContainer = currentNotaInput.nextElementSibling;
+            const savedIcon = statusContainer.querySelector('.nota-saved');
+            savedIcon.style.display = 'inline';
+            
+            // Calcular promedio
+            calcularPromedio(currentNotaInput.dataset.alumnoId);
+            
+            setTimeout(() => {
+                savedIcon.style.display = 'none';
+            }, 2000);
+        }
+
+        // Mostrar mensaje de éxito
+        Swal.fire({
+            title: '¡Guardado!',
+            text: 'La nota ha sido guardada correctamente',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+        });
+
+        editModal.hide();
+    });
+
+    // Función para eliminar nota
+    document.getElementById('btn-eliminar-nota').addEventListener('click', function() {
+        if (!currentNotaInput) return;
+
+        const alumnoNombre = document.getElementById('modal-alumno-nombre').textContent;
+        const materiaInfo = document.getElementById('modal-materia-info').textContent;
+
+        Swal.fire({
+            title: '¿Estás seguro?',
+            html: `
+                <p>Esta acción eliminará la nota de:</p>
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                    <strong>Alumno:</strong> ${alumnoNombre}<br>
+                    <strong>Evaluación:</strong> ${materiaInfo}
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Limpiar el input
+                currentNotaInput.value = '';
+                currentNotaInput.style.borderColor = '';
+                
+                // Recalcular promedio
+                calcularPromedio(currentNotaInput.dataset.alumnoId);
+                
+                Swal.fire({
+                    title: '¡Eliminada!',
+                    text: 'La nota ha sido eliminada correctamente',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                editModal.hide();
+            }
+        });
+    });
+
+    // Función para ver historial de notas
+    window.verHistorialNotas = function(alumnoId) {
+        const alumnoRow = document.querySelector(`tr[data-alumno-id="${alumnoId}"]`);
+        const alumnoNombre = alumnoRow.querySelector('.alumno-details strong').textContent;
+        const alumnoRut = alumnoRow.querySelector('.alumno-details small').textContent;
+        const nivel = alumnoRow.querySelector('.nivel-badge').textContent;
+
+        // Mostrar loading
+        document.getElementById('historial-loading').style.display = 'block';
+        document.getElementById('historial-content').style.display = 'none';
+        document.getElementById('historial-error').style.display = 'none';
+
+        // Llenar información del alumno
+        document.getElementById('historial-alumno-nombre').textContent = alumnoNombre;
+        document.getElementById('historial-alumno-info').textContent = `${alumnoRut} - ${nivel}`;
+
+        historialModal.show();
+
+        // Simular carga de datos
+        setTimeout(() => {
+            cargarHistorialNotas(alumnoId);
+        }, 1000);
+    };
+
+    // Función para cargar historial de notas
+    function cargarHistorialNotas(alumnoId) {
+        // Materias disponibles
+        const materias = [
+            { key: 'matematicas', name: '📐 Matemáticas' },
+            { key: 'lenguaje', name: '📝 Lenguaje y Comunicación' },
+            { key: 'ciencias', name: '🔬 Ciencias Naturales' },
+            { key: 'historia', name: '🏛️ Historia y Geografía' },
+            { key: 'ingles', name: '🇺🇸 Inglés' }
+        ];
+
+        // Llenar tablas de ambos semestres
+        [1, 2].forEach(semestre => {
+            const tbody = document.getElementById(`notas-semestre${semestre}`);
+            tbody.innerHTML = '';
+
+            materias.forEach(materia => {
+                const row = document.createElement('tr');
+                
+                // Generar notas simuladas (puedes reemplazar con datos reales)
+                const notas = Array.from({length: 6}, () => {
+                    return Math.random() > 0.3 ? (Math.random() * 6 + 1).toFixed(1) : '--';
+                });
+                
+                const promedio = calcularPromedioArray(notas);
+                
+                row.innerHTML = `
+                    <td>${materia.name}</td>
+                    <td>${notas[0]}</td>
+                    <td>${notas[1]}</td>
+                    <td>${notas[2]}</td>
+                    <td>${notas[3]}</td>
+                    <td>${notas[4]}</td>
+                    <td>${notas[5]}</td>
+                    <td><span class="promedio-badge ${getPromedioClass(promedio)}">${promedio}</span></td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        });
+
+        // Ocultar loading y mostrar contenido
+        document.getElementById('historial-loading').style.display = 'none';
+        document.getElementById('historial-content').style.display = 'block';
+    }
+
+    // Función auxiliar para calcular promedio de array
+    function calcularPromedioArray(notas) {
+        const notasValidas = notas.filter(nota => nota !== '--' && !isNaN(parseFloat(nota)));
+        if (notasValidas.length === 0) return '--';
+        
+        const suma = notasValidas.reduce((acc, nota) => acc + parseFloat(nota), 0);
+        return (suma / notasValidas.length).toFixed(1);
+    }
+
+    // Función auxiliar para obtener clase de promedio
+    function getPromedioClass(promedio) {
+        if (promedio === '--') return '';
+        const valor = parseFloat(promedio);
+        if (valor >= 6.0) return 'promedio-excelente';
+        if (valor >= 5.0) return 'promedio-bueno';
+        if (valor >= 4.0) return 'promedio-suficiente';
+        return 'promedio-insuficiente';
+    }
+
+    // Función para editar todas las notas de un alumno
+    window.editarNotasAlumno = function(alumnoId) {
+        const alumnoRow = document.querySelector(`tr[data-alumno-id="${alumnoId}"]`);
+        const alumnoNombre = alumnoRow.querySelector('.alumno-details strong').textContent;
+        
+        Swal.fire({
+            title: 'Editar Notas',
+            text: `¿Deseas editar todas las notas de ${alumnoNombre}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, editar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Habilitar edición de todas las notas del alumno
+                const inputs = alumnoRow.querySelectorAll('.nota-input');
+                inputs.forEach(input => {
+                    input.focus();
+                    input.select();
+                });
+                
+                Swal.fire({
+                    title: 'Modo de edición activado',
+                    text: 'Puedes editar todas las notas del alumno',
+                    icon: 'info',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        });
+    };
+
+    // Función para exportar notas
+    window.exportarNotas = function() {
+        Swal.fire({
+            title: 'Exportar Notas',
+            text: 'Esta funcionalidad estará disponible próximamente',
+            icon: 'info'
+        });
+    };
+
+    // Función para exportar historial de alumno
+    window.exportarHistorialAlumno = function() {
+        Swal.fire({
+            title: 'Exportar Historial',
+            text: 'Esta funcionalidad estará disponible próximamente',
+            icon: 'info'
+        });
+    };
+
+    // Cargar notas existentes al inicializar
+    function cargarNotasExistentes() {
+        const notasGuardadas = JSON.parse(localStorage.getItem('notasGuardadas') || '{}');
+        
+        Object.keys(notasGuardadas).forEach(key => {
+            const nota = notasGuardadas[key];
+            const input = document.querySelector(
+                `input[data-alumno-id="${nota.alumno_id}"][data-materia="${nota.materia}"][data-semestre="${nota.semestre}"][data-numero-nota="${nota.numero_nota}"]`
+            );
+            
+            if (input) {
+                input.value = nota.valor;
+                input.style.borderColor = '#28a745';
+                calcularPromedio(nota.alumno_id);
+            }
+        });
+    }
+
+    // Auto-hide para alertas
+    setTimeout(() => {
         const alerts = document.querySelectorAll('.auto-hide-alert');
-        alerts.forEach(function(alert) {
-            alert.classList.add('fade-out');
-            setTimeout(function() {
+        alerts.forEach(alert => {
+            if (alert) {
                 alert.remove();
-            }, 300);
+            }
         });
     }, 5000);
 
-    // Función para limpiar filtros
-    window.clearFilters = function() {
-        document.getElementById('alumno-busqueda').value = '';
-        document.getElementById('nivelFilter').value = 'todos';
-        document.getElementById('materiaFilter').value = 'matematicas';
-        document.getElementById('estadoFilter').value = 'activo';
-        document.getElementById('filtro-form').submit();
-    };
+    // Cargar notas existentes
+    cargarNotasExistentes();
 
-    // Switch de semestre functionality
-    const semestreRadios = document.querySelectorAll('input[name="semestre-view"]');
-    
-    function updateSemestreView() {
-        const selectedSemestre = document.querySelector('input[name="semestre-view"]:checked').value;
-        
-        // Ocultar todas las vistas
-        document.querySelectorAll('.semestre-1-view, .semestre-2-view, .ambos-semestres-view').forEach(view => {
-            view.style.display = 'none';
-        });
-        
-        // Ocultar todos los headers
-        document.querySelectorAll('.semestre-1-header, .semestre-2-header, .ambos-semestres-header').forEach(header => {
-            header.style.display = 'none';
-        });
-        
-        // Mostrar la vista seleccionada
-        if (selectedSemestre === '1') {
-            document.querySelectorAll('.semestre-1-view').forEach(view => {
-                view.style.display = 'block';
-            });
-            document.querySelectorAll('.semestre-1-header').forEach(header => {
-                header.style.display = 'inline';
-            });
-        } else if (selectedSemestre === '2') {
-            document.querySelectorAll('.semestre-2-view').forEach(view => {
-                view.style.display = 'block';
-            });
-            document.querySelectorAll('.semestre-2-header').forEach(header => {
-                header.style.display = 'inline';
-            });
-        } else if (selectedSemestre === 'ambos') {
-            document.querySelectorAll('.ambos-semestres-view').forEach(view => {
-                view.style.display = 'block';
-            });
-            document.querySelectorAll('.ambos-semestres-header').forEach(header => {
-                header.style.display = 'inline';
-            });
-        }
-    }
-    
-    // Event listeners para el switch de semestre
-    semestreRadios.forEach(radio => {
-        radio.addEventListener('change', updateSemestreView);
-    });
-    
-    // Inicializar vista por defecto
-    updateSemestreView();
-
-    // Modal functionality
-    const modal = document.getElementById('asignarNotaModal');
-    const form = document.getElementById('asignarNotaForm');
-    
-    // Abrir modal al hacer click en nota vacía
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('clickeable-nota') && e.target.classList.contains('nota-vacia')) {
-            const alumnoId = e.target.dataset.alumnoId;
-            const alumnoNombre = e.target.dataset.alumnoNombre;
-            const materia = e.target.dataset.materia;
-            const semestre = e.target.dataset.semestre;
-            const numeroNota = e.target.dataset.nota;
-            
-            // Llenar información del modal
-            document.getElementById('modal-alumno-nombre').textContent = alumnoNombre;
-            document.getElementById('modal-alumno-id').textContent = alumnoId;
-            document.getElementById('modal-materia').textContent = materia.charAt(0).toUpperCase() + materia.slice(1);
-            document.getElementById('modal-semestre').textContent = semestre + '°';
-            document.getElementById('modal-numero-nota').textContent = numeroNota;
-            
-            // Llenar campos ocultos
-            document.getElementById('hidden-alumno-id').value = alumnoId;
-            document.getElementById('hidden-materia').value = materia;
-            document.getElementById('hidden-semestre').value = semestre;
-            document.getElementById('hidden-numero-nota').value = numeroNota;
-            
-            // Establecer fecha actual
-            document.getElementById('nota-fecha').value = new Date().toISOString().split('T')[0];
-            
-            // Mostrar modal
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-    });
-
-    // Cerrar modal
-      function closeModal() {
-        modal.classList.remove('show');
-        document.body.style.overflow = '';
-        form.reset();
-    }
-
-    // Event listeners para cerrar modal
-    document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function(btn) {
-        btn.addEventListener('click', closeModal);
-    });
-
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
-
-    // Envío del formulario
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(form);
-        
-        fetch('{% url "notas:asignar_nota_ajax" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Actualizar la nota en la tabla
-                const notaElement = document.querySelector(
-                    `[data-alumno-id="${formData.get('alumno_id')}"][data-materia="${formData.get('materia')}"][data-semestre="${formData.get('semestre')}"][data-nota="${formData.get('numero_nota')}"]`
-                );
-                
-                if (notaElement) {
-                    notaElement.textContent = parseFloat(formData.get('valor')).toFixed(1);
-                    notaElement.classList.remove('nota-vacia');
-                    notaElement.classList.add('nota-asignada');
-                    
-                    // Aplicar clase según el valor
-                    const valor = parseFloat(formData.get('valor'));
-                    if (valor >= 6.0) {
-                        notaElement.classList.add('nota-excelente');
-                    } else if (valor >= 5.0) {
-                        notaElement.classList.add('nota-buena');
-                    } else if (valor >= 4.0) {
-                        notaElement.classList.add('nota-suficiente');
-                    } else {
-                        notaElement.classList.add('nota-insuficiente');
-                    }
-                }
-                
-                // Mostrar mensaje de éxito
-                const alertHtml = `
-                    <div class="alert alert-success alert-dismissible fade show auto-hide-alert" role="alert">
-                        <i class="fas fa-check-circle me-2"></i>Nota asignada exitosamente
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                `;
-                document.querySelector('.messages-container').innerHTML = alertHtml;
-                
-                closeModal();
-            } else {
-                alert('Error al asignar la nota: ' + (data.error || 'Error desconocido'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al procesar la solicitud');
-        });
-    });
-
-    // Actualizar indicador de materia al cambiar filtro
-    document.getElementById('materiaFilter').addEventListener('change', function() {
-        const materiaActual = document.getElementById('materia-actual');
-        const materiaMap = {
-            'matematicas': '📐 Matemáticas',
-            'lenguaje': '📝 Lenguaje y Comunicación',
-            'ciencias': '🔬 Ciencias Naturales',
-            'historia': '🏛️ Historia y Geografía',
-            'ingles': '🇺🇸 Inglés',
-            'todas': '📚 Todas las Materias'
-        };
-        materiaActual.textContent = materiaMap[this.value] || '📚 Todas las Materias';
-    });
-
-    // Auto-submit del formulario cuando cambia el filtro de materia
-    document.getElementById('materiaFilter').addEventListener('change', function() {
-        document.getElementById('filtro-form').submit();
-    });
-
-    // Auto-submit para otros filtros también
-    document.getElementById('nivelFilter').addEventListener('change', function() {
-        document.getElementById('filtro-form').submit();
-    });
-
-    document.getElementById('estadoFilter').addEventListener('change', function() {
-        document.getElementById('filtro-form').submit();
-    });
+    console.log('Sistema de gestión de notas inicializado correctamente');
 });
 </script>
 {% endblock %}

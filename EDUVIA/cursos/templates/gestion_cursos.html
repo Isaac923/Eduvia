@@ -1,17 +1,29 @@
-{% extends "base.html" %}
+<UPDATED_CODE>{% extends "base.html" %}
+{% load static %}
 {% block title %}Gestión de Cursos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cursos.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}
+
 {% block content %}
+
+
 <div class="container mt-4">
     <div class="row mb-3">
         <div class="col-md-6">
-            <h2 style="color: #303f9f;">Gestión de Cursos</h2>
+            <h2 style="color: #303f9f;">
+                <i class="fas fa-graduation-cap me-3"></i>
+                Gestión de Cursos
+            </h2>
         </div>
         <div class="col-md-6 text-end">
             <a href="#" class="btn me-2" style="background-color: #5c6bc0; color: white;">
-                <i class="fas fa-book"></i> Gestionar Asignaturas
+                <i class="fas fa-book-open"></i> Gestionar Asignaturas
             </a>
             <a href="{% url 'cursos:crear_curso' %}" class="btn" style="background-color: #26a69a; color: white;">
-                <i class="fas fa-plus"></i> Nuevo Curso
+                <i class="fas fa-plus-circle"></i> Nuevo Curso
             </a>
         </div>
     </div>
@@ -19,6 +31,15 @@
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle me-2"></i>
+                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                {% elif message.tags == 'info' %}
+                    <i class="fas fa-info-circle me-2"></i>
+                {% endif %}
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -28,12 +49,20 @@
     <!-- Filtros de búsqueda -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-filter text-primary me-2"></i>
+                <h6 class="mb-0 fw-bold">Filtros de Búsqueda</h6>
+            </div>
             <form method="get" class="row g-2">
                 <div class="col-md-6">
                     <div class="input-group">
-                        <label class="input-group-text" for="nivelFilter" style="background-color: #5c6bc0; color: white;">Nivel</label>
+                        <label class="input-group-text" for="nivelFilter" style="background-color: #5c6bc0; color: white;">
+                            <i class="fas fa-layer-group me-2"></i>Nivel
+                        </label>
                         <select class="form-select" id="nivelFilter" name="nivel" onchange="this.form.submit()">
-                            <option value="todos" {% if nivel_filter == 'todos' %}selected{% endif %}>Todos los niveles</option>
+                            <option value="todos" {% if nivel_filter == 'todos' %}selected{% endif %}>
+                                <i class="fas fa-list"></i> Todos los niveles
+                            </option>
                             <option value="1" {% if nivel_filter == '1' %}selected{% endif %}>Nivel 1</option>
                             <option value="2" {% if nivel_filter == '2' %}selected{% endif %}>Nivel 2</option>
                             <option value="3" {% if nivel_filter == '3' %}selected{% endif %}>Nivel 3</option>
@@ -42,11 +71,17 @@
                 </div>
                 <div class="col-md-6">
                     <div class="input-group">
-                        <label class="input-group-text" for="jornadaFilter" style="background-color: #5c6bc0; color: white;">Jornada</label>
+                        <label class="input-group-text" for="jornadaFilter" style="background-color: #5c6bc0; color: white;">
+                            <i class="fas fa-clock me-2"></i>Jornada
+                        </label>
                         <select class="form-select" id="jornadaFilter" name="jornada" onchange="this.form.submit()">
                             <option value="todos" {% if jornada_filter == 'todos' %}selected{% endif %}>Todas las jornadas</option>
-                            <option value="a" {% if jornada_filter == 'a' %}selected{% endif %}>Diurna (A)</option>
-                            <option value="b" {% if jornada_filter == 'b' %}selected{% endif %}>Vespertina (B)</option>
+                            <option value="a" {% if jornada_filter == 'a' %}selected{% endif %}>
+                                <i class="fas fa-sun"></i> Diurna (A)
+                            </option>
+                            <option value="b" {% if jornada_filter == 'b' %}selected{% endif %}>
+                                <i class="fas fa-moon"></i> Vespertina (B)
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -60,15 +95,36 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100 shadow-sm curso-card" data-curso-id="{{ curso.id }}">
                 <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #5c6bc0; color: white;">
-                    <h5 class="mb-0 nivel-curso">{{ curso.nivel }}° <span class="letra-curso">{{ curso.letra|upper }}</span></h5>
+                    <h5 class="mb-0 nivel-curso">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>
+                        {{ curso.nivel }}° <span class="letra-curso">{{ curso.letra|upper }}</span>
+                    </h5>
                     <span class="badge {% if curso.letra == 'a' %}bg-warning{% else %}bg-info{% endif %} jornada-curso">
-                        {% if curso.letra == 'a' %}Diurno{% else %}Vespertino{% endif %}
+                        {% if curso.letra == 'a' %}
+                            <i class="fas fa-sun me-1"></i>Diurno
+                        {% else %}
+                            <i class="fas fa-moon me-1"></i>Vespertino
+                        {% endif %}
                     </span>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <h6 class="fw-bold text-muted"><i class="fas fa-user-graduate me-2"></i>Alumnos:</h6>
-                        <p>{{ curso.alumnos.count }} alumnos matriculados</p>
+                        <h6 class="fw-bold text-muted">
+                            <i class="fas fa-users me-2"></i>Estudiantes:
+                        </h6>
+                        <p>
+                            <i class="fas fa-user-graduate me-1 text-primary"></i>
+                            {{ curso.alumnos.count }} alumnos matriculados
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-muted">
+                            <i class="fas fa-chart-line me-2"></i>Estado:
+                        </h6>
+                        <p>
+                            <i class="fas fa-circle text-success me-1"></i>
+                            Activo
+                        </p>
                     </div>
                 </div>
                 <div class="card-footer bg-transparent">
@@ -89,10 +145,16 @@
             <div class="card shadow-sm">
                 <div class="card-body text-center py-5">
                     <i class="fas fa-school fa-4x mb-3" style="color: #78909c;"></i>
-                    <h4 style="color: #78909c;">No hay cursos registrados</h4>
-                    <p class="text-muted">Puedes crear un nuevo curso haciendo clic en el botón "Nuevo Curso".</p>
+                    <h4 style="color: #78909c;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No hay cursos registrados
+                    </h4>
+                    <p class="text-muted">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Puedes crear un nuevo curso haciendo clic en el botón "Nuevo Curso".
+                    </p>
                     <a href="{% url 'cursos:crear_curso' %}" class="btn mt-3" style="background-color: #26a69a; color: white;">
-                        <i class="fas fa-plus"></i> Crear Primer Curso
+                        <i class="fas fa-plus-circle me-2"></i> Crear Primer Curso
                     </a>
                 </div>
             </div>
@@ -107,7 +169,10 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #5c6bc0; color: white;">
-                <h5 class="modal-title" id="cursoDetallesModalLabel">Detalles del Curso</h5>
+                <h5 class="modal-title" id="cursoDetallesModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Detalles del Curso
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white;"></button>
             </div>
             <div class="modal-body">
@@ -115,22 +180,34 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
-                    <p class="mt-2">Cargando detalles del curso...</p>
+                    <p class="mt-2">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        Cargando detalles del curso...
+                    </p>
                 </div>
                 <div id="modal-content" style="display: none;">
                     <div class="row mb-4">
                         <div class="col-md-12">
                             <div class="card h-100">
                                 <div class="card-header" style="background-color: #5c6bc0; color: white;">
-                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Curso</h6>
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-graduation-cap me-2"></i>
+                                        Información del Curso
+                                    </h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Nivel:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-layer-group me-2"></i>
+                                            Nivel:
+                                        </h6>
                                         <p id="modal-nivel"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Jornada:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-clock me-2"></i>
+                                            Jornada:
+                                        </h6>
                                         <p>
                                             <span id="modal-jornada"></span>
                                             <span id="modal-jornada-badge" class="badge"></span>
@@ -143,8 +220,14 @@
                     <div class="card mb-3">
                         <div class="card-header" style="background-color: #5c6bc0; color: white;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Alumnos Matriculados</h6>
-                                <span class="badge bg-primary" id="modal-total-alumnos">0 alumnos</span>
+                                <h6 class="mb-0">
+                                    <i class="fas fa-users me-2"></i>
+                                    Alumnos Matriculados
+                                </h6>
+                                <span class="badge bg-primary" id="modal-total-alumnos">
+                                    <i class="fas fa-user-graduate me-1"></i>
+                                    0 alumnos
+                                </span>
                             </div>
                         </div>
                         <div class="card-body">
@@ -153,9 +236,18 @@
                                     <table class="table table-striped table-hover">
                                         <thead>
                                             <tr>
-                                                <th>Nombre</th>
-                                                <th></th>
-                                                <th>Acciones</th>
+                                                <th>
+                                                    <i class="fas fa-user me-2"></i>
+                                                    Nombre
+                                                </th>
+                                                <th>
+                                                    <i class="fas fa-id-card me-2"></i>
+                                                    RUT
+                                                </th>
+                                                <th>
+                                                    <i class="fas fa-cogs me-2"></i>
+                                                    Acciones
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody id="modal-alumnos-lista">
@@ -174,7 +266,7 @@
                     </div>
                 </div>
                 <div id="modal-error" class="alert alert-danger" style="display: none;">
-                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <i class="fas fa-exclamation-triangle me-2"></i>
                     <span id="error-message">Error al cargar los detalles del curso.</span>
                 </div>
             </div>
@@ -186,7 +278,9 @@
                         </button>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Cerrar
+                        </button>
                         <a href="#" id="editar-curso-link" class="btn" style="background-color: #26a69a; color: white;">
                             <i class="fas fa-edit me-1"></i> Editar Curso
                         </a>
@@ -202,21 +296,33 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="confirmarEliminarModalLabel">Confirmar Eliminación</h5>
+                <h5 class="modal-title" id="confirmarEliminarModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmar Eliminación
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white;"></button>
             </div>
             <div class="modal-body">
                 <div class="text-center mb-4">
                     <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
-                    <h5>¿Estás seguro de que deseas eliminar este curso?</h5>
-                    <p class="text-danger">Esta acción no se puede deshacer y eliminará toda la información asociada al curso.</p>
+                    <h5>
+                        <i class="fas fa-question-circle me-2"></i>
+                        ¿Estás seguro de que deseas eliminar este curso?
+                    </h5>
+                    <p class="text-danger">
+                        <i class="fas fa-warning me-2"></i>
+                        Esta acción no se puede deshacer y eliminará toda la información asociada al curso.
+                    </p>
                 </div>
                 <div class="alert alert-warning">
+                    <i class="fas fa-graduation-cap me-2"></i>
                     <strong>Curso a eliminar:</strong> <span id="curso-a-eliminar"></span>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancelar
+                </button>
                 <form id="form-eliminar-curso" method="post" action="">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">
@@ -233,7 +339,10 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #5c6bc0; color: white;">
-                <h5 class="modal-title" id="alumnoDetallesModalLabel">Detalles del Alumno</h5>
+                <h5 class="modal-title" id="alumnoDetallesModalLabel">
+                    <i class="fas fa-user-graduate me-2"></i>
+                    Detalles del Alumno
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white;"></button>
             </div>
             <div class="modal-body">
@@ -241,7 +350,10 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
-                    <p class="mt-2">Cargando detalles del alumno...</p>
+                    <p class="mt-2">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        Cargando detalles del alumno...
+                    </p>
                 </div>
                 
                 <div id="alumno-modal-content" style="display: none;">
@@ -249,31 +361,52 @@
                         <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header" style="background-color: #5c6bc0; color: white;">
-                                    <h6 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Información Personal</h6>
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-user me-2"></i>
+                                        Información Personal
+                                    </h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Nombre Completo:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-signature me-2"></i>
+                                            Nombre Completo:
+                                        </h6>
                                         <p id="alumno-nombre"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">RUT:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-id-card me-2"></i>
+                                            RUT:
+                                        </h6>
                                         <p id="alumno-rut"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Fecha de Nacimiento:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-birthday-cake me-2"></i>
+                                            Fecha de Nacimiento:
+                                        </h6>
                                         <p id="alumno-fecha-nacimiento"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Edad:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-calendar-alt me-2"></i>
+                                            Edad:
+                                        </h6>
                                         <p id="alumno-edad"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Sexo:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-venus-mars me-2"></i>
+                                            Sexo:
+                                        </h6>
                                         <p id="alumno-sexo"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Estado Civil:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-heart me-2"></i>
+                                            Estado Civil:
+                                        </h6>
                                         <p id="alumno-estado-civil"></p>
                                     </div>
                                 </div>
@@ -283,31 +416,52 @@
                         <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header" style="background-color: #5c6bc0; color: white;">
-                                    <h6 class="mb-0"><i class="fas fa-school me-2"></i>Información Académica</h6>
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-graduation-cap me-2"></i>
+                                        Información Académica
+                                    </h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Nivel:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-layer-group me-2"></i>
+                                            Nivel:
+                                        </h6>
                                         <p id="alumno-nivel"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Jornada:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-clock me-2"></i>
+                                            Jornada:
+                                        </h6>
                                         <p id="alumno-jornada"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Fecha de Ingreso:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-calendar-plus me-2"></i>
+                                            Fecha de Ingreso:
+                                        </h6>
                                         <p id="alumno-fecha-ingreso"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Último Curso Aprobado:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-check-circle me-2"></i>
+                                            Último Curso Aprobado:
+                                        </h6>
                                         <p id="alumno-ultimo-curso"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Curso Repetido:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-redo me-2"></i>
+                                            Curso Repetido:
+                                        </h6>
                                         <p id="alumno-curso-repetido"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Estado:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-toggle-on me-2"></i>
+                                            Estado:
+                                        </h6>
                                         <p id="alumno-estado"></p>
                                     </div>
                                 </div>
@@ -319,27 +473,45 @@
                         <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header" style="background-color: #5c6bc0; color: white;">
-                                    <h6 class="mb-0"><i class="fas fa-home me-2"></i>Información de Contacto</h6>
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-address-book me-2"></i>
+                                        Información de Contacto
+                                    </h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Dirección:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-map-marker-alt me-2"></i>
+                                            Dirección:
+                                        </h6>
                                         <p id="alumno-direccion"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Teléfono:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-phone me-2"></i>
+                                            Teléfono:
+                                        </h6>
                                         <p id="alumno-telefono"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Correo Electrónico:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-envelope me-2"></i>
+                                            Correo Electrónico:
+                                        </h6>
                                         <p id="alumno-email"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Religión:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-pray me-2"></i>
+                                            Religión:
+                                        </h6>
                                         <p id="alumno-religion"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Situación Laboral:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-briefcase me-2"></i>
+                                            Situación Laboral:
+                                        </h6>
                                         <p id="alumno-situacion-laboral"></p>
                                     </div>
                                 </div>
@@ -349,19 +521,31 @@
                         <div class="col-md-6">
                             <div class="card h-100">
                                 <div class="card-header" style="background-color: #5c6bc0; color: white;">
-                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información Adicional</h6>
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-clipboard-list me-2"></i>
+                                        Información Adicional
+                                    </h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Programa PIE:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-hands-helping me-2"></i>
+                                            Programa PIE:
+                                        </h6>
                                         <p id="alumno-programa-pie"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Profesional de Apoyo:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-user-md me-2"></i>
+                                            Profesional de Apoyo:
+                                        </h6>
                                         <p id="alumno-profesional-apoyo"></p>
                                     </div>
                                     <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Informe Psicosocial:</h6>
+                                        <h6 class="fw-bold text-muted">
+                                            <i class="fas fa-file-medical me-2"></i>
+                                            Informe Psicosocial:
+                                        </h6>
                                         <p id="alumno-informe-psicosocial"></p>
                                     </div>
                                 </div>
@@ -373,20 +557,40 @@
                         <div class="col-md-12">
                             <div class="card h-100">
                                 <div class="card-header" style="background-color: #5c6bc0; color: white;">
-                                    <h6 class="mb-0"><i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia</h6>
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-phone-alt me-2"></i>
+                                        Contacto de Emergencia
+                                    </h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Nombre:</h6>
-                                        <p id="alumno-contacto-emergencia-nombre"></p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Parentezco:</h6>
-                                        <p id="alumno-contacto-emergencia-parentezco"></p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <h6 class="fw-bold text-muted">Teléfono:</h6>
-                                        <p id="alumno-contacto-emergencia-telefono"></p>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">
+                                                    <i class="fas fa-user-friends me-2"></i>
+                                                    Nombre:
+                                                </h6>
+                                                <p id="alumno-contacto-emergencia-nombre"></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">
+                                                    <i class="fas fa-users me-2"></i>
+                                                    Parentezco:
+                                                </h6>
+                                                <p id="alumno-contacto-emergencia-parentezco"></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">
+                                                    <i class="fas fa-mobile-alt me-2"></i>
+                                                    Teléfono:
+                                                </h6>
+                                                <p id="alumno-contacto-emergencia-telefono"></p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -395,7 +599,7 @@
                 </div>
                 
                 <div id="alumno-modal-error" class="alert alert-danger" style="display: none;">
-                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <i class="fas fa-exclamation-triangle me-2"></i>
                     <span id="alumno-error-message">Error al cargar los detalles del alumno.</span>
                 </div>
             </div>
@@ -448,19 +652,17 @@
         </div>
     </div>
 </div>
- <!-- Botón de ayuda flotante para la sección de cursos -->
- <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
-    <button type="button" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background-color: #3f51b5; color: white;" data-bs-toggle="modal" data-bs-target="#cursosHelpModal">
-        <i class="fas fa-question fa-2x"></i>
-    </button>
-</div>
+
 
 <!-- Modal de Ayuda para Cursos -->
 <div class="modal fade" id="cursosHelpModal" tabindex="-1" aria-labelledby="cursosHelpModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #3f51b5; color: white;">
-                <h5 class="modal-title" id="cursosHelpModalLabel">Guía de Gestión de Cursos</h5>
+                <h5 class="modal-title" id="cursosHelpModalLabel">
+                    <i class="fas fa-question-circle me-2"></i>
+                    Guía de Gestión de Cursos
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -469,22 +671,240 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingResumen">
                             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumen" aria-expanded="true" aria-controls="collapseResumen">
-                                <i class="fas fa-school me-2"></i> Visión General
+                                <i class="fas fa-graduation-cap me-2"></i> Visión General
                             </button>
                         </h2>
                         <div id="collapseResumen" class="accordion-collapse collapse show" aria-labelledby="headingResumen" data-bs-parent="#cursosHelpAccordion">
                             <div class="accordion-body">
-                                <p>La sección de Gestión de Cursos le permite administrar todos los cursos del establecimiento educativo.</p>
+                                <p>
+                                    <i class="fas fa-info-circle me-2 text-primary"></i>
+                                    La sección de Gestión de Cursos le permite administrar todos los cursos del establecimiento educativo.
+                                </p>
                                 <p>Desde esta interfaz puede:</p>
                                 <ul>
-                                    <li><strong>Crear nuevos cursos</strong> con nivel y jornada específicos</li>
-                                    <li><strong>Gestionar alumnos</strong> en los cursos correspondientes</li>
-                                    <li><strong>Visualizar información detallada</strong> de cada curso</li>
+                                    <li>
+                                        <i class="fas fa-plus-circle me-2 text-success"></i>
+                                        <strong>Crear nuevos cursos</strong> con nivel y jornada específicos
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-users me-2 text-info"></i>
+                                        <strong>Gestionar alumnos</strong> en los cursos correspondientes
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-eye me-2 text-warning"></i>
+                                        <strong>Visualizar información detallada</strong> de cada curso
+                                    </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- Sección Crear Curso -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingCrear">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCrear" aria-expanded="false" aria-controls="collapseCrear">
+                                <i class="fas fa-plus-circle me-2"></i> Crear Nuevo Curso
+                            </button>
+                        </h2>
+                        <div id="collapseCrear" class="accordion-collapse collapse" aria-labelledby="headingCrear" data-bs-parent="#cursosHelpAccordion">
+                            <div class="accordion-body">
+                                <p>
+                                    <i class="fas fa-lightbulb me-2 text-warning"></i>
+                                    Para crear un nuevo curso:
+                                </p>
+                                <ol>
+                                    <li>
+                                        <i class="fas fa-mouse-pointer me-2 text-primary"></i>
+                                        Haga clic en el botón <strong>"Nuevo Curso"</strong>
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-layer-group me-2 text-info"></i>
+                                        Seleccione el <strong>nivel</strong> (1°, 2°, 3°)
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-clock me-2 text-success"></i>
+                                        Elija la <strong>jornada</strong> (Diurna o Vespertina)
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-save me-2 text-danger"></i>
+                                        Complete la información y guarde
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección Filtros -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFiltros">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltros" aria-expanded="false" aria-controls="collapseFiltros">
+                                <i class="fas fa-filter me-2"></i> Usar Filtros
+                            </button>
+                        </h2>
+                        <div id="collapseFiltros" class="accordion-collapse collapse" aria-labelledby="headingFiltros" data-bs-parent="#cursosHelpAccordion">
+                            <div class="accordion-body">
+                                <p>
+                                    <i class="fas fa-search me-2 text-primary"></i>
+                                    Los filtros le ayudan a encontrar cursos específicos:
+                                </p>
+                                <ul>
+                                    <li>
+                                        <i class="fas fa-layer-group me-2 text-info"></i>
+                                        <strong>Filtro por Nivel:</strong> Muestra solo cursos del nivel seleccionado
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-clock me-2 text-warning"></i>
+                                        <strong>Filtro por Jornada:</strong> Filtra por jornada diurna o vespertina
+                                    </li>
+                                </ul>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Los filtros se aplican automáticamente al seleccionar una opción.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección Gestionar Alumnos -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingAlumnos">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAlumnos" aria-expanded="false" aria-controls="collapseAlumnos">
+                                <i class="fas fa-users me-2"></i> Gestionar Alumnos
+                            </button>
+                        </h2>
+                        <div id="collapseAlumnos" class="accordion-collapse collapse" aria-labelledby="headingAlumnos" data-bs-parent="#cursosHelpAccordion">
+                            <div class="accordion-body">
+                                <p>
+                                    <i class="fas fa-user-graduate me-2 text-primary"></i>
+                                    Para gestionar alumnos en un curso:
+                                </p>
+                                <ol>
+                                    <li>
+                                        <i class="fas fa-eye me-2 text-info"></i>
+                                        Haga clic en <strong>"Ver Detalles"</strong> en la tarjeta del curso
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-list me-2 text-success"></i>
+                                        Revise la lista de alumnos matriculados
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-user me-2 text-warning"></i>
+                                        Haga clic en <strong>"Ver alumno"</strong> para ver detalles completos
+                                    </li>
+                                    <li>
+                                        <i class="fas fa-edit me-2 text-primary"></i>
+                                        Use <strong>"Editar Alumno"</strong> para modificar información
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección Acciones -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingAcciones">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAcciones" aria-expanded="false" aria-controls="collapseAcciones">
+                                <i class="fas fa-cogs me-2"></i> Acciones Disponibles
+                            </button>
+                        </h2>
+                        <div id="collapseAcciones" class="accordion-collapse collapse" aria-labelledby="headingAcciones" data-bs-parent="#cursosHelpAccordion">
+                            <div class="accordion-body">
+                                <p>
+                                    <i class="fas fa-tools me-2 text-primary"></i>
+                                    Acciones disponibles para cada curso:
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <ul>
+                                            <li>
+                                                <i class="fas fa-eye me-2 text-info"></i>
+                                                <strong>Ver Detalles:</strong> Información completa del curso
+                                            </li>
+                                            <li>
+                                                <i class="fas fa-edit me-2 text-success"></i>
+                                                <strong>Editar:</strong> Modificar información del curso
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul>
+                                            <li>
+                                                <i class="fas fa-trash-alt me-2 text-danger"></i>
+                                                <strong>Eliminar:</strong> Borrar curso (requiere confirmación)
+                                            </li>
+                                            <li>
+                                                <i class="fas fa-book-open me-2 text-warning"></i>
+                                                <strong>Asignaturas:</strong> Gestionar materias del curso
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección Consejos -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingConsejos">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConsejos" aria-expanded="false" aria-controls="collapseConsejos">
+                                <i class="fas fa-lightbulb me-2"></i> Consejos y Recomendaciones
+                            </button>
+                        </h2>
+                        <div id="collapseConsejos" class="accordion-collapse collapse" aria-labelledby="headingConsejos" data-bs-parent="#cursosHelpAccordion">
+                            <div class="accordion-body">
+                                <p>
+                                    <i class="fas fa-star me-2 text-warning"></i>
+                                    Consejos para una mejor gestión:
+                                </p>
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>Buenas Prácticas:</strong>
+                                    <ul class="mt-2 mb-0">
+                                        <li>
+                                            <i class="fas fa-calendar me-2"></i>
+                                            Revise regularmente la información de los cursos
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-users me-2"></i>
+                                            Mantenga actualizada la lista de alumnos
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-backup me-2"></i>
+                                            Haga respaldos antes de eliminar información
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Precauciones:</strong>
+                                    <ul class="mt-2 mb-0">
+                                        <li>
+                                            <i class="fas fa-trash me-2"></i>
+                                            La eliminación de cursos es irreversible
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-shield-alt me-2"></i>
+                                            Verifique permisos antes de realizar cambios
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cerrar
+                </button>
+                <button type="button" class="btn btn-primary">
+                    <i class="fas fa-download me-1"></i> Descargar Guía PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-eliminar alertas después de 5 segundos
@@ -615,14 +1035,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     curso.alumnos.forEach(alumno => {
                         alumnosLista.innerHTML += `
                             <tr>
-                                <td>${alumno.nombre}</td>
-                                <td></td>
+                                <td>
+                                    <i class="fas fa-user me-2 text-primary"></i>
+                                    ${alumno.nombre}
+                                </td>
+                                <td>
+                                    <i class="fas fa-id-card me-2 text-secondary"></i>
+                                    ${alumno.rut || 'No disponible'}
+                                </td>
                                 <td>
                                     <button class="btn btn-sm ver-alumno-btn" 
                                        style="background-color: #5c6bc0; color: white;"
                                        title="Ver detalles del alumno"
                                        data-alumno-id="${alumno.id}">
-                                        <i class="fas fa-eye"></i> Ver alumno
+                                        <i class="fas fa-eye me-1"></i> Ver alumno
                                     </button>
                                 </td>
                             </tr>
@@ -641,7 +1067,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     if (alumnosContainer) alumnosContainer.style.display = 'block';
                     if (noAlumnosMessage) noAlumnosMessage.style.display = 'none';
-                    alumnosLista.innerHTML = '<tr><td colspan="3" class="text-center">No hay alumnos matriculados</td></tr>';
+                    alumnosLista.innerHTML = '<tr><td colspan="3" class="text-center"><i class="fas fa-info-circle me-2"></i>No hay alumnos matriculados</td></tr>';
                 }
             }
 
@@ -692,7 +1118,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     console.log('Datos del alumno recibidos:', data.alumno);
-                    // Usar data.alumno que contiene todos los detalles del alumno
                     mostrarDetallesAlumno(data.alumno);
                 } else {
                     mostrarErrorAlumno(data.error || 'Error al cargar los detalles del alumno.');
@@ -776,93 +1201,5 @@ document.addEventListener('DOMContentLoaded', function() {
             // Actualizar el título del modal
             setTextSafely('alumnoDetallesModalLabel', `Detalles del Alumno: ${alumno.nombre_completo}`);
             
-            // Configurar botones de acción
-            const eliminarBtn = document.getElementById('eliminar-alumno-btn');
-            if (eliminarBtn) {
-                eliminarBtn.onclick = () => {
-                    const detallesModal = document.getElementById('alumnoDetallesModal');
-                    if (detallesModal) {
-                        const detallesModalInstance = bootstrap.Modal.getInstance(detallesModal);
-                        if (detallesModalInstance) {
-                            detallesModalInstance.hide();
-                        }
-                    }
-                    setTextSafely('alumno-a-eliminar', alumno.nombre_completo);
-                    const formEliminar = document.getElementById('form-eliminar-alumno');
-                    if (formEliminar) {
-                        formEliminar.action = `/alumnos/${alumno.id}/eliminar/`;
-                    }
-                    const confirmarEliminarModal = document.getElementById('confirmarEliminarAlumnoModal');
-                    if (confirmarEliminarModal) {
-                        const confirmarEliminarModalInstance = new bootstrap.Modal(confirmarEliminarModal);
-                        confirmarEliminarModalInstance.show();
-                    }
-                };
-            }
-            
-            // Configurar enlace de edición
-            const editarLink = document.getElementById('editar-alumno-link');
-            if (editarLink) {
-                editarLink.href = `/alumnos/${alumno.id}/editar/`;
-            }
-            
-        } catch (error) {
-            console.error('Error al mostrar detalles del alumno:', error);
-            mostrarErrorAlumno('Error al mostrar los detalles del alumno: ' + error.message);
-        }
-    }
-
-    function mostrarErrorAlumno(mensaje) {
-        const errorElement = document.getElementById('alumno-modal-error');
-        const mensajeElement = document.getElementById('alumno-error-message');
-        if (errorElement && mensajeElement) {
-            mensajeElement.textContent = mensaje;
-            errorElement.style.display = 'block';
-        }
-    }
-
-    function mostrarError(mensaje) {
-        const errorElement = document.getElementById('modal-error');
-        const mensajeElement = document.getElementById('error-message');
-        if (errorElement && mensajeElement) {
-            mensajeElement.textContent = mensaje;
-            errorElement.style.display = 'block';
-        }
-    }
-
-    const eliminarCursoBtn = document.getElementById('eliminar-curso-btn');
-    if (eliminarCursoBtn) {
-        eliminarCursoBtn.addEventListener('click', function() {
-            const detallesModalInstance = bootstrap.Modal.getInstance(detallesModal);
-            if (detallesModalInstance) {
-                detallesModalInstance.hide();
-            }
-            const confirmarEliminarModalInstance = new bootstrap.Modal(confirmarEliminarModal);
-            confirmarEliminarModalInstance.show();
-        });
-    }
-
-    const cursoCards = document.querySelectorAll('.curso-card');
-    cursoCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px)';
-            this.style.transition = 'transform 0.3s ease';
-            this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
-        });
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '';
-        });
-    });
-
-    if (alumnoDetallesModal) {
-        alumnoDetallesModal.addEventListener('hidden.bs.modal', function () {
-            if (cursoActualId) {
-                const cursoModalInstance = new bootstrap.Modal(detallesModal);
-                cursoModalInstance.show();
-            }
-        });
-    }
-});
-</script>
+    </script>
 {% endblock %}
