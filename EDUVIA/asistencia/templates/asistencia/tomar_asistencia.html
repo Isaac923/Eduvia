@@ -3,21 +3,30 @@
 {% load asistencia_extras %}
 
 {% block title %}{{ titulo }} - EDUVIA{% endblock %}
-
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/asistencia/tomar_asistencia.css' %}">
+{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
+                <div class="card-header {% if es_modificacion %}bg-warning text-dark{% else %}bg-success text-white{% endif %}">
                     <h4 class="mb-0">
-                        <i class="fas fa-clipboard-check me-2"></i>
+                        <i class="fas fa-{% if es_modificacion %}edit{% else %}clipboard-check{% endif %} me-2"></i>
                         {{ titulo }}
                     </h4>
-                    <small>Fecha: {{ fecha_hoy|date:"d/m/Y" }} - Curso: {{ asignatura_curso.curso }}</small>
+                    <small>
+                        Fecha: {% if es_modificacion %}{{ fecha_modificar|date:"d/m/Y" }}{% else %}{{ fecha_hoy|date:"d/m/Y" }}{% endif %} - Curso: {{ asignatura_curso.curso }}
+                    </small>
                 </div>
                 <div class="card-body">
-                    {% if asistencia_existente %}
+                    {% if es_modificacion %}
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-edit me-2"></i>
+                            <strong>Modo Modificación:</strong> Está editando la asistencia del {{ fecha_modificar|date:"d/m/Y" }}. Los cambios sobrescribirán los registros existentes.
+                        </div>
+                    {% elif asistencia_existente %}
                         <div class="alert alert-warning" role="alert">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             Ya existe un registro de asistencia para hoy. Al guardar, se actualizará la información.
@@ -119,18 +128,25 @@
 
                         <div class="d-flex justify-content-between mt-4">
                             <div class="d-flex gap-2">
-                                <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left me-2"></i>
-                                    Volver
-                                </a>
+                                {% if es_modificacion %}
+                                    <a href="{% url 'asistencia:ver_asistencias' %}?asignatura_curso={{ asignatura_curso.id }}&fecha_inicio={{ fecha_modificar|date:'Y-m-d' }}&fecha_fin={{ fecha_modificar|date:'Y-m-d' }}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Volver a Asistencias
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Volver
+                                    </a>
+                                {% endif %}
                                 <a href="{% url 'asistencia:ver_asistencias' %}" class="btn btn-outline-info">
                                     <i class="fas fa-eye me-2"></i>
                                     Ver Asistencias
                                 </a>
                             </div>
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-save me-2"></i>
-                                Guardar Asistencia
+                            <button type="submit" class="btn {% if es_modificacion %}btn-warning{% else %}btn-success{% endif %} btn-lg">
+                                <i class="fas fa-{% if es_modificacion %}edit{% else %}save{% endif %} me-2"></i>
+                                {% if es_modificacion %}Actualizar Asistencia{% else %}Guardar Asistencia{% endif %}
                             </button>
                         </div>
                     </form>
@@ -140,28 +156,10 @@
     </div>
 </div>
 
-<style>
-.avatar-sm {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
-    font-weight: bold;
-}
-</style>
 
-<script>
-function marcarTodos(estado) {
-    const radios = document.querySelectorAll(`input[type="radio"][value="${estado}"]`);
-    radios.forEach(radio => {
-        radio.checked = true;
-    });
-}
 
-// Confirmación antes de enviar
-document.getElementById('asistenciaForm').addEventListener('submit', function(e) {
-    if (!confirm('¿Está seguro de guardar la asistencia? Esta acción actualizará los registros existentes.')) {
-        e.preventDefault();
-    }
-});
-</script>
+<script src="{% static 'js/editar_alumno.js' %}"></script>
+
+
+
 {% endblock %}

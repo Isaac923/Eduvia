@@ -5,4 +5,9 @@ app_name = 'notas'
 
 urlpatterns = [
     path('', views.notas_generales, name='notas_generales'),
+    path('agregar-ano/', views.agregar_ano, name='agregar_ano'),
+    path('obtener-notas/<int:alumno_id>/', views.obtener_notas, name='obtener_notas'),
+    path('guardar-nota/', views.guardar_nota, name='guardar_nota'),
+    path('eliminar-nota/', views.eliminar_nota, name='eliminar_nota'),
+    path('historial-alumno/<int:alumno_id>/', views.historial_alumno, name='historial_alumno'),
 ]

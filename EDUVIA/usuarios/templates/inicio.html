@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Bienvenido a EDUVIA{% endblock %}
-
+{% load static %}
 {% block content %}
-<link rel="stylesheet" href="/static/css/inicio.css">
+<link rel="stylesheet" href="/static/css/inicio_login_base/inicio.css">
 
 <div class="welcome-fullscreen">
     <div class="welcome-bg"></div>
@@ -97,4 +97,8 @@
         "Facilitando la gestión educativa para que puedas enfocarte en lo que realmente importa: la calidad educativa"
     </div>
 </div>
+
+<script src="{% static 'js/editar_alumno.js' %}"></script>
+
+
 {% endblock %}

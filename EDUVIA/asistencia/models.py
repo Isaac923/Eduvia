@@ -40,6 +40,17 @@ class AsignaturaCurso(models.Model):
     
     def __str__(self):
         return f"{self.asignatura} - {self.curso}"
+    
+    def puede_ser_modificada_por(self, usuario):
+        """Verifica si un usuario puede modificar asistencias de esta asignatura-curso"""
+        if usuario.is_superuser:
+            return True
+        
+        try:
+            usuario_eduvia = Usuario.objects.get(rut=usuario.username)
+            return usuario_eduvia.rol == 'profesor' and self.profesor == usuario_eduvia
+        except Usuario.DoesNotExist:
+            return False
 
 class Asistencia(models.Model):
     ESTADO_CHOICES = [
@@ -56,6 +67,7 @@ class Asistencia(models.Model):
     observaciones = models.TextField(blank=True, null=True)
     registrado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Asistencia'
@@ -65,3 +77,20 @@ class Asistencia(models.Model):
 
     def __str__(self):
         return f"{self.alumno} - {self.asignatura_curso} - {self.fecha} - {self.estado}"
+    
+    def fue_modificada(self):
+        """Verifica si la asistencia fue modificada después de su creación"""
+        return self.fecha_modificacion > self.fecha_registro
+    
+    def get_estado_display_with_icon(self):
+        """Retorna el estado con su icono correspondiente"""
+        icons = {
+            'presente': 'fas fa-check text-success',
+            'ausente': 'fas fa-times text-danger',
+            'tardanza': 'fas fa-clock text-warning',
+            'justificado': 'fas fa-file-medical text-info',
+        }
+        return {
+            'estado': self.get_estado_display(),
+            'icon': icons.get(self.estado, 'fas fa-question text-muted')
+        }

@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
@@ -5,7 +6,13 @@ from django.db.models import Q
 from .models import Alumno, Apoderado
 from .forms import AlumnoCreationForm
 
+def is_superuser(user):
+    """Función para verificar si el usuario es superusuario"""
+    return user.is_superuser
+
 # Vistas basadas en funciones para alumnos
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def lista_alumnos(request):
     # Obtener parámetros de filtro
     nombre_busqueda = request.GET.get('nombre', '')
@@ -44,11 +51,15 @@ def lista_alumnos(request):
         'estado_filter': estado_filter,
     })
 
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def detalle_alumno(request, pk):
     """Vista para ver los detalles de un alumno"""
     alumno = get_object_or_404(Alumno, pk=pk)
     return render(request, 'alumnos/detalle_alumno.html', {'alumno': alumno})
 
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def crear_alumno(request):
     """Vista para crear un nuevo alumno"""
     if request.method == 'POST':
@@ -66,6 +77,8 @@ def crear_alumno(request):
     
     return render(request, 'alumnos/crear_alumnos.html', {'form': form})
 
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def editar_alumno(request, pk):
     """Vista para editar un alumno existente"""
     alumno = get_object_or_404(Alumno, pk=pk)
@@ -83,6 +96,8 @@ def editar_alumno(request, pk):
     
     return render(request, 'alumnos/editar_alumno.html', {'form': form, 'alumno': alumno})
 
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def eliminar_alumno(request, pk):
     """Vista para eliminar un alumno de la base de datos"""
     alumno = get_object_or_404(Alumno, pk=pk)
@@ -95,6 +110,8 @@ def eliminar_alumno(request, pk):
     
     return render(request, 'alumnos/eliminar_alumno.html', {'alumno': alumno})
 
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def retirar_alumno(request, pk):
     """Vista para registrar el retiro de un alumno"""
     alumno = get_object_or_404(Alumno, pk=pk)
@@ -115,6 +132,8 @@ def retirar_alumno(request, pk):
     
     return render(request, 'alumnos/retirar_alumno.html', {'alumno': alumno})
 
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def cambiar_estado_alumno(request, pk):
     if request.method == 'POST':
         alumno = get_object_or_404(Alumno, pk=pk)

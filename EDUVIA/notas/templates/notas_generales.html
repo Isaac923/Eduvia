@@ -4,8 +4,132 @@
 {% block title %}Gestión de Notas - EDUVIA{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/notas_generales.css' %}">
+<link rel="stylesheet" href="{% static 'css/notas/notas_generales.css' %}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+    .year-selector-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .year-selector-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .year-selector-title {
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .year-controls {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .year-select {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        color: white;
+        padding: 8px 15px;
+        font-size: 1rem;
+        font-weight: 500;
+        min-width: 120px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .year-select:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.6);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .year-select option {
+        background: #2c3e50;
+        color: white;
+        padding: 8px;
+    }
+
+    .btn-add-year {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-add-year:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+    }
+
+    .year-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+    }
+
+    .year-stat {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px 12px;
+        border-radius: 20px;
+        backdrop-filter: blur(5px);
+    }
+
+    .year-stat i {
+        font-size: 0.8rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .year-selector-header {
+            flex-direction: column;
+            gap: 15px;
+            align-items: stretch;
+        }
+
+        .year-controls {
+            justify-content: center;
+        }
+
+        .year-info {
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -28,9 +152,48 @@
         </div>
     {% endif %}
 
+    <!-- Selector de Año -->
+    <div class="year-selector-container">
+        <div class="year-selector-header">
+            <h4 class="year-selector-title">
+                <i class="fas fa-calendar-alt"></i>
+                Año Académico
+            </h4>
+            <div class="year-controls">
+                <select class="year-select" id="year-filter" name="year" onchange="cambiarAno()">
+                    {% for year in anos_disponibles %}
+                        <option value="{{ year }}" {% if year == ano_actual %}selected{% endif %}>
+                            {{ year }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn-add-year" onclick="mostrarModalAgregarAno()" title="Agregar nuevo año académico">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="year-info">
+            <div class="year-stat">
+                <i class="fas fa-calendar-check"></i>
+                <span>Año Seleccionado: <strong>{{ ano_actual }}</strong></span>
+            </div>
+            <div class="year-stat">
+                <i class="fas fa-users"></i>
+                <span>Total Alumnos: <strong>{{ total_alumnos }}</strong></span>
+            </div>
+            {% if materia_filter %}
+            <div class="year-stat">
+                <i class="fas fa-chart-line"></i>
+                <span>Promedio General: <strong>{{ promedio_general|floatformat:1 }}</strong></span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <!-- Filtros Horizontales Compactos -->
     <div class="filters-horizontal-container">
         <form method="get" id="filtros-form" class="filters-horizontal-form">
+            <input type="hidden" name="year" id="hidden-year" value="{{ ano_actual }}">
             <div class="filters-horizontal-row">
                 <!-- Búsqueda por alumno -->
                 <div class="filter-item">
@@ -93,6 +256,7 @@
         </form>
     </div>
 
+    <!-- Resto del contenido existente... -->
     <!-- Información de la materia seleccionada -->
     {% if materia_filter %}
     <div class="materia-info-compact">
@@ -104,7 +268,7 @@
                 {% elif materia_filter == 'historia' %}🏛️ Historia y Geografía
                 {% elif materia_filter == 'ingles' %}🇺🇸 Inglés
                 {% endif %}
-                - {{ semestre_filter }}° Semestre
+                - {{ semestre_filter }}° Semestre - {{ ano_actual }}
             </h4>
             <div class="materia-stats-inline">
                 <span class="stat-badge">
@@ -118,6 +282,7 @@
     </div>
     {% endif %}
 
+    <!-- El resto del template permanece igual... -->
     <!-- Tabla de notas -->
     {% if alumnos %}
     <div class="notas-table-container">
@@ -170,15 +335,19 @@
                                    data-alumno-id="{{ alumno.id }}"
                                    data-materia="{{ materia_filter }}"
                                    data-semestre="{{ semestre_filter }}"
+                                   data-ano="{{ ano_actual }}"
                                    data-numero-nota="{{ i }}"
                                    min="1.0" 
                                    max="7.0" 
                                    step="0.1"
                                    placeholder="--"
-                                   title="Nota {{ i }} - {{ semestre_filter }}° Semestre">
-                            <div class="nota-status">
+                                   title="Nota {{ i }} - {{ semestre_filter }}° Semestre {{ ano_actual }} - Click para editar"
+                                   onclick="abrirModalEditarNota({{ alumno.id }}, '{{ materia_filter }}', {{ semestre_filter }}, {{ i }}, this.value, {{ ano_actual }})"
+                                   readonly>
+                                                        <div class="nota-status">
                                 <i class="fas fa-save nota-saved" style="display: none;" title="Nota guardada"></i>
                                 <i class="fas fa-exclamation-triangle nota-error" style="display: none;" title="Error al guardar"></i>
+                                <i class="fas fa-percentage nota-ponderada" style="display: none; color: #28a745;" title="Nota con porcentaje asignado"></i>
                             </div>
                         </div>
                     </td>
@@ -186,7 +355,12 @@
                     
                     <!-- Promedio -->
                     <td class="promedio-cell">
-                        <span class="promedio-value" data-alumno-id="{{ alumno.id }}">--</span>
+                        <div class="promedio-container">
+                            <span class="promedio-value" data-alumno-id="{{ alumno.id }}">--</span>
+                            <small class="promedio-info text-muted d-block" style="font-size: 0.75em;">
+                                <span class="promedio-detalle" data-alumno-id="{{ alumno.id }}"></span>
+                            </small>
+                        </div>
                     </td>
                     
                     <!-- Acciones -->
@@ -196,11 +370,6 @@
                                     onclick="verHistorialNotas({{ alumno.id }})"
                                     title="Ver historial de notas">
                                 <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn-action btn-edit" 
-                                    onclick="editarNotasAlumno({{ alumno.id }})"
-                                    title="Editar todas las notas">
-                                <i class="fas fa-edit"></i>
                             </button>
                         </div>
                     </td>
@@ -220,7 +389,7 @@
             <p>Por favor, selecciona una materia en los filtros para ver las notas de los alumnos.</p>
         {% else %}
             <h3>No hay alumnos para mostrar</h3>
-            <p>No se encontraron alumnos que coincidan con los filtros seleccionados.</p>
+            <p>No se encontraron alumnos que coincidan con los filtros seleccionados para el año {{ ano_actual }}.</p>
         {% endif %}
         <button class="btn-eduvia btn-primary" onclick="limpiarFiltros()">
             <i class="fas fa-refresh me-2"></i>
@@ -230,9 +399,72 @@
     {% endif %}
 </div>
 
-<!-- Modal para editar nota individual -->
-<div class="modal fade" id="editarNotaModal" tabindex="-1" aria-labelledby="editarNotaModalLabel" aria-hidden="true">
+<!-- Modal para agregar nuevo año -->
+<div class="modal fade" id="agregarAnoModal" tabindex="-1" aria-labelledby="agregarAnoModalLabel" aria-hidden="true">
     <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agregarAnoModalLabel">
+                    <i class="fas fa-calendar-plus me-2"></i>
+                    Agregar Nuevo Año Académico
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="agregarAnoForm">
+                    {% csrf_token %}
+                   <!-- En la parte del modal de agregar año, actualizar el input -->
+<!-- En la parte del modal de agregar año, actualizar el input -->
+<div class="mb-3">
+    <label for="nuevo-ano" class="form-label">
+        <i class="fas fa-calendar me-1"></i>
+        Año Académico:
+    </label>
+    <input type="number" 
+           class="form-control" 
+           id="nuevo-ano" 
+           name="nuevo_ano"
+           min="2025" 
+           required
+           placeholder="Ej: 2025">
+    <div class="form-text">
+        Ingresa el año académico que deseas agregar (desde 2025 en adelante)
+    </div>
+</div>
+
+
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Información:
+                        </label>
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>Nota:</strong> Al agregar un nuevo año académico, se creará la estructura 
+                                necesaria para registrar notas de todos los alumnos activos en ese año.
+                            </small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="agregarAnoForm" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    Agregar Año
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar nota individual con porcentaje -->
+<div class="modal fade" id="editarNotaModal" tabindex="-1" aria-labelledby="editarNotaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editarNotaModalLabel">
@@ -248,33 +480,77 @@
                     <input type="hidden" id="modal-materia" name="materia">
                     <input type="hidden" id="modal-semestre" name="semestre">
                     <input type="hidden" id="modal-numero-nota" name="numero_nota">
+                    <input type="hidden" id="modal-ano" name="ano">
                     
-                    <div class="mb-3">
-                        <label class="form-label">Alumno:</label>
-                        <p id="modal-alumno-nombre" class="fw-bold"></p>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Alumno:</label>
+                            <p id="modal-alumno-nombre" class="fw-bold mb-1"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Materia y Período:</label>
+                            <p id="modal-materia-info" class="fw-bold mb-1"></p>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Materia y Semestre:</label>
-                        <p id="modal-materia-info" class="fw-bold"></p>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="modal-calificacion" class="form-label">
+                                <i class="fas fa-star me-1 text-warning"></i>
+                                Calificación (1.0 - 7.0):
+                            </label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="modal-calificacion" 
+                                   name="calificacion"
+                                   min="1.0" 
+                                   max="7.0" 
+                                   step="0.1" 
+                                   required
+                                   onchange="calcularVistaPrevia()">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modal-porcentaje" class="form-label">
+                                <i class="fas fa-percentage me-1 text-info"></i>
+                                Porcentaje (Opcional):
+                            </label>
+                            <div class="input-group">
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="modal-porcentaje" 
+                                       name="porcentaje"
+                                       min="0" 
+                                       max="100" 
+                                       step="1" 
+                                       placeholder="Sin porcentaje"
+                                       onchange="calcularVistaPrevia()">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <small class="form-text text-muted">
+                                Deja vacío si no quieres asignar porcentaje
+                            </small>
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="modal-calificacion" class="form-label">
-                            Calificación (1.0 - 7.0):
-                        </label>
-                        <input type="number" 
-                               class="form-control" 
-                               id="modal-calificacion" 
-                               name="calificacion"
-                               min="1.0" 
-                               max="7.0" 
-                               step="0.1" 
-                               required>
+
+                    <!-- Vista previa del cálculo -->
+                    <div class="alert alert-info mb-3" id="vista-previa-calculo" style="display: none;">
+                        <h6><i class="fas fa-calculator me-2"></i>Vista Previa:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small><strong>Nota Original:</strong> <span id="nota-original-preview">--</span></small>
+                            </div>
+                            <div class="col-md-6">
+                                <small><strong>Contribución al Promedio:</strong> <span id="contribucion-preview">--</span></small>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted" id="detalle-calculo">--</small>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="modal-fecha" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>
                             Fecha de Evaluación:
                         </label>
                         <input type="date" 
@@ -286,6 +562,7 @@
                     
                     <div class="mb-3">
                         <label for="modal-observaciones" class="form-label">
+                            <i class="fas fa-comment me-1"></i>
                             Observaciones (Opcional):
                         </label>
                         <textarea class="form-control" 
@@ -314,6 +591,7 @@
     </div>
 </div>
 
+<!-- Modal para ver historial de notas -->
 <!-- Modal para ver historial de notas -->
 <div class="modal fade" id="historialNotasModal" tabindex="-1" aria-labelledby="historialNotasModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -376,7 +654,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="notas-semestre1">
-                                        <!-- Se llena dinámicamente -->
+                                        <!-- Se llena dinámicamente desde la base de datos -->
                                     </tbody>
                                 </table>
                             </div>
@@ -399,7 +677,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="notas-semestre2">
-                                        <!-- Se llena dinámicamente -->
+                                        <!-- Se llena dinámicamente desde la base de datos -->
                                     </tbody>
                                 </table>
                             </div>
@@ -425,6 +703,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Paginación -->
 {% if alumnos.has_other_pages %}
@@ -477,426 +756,499 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/notas/notas_generales.js' %}"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Iniciando sistema de gestión de notas...');
+// Funciones JavaScript para la gestión de años y notas
+function cambiarAno() {
+    const anoSeleccionado = document.getElementById('year-filter').value;
+    document.getElementById('hidden-year').value = anoSeleccionado;
+    
+    // Actualizar la URL con el nuevo año
+    const url = new URL(window.location);
+    url.searchParams.set('year', anoSeleccionado);
+    window.location.href = url.toString();
+}
 
-    // Variables globales
-    let currentNotaInput = null;
-    let editModal = null;
-    let historialModal = null;
+function mostrarModalAgregarAno() {
+    // Sugerir el próximo año
+    const anoActual = parseInt(document.getElementById('year-filter').value);
+    const proximoAno = anoActual + 1;
+    document.getElementById('nuevo-ano').value = proximoAno;
+    
+    const modal = new bootstrap.Modal(document.getElementById('agregarAnoModal'));
+    modal.show();
+}
 
-    // Inicializar modales
-    editModal = new bootstrap.Modal(document.getElementById('editarNotaModal'));
-    historialModal = new bootstrap.Modal(document.getElementById('historialNotasModal'));
-
-    // Función para limpiar filtros
-    window.limpiarFiltros = function() {
-        document.getElementById('buscar-alumno').value = '';
-        document.getElementById('materia-filter').value = '';
-        document.getElementById('nivel-filter').value = 'todos';
-        document.getElementById('estado-filter').value = 'activo';
-        document.getElementById('filtros-form').submit();
-    };
-
-    // Auto-submit para filtros
-    const materiaFilter = document.getElementById('materia-filter');
-    const nivelFilter = document.getElementById('nivel-filter');
-    const semestreFilter = document.getElementById('semestre-filter');
-    const estadoFilter = document.getElementById('estado-filter');
-
-    [materiaFilter, nivelFilter, semestreFilter, estadoFilter].forEach(filter => {
-        if (filter) {
-            filter.addEventListener('change', function() {
-                document.getElementById('filtros-form').submit();
-            });
+// Event listener para el formulario de agregar año
+document.getElementById('agregarAnoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/notas/agregar-ano/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         }
-    });
-
-    // Función para calcular promedio
-    function calcularPromedio(alumnoId) {
-        const inputs = document.querySelectorAll(`input[data-alumno-id="${alumnoId}"]`);
-        let suma = 0;
-        let count = 0;
-
-        inputs.forEach(input => {
-            const valor = parseFloat(input.value);
-            if (!isNaN(valor) && valor > 0) {
-                suma += valor;
-                count++;
-            }
-        });
-
-        const promedio = count > 0 ? (suma / count).toFixed(1) : '--';
-        const promedioElement = document.querySelector(`span[data-alumno-id="${alumnoId}"]`);
-        if (promedioElement) {
-            promedioElement.textContent = promedio;
-            
-            // Aplicar clase según el promedio
-            promedioElement.className = 'promedio-value';
-            if (promedio !== '--') {
-                const valor = parseFloat(promedio);
-                if (valor >= 6.0) {
-                    promedioElement.classList.add('promedio-excelente');
-                } else if (valor >= 5.0) {
-                    promedioElement.classList.add('promedio-bueno');
-                } else if (valor >= 4.0) {
-                    promedioElement.classList.add('promedio-suficiente');
-                } else {
-                    promedioElement.classList.add('promedio-insuficiente');
-                }
-            }
-        }
-    }
-
-    // Event listeners para inputs de notas
-    document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('nota-input')) {
-            const input = e.target;
-            const valor = parseFloat(input.value);
-            const statusContainer = input.nextElementSibling;
-            const savedIcon = statusContainer.querySelector('.nota-saved');
-            const errorIcon = statusContainer.querySelector('.nota-error');
-
-            // Validar rango
-            if (isNaN(valor) || valor < 1.0 || valor > 7.0) {
-                input.style.borderColor = '#dc3545';
-                if (input.value !== '') {
-                    errorIcon.style.display = 'inline';
-                    savedIcon.style.display = 'none';
-                }
-                return;
-            }
-
-            input.style.borderColor = '#28a745';
-            
-            // Simular guardado automático
-            setTimeout(() => {
-                savedIcon.style.display = 'inline';
-                errorIcon.style.display = 'none';
-                
-                // Calcular promedio
-                calcularPromedio(input.dataset.alumnoId);
-                
-                // Auto-hide después de 2 segundos
-                setTimeout(() => {
-                    savedIcon.style.display = 'none';
-                }, 2000);
-            }, 500);
-        }
-    });
-
-    // Event listener para doble click en inputs (editar nota)
-    document.addEventListener('dblclick', function(e) {
-        if (e.target.classList.contains('nota-input')) {
-            currentNotaInput = e.target;
-            abrirModalEdicion(e.target);
-        }
-    });
-
-    // Función para abrir modal de edición
-    function abrirModalEdicion(input) {
-        const alumnoRow = input.closest('tr');
-        const alumnoNombre = alumnoRow.querySelector('.alumno-details strong').textContent;
-        const materia = input.dataset.materia;
-        const semestre = input.dataset.semestre;
-        const numeroNota = input.dataset.numeroNota;
-
-        // Llenar información del modal
-        document.getElementById('modal-alumno-id').value = input.dataset.alumnoId;
-        document.getElementById('modal-materia').value = materia;
-        document.getElementById('modal-semestre').value = semestre;
-        document.getElementById('modal-numero-nota').value = numeroNota;
-        document.getElementById('modal-alumno-nombre').textContent = alumnoNombre;
-        document.getElementById('modal-calificacion').value = input.value || '';
-        document.getElementById('modal-fecha').value = new Date().toISOString().split('T')[0];
-
-        // Formatear información de materia
-        const materiaNames = {
-            'matematicas': 'Matemáticas',
-            'lenguaje': 'Lenguaje y Comunicación',
-            'ciencias': 'Ciencias Naturales',
-            'historia': 'Historia y Geografía',
-            'ingles': 'Inglés'
-        };
-
-        document.getElementById('modal-materia-info').textContent = 
-            `${materiaNames[materia] || materia} - Nota ${numeroNota} - ${semestre}° Semestre`;
-
-        // Mostrar/ocultar botón eliminar
-        const btnEliminar = document.getElementById('btn-eliminar-nota');
-        if (input.value && input.value.trim() !== '') {
-            btnEliminar.style.display = 'inline-block';
-        } else {
-            btnEliminar.style.display = 'none';
-        }
-
-        editModal.show();
-    }
-
-    // Función para guardar nota desde el modal
-    document.getElementById('editarNotaForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        const calificacion = formData.get('calificacion');
-        
-        // Validar calificación
-        const valor = parseFloat(calificacion);
-        if (isNaN(valor) || valor < 1.0 || valor > 7.0) {
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
             Swal.fire({
+                icon: 'success',
+                title: 'Año agregado',
+                text: `El año académico ${data.ano} se ha agregado correctamente.`,
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                // Recargar la página para mostrar el nuevo año
+                window.location.reload();
+            });
+            
+            // Cerrar modal
+            bootstrap.Modal.getInstance(document.getElementById('agregarAnoModal')).hide();
+            
+        } else {
+            Swal.fire({
+                icon: 'error',
                 title: 'Error',
-                text: 'La calificación debe estar entre 1.0 y 7.0',
-                icon: 'error'
+                text: data.message || 'Error al agregar el año académico'
             });
-            return;
         }
-
-        // Actualizar el input correspondiente
-        if (currentNotaInput) {
-            currentNotaInput.value = valor.toFixed(1);
-            currentNotaInput.style.borderColor = '#28a745';
-            
-            // Mostrar indicador de guardado
-            const statusContainer = currentNotaInput.nextElementSibling;
-            const savedIcon = statusContainer.querySelector('.nota-saved');
-            savedIcon.style.display = 'inline';
-            
-            // Calcular promedio
-            calcularPromedio(currentNotaInput.dataset.alumnoId);
-            
-            setTimeout(() => {
-                savedIcon.style.display = 'none';
-            }, 2000);
-        }
-
-        // Mostrar mensaje de éxito
+    })
+    .catch(error => {
+        console.error('Error:', error);
         Swal.fire({
-            title: '¡Guardado!',
-            text: 'La nota ha sido guardada correctamente',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-        });
-
-        editModal.hide();
-    });
-
-    // Función para eliminar nota
-    document.getElementById('btn-eliminar-nota').addEventListener('click', function() {
-        if (!currentNotaInput) return;
-
-        const alumnoNombre = document.getElementById('modal-alumno-nombre').textContent;
-        const materiaInfo = document.getElementById('modal-materia-info').textContent;
-
-        Swal.fire({
-            title: '¿Estás seguro?',
-            html: `
-                <p>Esta acción eliminará la nota de:</p>
-                <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
-                    <strong>Alumno:</strong> ${alumnoNombre}<br>
-                    <strong>Evaluación:</strong> ${materiaInfo}
-                </div>
-            `,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Limpiar el input
-                currentNotaInput.value = '';
-                currentNotaInput.style.borderColor = '';
-                
-                // Recalcular promedio
-                calcularPromedio(currentNotaInput.dataset.alumnoId);
-                
-                Swal.fire({
-                    title: '¡Eliminada!',
-                    text: 'La nota ha sido eliminada correctamente',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                editModal.hide();
-            }
+            icon: 'error',
+            title: 'Error',
+            text: 'Error de conexión al agregar el año académico'
         });
     });
-
-    // Función para ver historial de notas
-    window.verHistorialNotas = function(alumnoId) {
-        const alumnoRow = document.querySelector(`tr[data-alumno-id="${alumnoId}"]`);
-        const alumnoNombre = alumnoRow.querySelector('.alumno-details strong').textContent;
-        const alumnoRut = alumnoRow.querySelector('.alumno-details small').textContent;
-        const nivel = alumnoRow.querySelector('.nivel-badge').textContent;
-
-        // Mostrar loading
-        document.getElementById('historial-loading').style.display = 'block';
-        document.getElementById('historial-content').style.display = 'none';
-        document.getElementById('historial-error').style.display = 'none';
-
-        // Llenar información del alumno
-        document.getElementById('historial-alumno-nombre').textContent = alumnoNombre;
-        document.getElementById('historial-alumno-info').textContent = `${alumnoRut} - ${nivel}`;
-
-        historialModal.show();
-
-        // Simular carga de datos
-        setTimeout(() => {
-            cargarHistorialNotas(alumnoId);
-        }, 1000);
-    };
-
-    // Función para cargar historial de notas
-    function cargarHistorialNotas(alumnoId) {
-        // Materias disponibles
-        const materias = [
-            { key: 'matematicas', name: '📐 Matemáticas' },
-            { key: 'lenguaje', name: '📝 Lenguaje y Comunicación' },
-            { key: 'ciencias', name: '🔬 Ciencias Naturales' },
-            { key: 'historia', name: '🏛️ Historia y Geografía' },
-            { key: 'ingles', name: '🇺🇸 Inglés' }
-        ];
-
-        // Llenar tablas de ambos semestres
-        [1, 2].forEach(semestre => {
-            const tbody = document.getElementById(`notas-semestre${semestre}`);
-            tbody.innerHTML = '';
-
-            materias.forEach(materia => {
-                const row = document.createElement('tr');
-                
-                // Generar notas simuladas (puedes reemplazar con datos reales)
-                const notas = Array.from({length: 6}, () => {
-                    return Math.random() > 0.3 ? (Math.random() * 6 + 1).toFixed(1) : '--';
-                });
-                
-                const promedio = calcularPromedioArray(notas);
-                
-                row.innerHTML = `
-                    <td>${materia.name}</td>
-                    <td>${notas[0]}</td>
-                    <td>${notas[1]}</td>
-                    <td>${notas[2]}</td>
-                    <td>${notas[3]}</td>
-                    <td>${notas[4]}</td>
-                    <td>${notas[5]}</td>
-                    <td><span class="promedio-badge ${getPromedioClass(promedio)}">${promedio}</span></td>
-                `;
-                
-                tbody.appendChild(row);
-            });
-        });
-
-        // Ocultar loading y mostrar contenido
-        document.getElementById('historial-loading').style.display = 'none';
-        document.getElementById('historial-content').style.display = 'block';
-    }
-
-    // Función auxiliar para calcular promedio de array
-    function calcularPromedioArray(notas) {
-        const notasValidas = notas.filter(nota => nota !== '--' && !isNaN(parseFloat(nota)));
-        if (notasValidas.length === 0) return '--';
-        
-        const suma = notasValidas.reduce((acc, nota) => acc + parseFloat(nota), 0);
-        return (suma / notasValidas.length).toFixed(1);
-    }
-
-    // Función auxiliar para obtener clase de promedio
-    function getPromedioClass(promedio) {
-        if (promedio === '--') return '';
-        const valor = parseFloat(promedio);
-        if (valor >= 6.0) return 'promedio-excelente';
-        if (valor >= 5.0) return 'promedio-bueno';
-        if (valor >= 4.0) return 'promedio-suficiente';
-        return 'promedio-insuficiente';
-    }
-
-    // Función para editar todas las notas de un alumno
-    window.editarNotasAlumno = function(alumnoId) {
-        const alumnoRow = document.querySelector(`tr[data-alumno-id="${alumnoId}"]`);
-        const alumnoNombre = alumnoRow.querySelector('.alumno-details strong').textContent;
-        
-        Swal.fire({
-            title: 'Editar Notas',
-            text: `¿Deseas editar todas las notas de ${alumnoNombre}?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, editar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Habilitar edición de todas las notas del alumno
-                const inputs = alumnoRow.querySelectorAll('.nota-input');
-                inputs.forEach(input => {
-                    input.focus();
-                    input.select();
-                });
-                
-                Swal.fire({
-                    title: 'Modo de edición activado',
-                    text: 'Puedes editar todas las notas del alumno',
-                    icon: 'info',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            }
-        });
-    };
-
-    // Función para exportar notas
-    window.exportarNotas = function() {
-        Swal.fire({
-            title: 'Exportar Notas',
-            text: 'Esta funcionalidad estará disponible próximamente',
-            icon: 'info'
-        });
-    };
-
-    // Función para exportar historial de alumno
-    window.exportarHistorialAlumno = function() {
-        Swal.fire({
-            title: 'Exportar Historial',
-            text: 'Esta funcionalidad estará disponible próximamente',
-            icon: 'info'
-        });
-    };
-
-    // Cargar notas existentes al inicializar
-    function cargarNotasExistentes() {
-        const notasGuardadas = JSON.parse(localStorage.getItem('notasGuardadas') || '{}');
-        
-        Object.keys(notasGuardadas).forEach(key => {
-            const nota = notasGuardadas[key];
-            const input = document.querySelector(
-                `input[data-alumno-id="${nota.alumno_id}"][data-materia="${nota.materia}"][data-semestre="${nota.semestre}"][data-numero-nota="${nota.numero_nota}"]`
-            );
-            
-            if (input) {
-                input.value = nota.valor;
-                input.style.borderColor = '#28a745';
-                calcularPromedio(nota.alumno_id);
-            }
-        });
-    }
-
-    // Auto-hide para alertas
-    setTimeout(() => {
-        const alerts = document.querySelectorAll('.auto-hide-alert');
-        alerts.forEach(alert => {
-            if (alert) {
-                alert.remove();
-            }
-        });
-    }, 5000);
-
-    // Cargar notas existentes
-    cargarNotasExistentes();
-
-    console.log('Sistema de gestión de notas inicializado correctamente');
 });
+
+// Funciones JavaScript para la gestión de notas con porcentaje y año
+function abrirModalEditarNota(alumnoId, materia, semestre, numeroNota, valorActual, ano) {
+    // Configurar los campos del modal
+    document.getElementById('modal-alumno-id').value = alumnoId;
+    document.getElementById('modal-materia').value = materia;
+    document.getElementById('modal-semestre').value = semestre;
+    document.getElementById('modal-numero-nota').value = numeroNota;
+    document.getElementById('modal-ano').value = ano;
+    
+    // Obtener información del alumno
+    const alumnoRow = document.querySelector(`tr[data-alumno-id="${alumnoId}"]`);
+    const alumnoNombre = alumnoRow.querySelector('.alumno-details strong').textContent;
+    const alumnoRut = alumnoRow.querySelector('.alumno-details small').textContent;
+    
+    document.getElementById('modal-alumno-nombre').textContent = alumnoNombre;
+    
+    // Formatear nombre de materia
+    const materiaFormateada = materia.charAt(0).toUpperCase() + materia.slice(1);
+    document.getElementById('modal-materia-info').textContent = `${materiaFormateada} - ${semestre}° Semestre ${ano} - Nota ${numeroNota}`;
+    
+    // Configurar valores actuales
+    if (valorActual && valorActual !== '--') {
+        document.getElementById('modal-calificacion').value = valorActual;
+    } else {
+        document.getElementById('modal-calificacion').value = '';
+    }
+    
+    // Limpiar porcentaje
+    document.getElementById('modal-porcentaje').value = '';
+    
+    // Configurar fecha actual
+    document.getElementById('modal-fecha').value = new Date().toISOString().split('T')[0];
+    
+    // Limpiar observaciones
+    document.getElementById('modal-observaciones').value = '';
+    
+    // Ocultar vista previa
+    document.getElementById('vista-previa-calculo').style.display = 'none';
+    
+    // Mostrar el modal
+    const modal = new bootstrap.Modal(document.getElementById('editarNotaModal'));
+    modal.show();
+}
+
+function calcularVistaPrevia() {
+    const calificacion = parseFloat(document.getElementById('modal-calificacion').value);
+    const porcentaje = parseFloat(document.getElementById('modal-porcentaje').value);
+    
+    if (calificacion) {
+        document.getElementById('nota-original-preview').textContent = calificacion.toFixed(1);
+        
+        if (porcentaje) {
+            const contribucion = (calificacion * porcentaje / 100).toFixed(2);
+            document.getElementById('contribucion-preview').textContent = contribucion;
+            document.getElementById('detalle-calculo').textContent = 
+                `Cálculo: ${calificacion} × ${porcentaje}% = ${contribucion} puntos para el promedio`;
+        } else {
+            document.getElementById('contribucion-preview').textContent = 'Sin porcentaje asignado';
+            document.getElementById('detalle-calculo').textContent = 
+                'Esta nota se contará normalmente en el promedio (sin porcentaje especial)';
+        }
+        
+        document.getElementById('vista-previa-calculo').style.display = 'block';
+    } else {
+        document.getElementById('vista-previa-calculo').style.display = 'none';
+    }
+}
+
+// Event listener para el formulario de editar nota
+document.getElementById('editarNotaForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    // Enviar datos al servidor
+    fetch('/notas/guardar-nota/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Nota guardada',
+                text: 'La nota se ha guardado correctamente.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // Cerrar modal
+            bootstrap.Modal.getInstance(document.getElementById('editarNotaModal')).hide();
+            
+            // Actualizar la tabla con los nuevos valores
+            actualizarNotaEnTabla(data.alumno_id, data.numero_nota, data.calificacion, data.porcentaje);
+            
+            // Recalcular promedio
+            recalcularPromedio(data.alumno_id);
+            
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Error al guardar la nota'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error de conexión al guardar la nota'
+        });
+    });
+});
+
+function actualizarNotaEnTabla(alumnoId, numeroNota, calificacion, porcentaje) {
+    // Buscar el input de la nota específica
+    const notaInput = document.querySelector(`input[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`);
+    if (notaInput) {
+        notaInput.value = calificacion;
+        
+        // Mostrar indicador de porcentaje si existe
+        const statusContainer = notaInput.parentElement.querySelector('.nota-status');
+        const iconoPorcentaje = statusContainer.querySelector('.nota-ponderada');
+        
+        if (porcentaje && porcentaje > 0) {
+            iconoPorcentaje.style.display = 'inline';
+            iconoPorcentaje.title = `Nota con ${porcentaje}% asignado`;
+        } else {
+            iconoPorcentaje.style.display = 'none';
+        }
+        
+        // Mostrar indicador de guardado
+        const iconoGuardado = statusContainer.querySelector('.nota-saved');
+        iconoGuardado.style.display = 'inline';
+        setTimeout(() => {
+            iconoGuardado.style.display = 'none';
+        }, 3000);
+    }
+}
+
+function recalcularPromedio(alumnoId) {
+    // Obtener todas las notas del alumno
+    const notasInputs = document.querySelectorAll(`input[data-alumno-id="${alumnoId}"]`);
+    let totalNotas = 0;
+    let sumaNotas = 0;
+    let sumaPorcentajes = 0;
+    let notasConPorcentaje = 0;
+    let notasSinPorcentaje = 0;
+    let detalleCalculo = [];
+    
+    notasInputs.forEach(input => {
+        const valor = parseFloat(input.value);
+        if (!isNaN(valor) && valor > 0) {
+            // Aquí necesitarías obtener el porcentaje desde la base de datos
+            // Por ahora simulamos que no hay porcentaje
+            totalNotas++;
+            sumaNotas += valor;
+            notasSinPorcentaje++;
+        }
+    });
+    
+    let promedio = 0;
+    if (totalNotas > 0) {
+        if (notasConPorcentaje > 0) {
+            // Cálculo con porcentajes mixtos
+            const promedioSinPorcentaje = notasSinPorcentaje > 0 ? (sumaNotas - sumaPorcentajes) / notasSinPorcentaje : 0;
+            promedio = (sumaPorcentajes + promedioSinPorcentaje * (100 - sumaPorcentajes) / 100);
+        } else {
+            // Promedio simple
+            promedio = sumaNotas / totalNotas;
+        }
+    }
+    
+    // Actualizar el promedio en la tabla
+    const promedioElement = document.querySelector(`.promedio-value[data-alumno-id="${alumnoId}"]`);
+    if (promedioElement) {
+        promedioElement.textContent = promedio > 0 ? promedio.toFixed(1) : '--';
+    }
+    
+    // Actualizar detalle del promedio
+    const detalleElement = document.querySelector(`.promedio-detalle[data-alumno-id="${alumnoId}"]`);
+    if (detalleElement) {
+        if (notasConPorcentaje > 0) {
+            detalleElement.textContent = `${notasConPorcentaje} con %, ${notasSinPorcentaje} normales`;
+        } else {
+            detalleElement.textContent = totalNotas > 0 ? `${totalNotas} notas` : '';
+        }
+    }
+}
+
+function limpiarFiltros() {
+    // Mantener el año seleccionado pero limpiar otros filtros
+    const anoActual = document.getElementById('year-filter').value;
+    const url = new URL(window.location);
+    url.search = ''; // Limpiar todos los parámetros
+    url.searchParams.set('year', anoActual); // Mantener solo el año
+    window.location.href = url.toString();
+}
+
+// Función para eliminar nota (si se implementa)
+document.getElementById('btn-eliminar-nota').addEventListener('click', function() {
+    const alumnoId = document.getElementById('modal-alumno-id').value;
+    const numeroNota = document.getElementById('modal-numero-nota').value;
+    
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'Esta acción eliminará la nota permanentemente',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Aquí enviarías la petición para eliminar la nota
+            eliminarNota(alumnoId, numeroNota);
+        }
+    });
+});
+
+function eliminarNota(alumnoId, numeroNota) {
+    const formData = new FormData();
+    formData.append('alumno_id', alumnoId);
+    formData.append('numero_nota', numeroNota);
+    formData.append('materia', document.getElementById('modal-materia').value);
+    formData.append('semestre', document.getElementById('modal-semestre').value);
+    formData.append('ano', document.getElementById('modal-ano').value);
+    
+    fetch('/notas/eliminar-nota/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Nota eliminada',
+                text: 'La nota se ha eliminado correctamente.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // Cerrar modal
+            bootstrap.Modal.getInstance(document.getElementById('editarNotaModal')).hide();
+            
+            // Limpiar la nota en la tabla
+            const notaInput = document.querySelector(`input[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`);
+            if (notaInput) {
+                notaInput.value = '';
+                
+                // Ocultar indicadores
+                const statusContainer = notaInput.parentElement.querySelector('.nota-status');
+                statusContainer.querySelectorAll('i').forEach(icon => {
+                    icon.style.display = 'none';
+                });
+            }
+            
+            // Recalcular promedio
+            recalcularPromedio(alumnoId);
+            
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Error al eliminar la nota'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error de conexión al eliminar la nota'
+        });
+    });
+}
+
+function verHistorialNotas(alumnoId) {
+    // Mostrar modal de historial
+    const modal = new bootstrap.Modal(document.getElementById('historialNotasModal'));
+    modal.show();
+    
+    // Mostrar loading
+    document.getElementById('historial-loading').style.display = 'block';
+    document.getElementById('historial-content').style.display = 'none';
+    document.getElementById('historial-error').style.display = 'none';
+    
+    // Cargar historial
+    fetch(`/notas/historial-alumno/${alumnoId}/`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Ocultar loading
+            document.getElementById('historial-loading').style.display = 'none';
+            document.getElementById('historial-content').style.display = 'block';
+            
+            // Llenar información del alumno
+            document.getElementById('historial-alumno-nombre').textContent = data.alumno.nombre;
+            document.getElementById('historial-alumno-info').textContent = `${data.alumno.rut} - ${data.alumno.nivel}`;
+            
+            // Llenar tablas de notas por semestre
+            llenarTablaHistorial('notas-semestre1', data.notas_semestre1);
+            llenarTablaHistorial('notas-semestre2', data.notas_semestre2);
+            
+        } else {
+            document.getElementById('historial-loading').style.display = 'none';
+            document.getElementById('historial-error').style.display = 'block';
+            document.getElementById('historial-error-message').textContent = data.message || 'Error al cargar el historial';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('historial-loading').style.display = 'none';
+        document.getElementById('historial-error').style.display = 'block';
+        document.getElementById('historial-error-message').textContent = 'Error de conexión';
+    });
+}
+
+llenarTablaHistorial(tablaId, notas) {
+    const tbody = document.getElementById(tablaId);
+    tbody.innerHTML = '';
+    
+    if (notas && notas.length > 0) {
+        notas.forEach(materia => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${materia.nombre}</strong></td>
+                <td>${materia.nota1 ? materia.nota1 : '--'}</td>
+                <td>${materia.nota2 ? materia.nota2 : '--'}</td>
+                <td>${materia.nota3 ? materia.nota3 : '--'}</td>
+                <td>${materia.nota4 ? materia.nota4 : '--'}</td>
+                <td>${materia.nota5 ? materia.nota5 : '--'}</td>
+                <td>${materia.nota6 ? materia.nota6 : '--'}</td>
+                <td><strong>${materia.promedio ? materia.promedio : '--'}</strong></td>
+            `;
+            tbody.appendChild(row);
+        });
+    } else {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="8" class="text-center text-muted"><i class="fas fa-info-circle me-2"></i>No hay notas registradas para este período</td>';
+        tbody.appendChild(row);
+    }
+}
+
+function exportarHistorialAlumno() {
+    // Implementar exportación de historial
+    Swal.fire({
+        icon: 'info',
+        title: 'Función en desarrollo',
+        text: 'La exportación de historial estará disponible próximamente.'
+    });
+}
+
+// Cargar notas existentes al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar notas para cada alumno visible
+    const alumnosRows = document.querySelectorAll('.alumno-row');
+    alumnosRows.forEach(row => {
+        const alumnoId = row.dataset.alumnoId;
+        cargarNotasAlumno(alumnoId);
+    });
+});
+
+function cargarNotasAlumno(alumnoId) {
+    const materia = document.getElementById('materia-filter').value;
+    const semestre = document.getElementById('semestre-filter').value;
+    const ano = document.getElementById('year-filter').value;
+    
+    if (!materia) return;
+    
+    fetch(`/notas/obtener-notas/${alumnoId}/?materia=${materia}&semestre=${semestre}&ano=${ano}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.notas) {
+            // Actualizar cada nota en la tabla
+            data.notas.forEach(nota => {
+                const notaInput = document.querySelector(`input[data-alumno-id="${alumnoId}"][data-numero-nota="${nota.numero}"]`);
+                if (notaInput) {
+                    notaInput.value = nota.calificacion;
+                    
+                    // Mostrar indicador de porcentaje si existe
+                    if (nota.porcentaje && nota.porcentaje > 0) {
+                        const statusContainer = notaInput.parentElement.querySelector('.nota-status');
+                        const iconoPorcentaje = statusContainer.querySelector('.nota-ponderada');
+                        iconoPorcentaje.style.display = 'inline';
+                        iconoPorcentaje.title = `Nota con ${nota.porcentaje}% asignado`;
+                    }
+                }
+            });
+            
+            // Actualizar promedio
+            if (data.promedio) {
+                const promedioElement = document.querySelector(`.promedio-value[data-alumno-id="${alumnoId}"]`);
+                if (promedioElement) {
+                    promedioElement.textContent = data.promedio;
+                }
+                
+                const detalleElement = document.querySelector(`.promedio-detalle[data-alumno-id="${alumnoId}"]`);
+                if (detalleElement && data.detalle_promedio) {
+                    detalleElement.textContent = data.detalle_promedio;
+                }
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar notas:', error);
+    });
+}
 </script>
 {% endblock %}
+
+

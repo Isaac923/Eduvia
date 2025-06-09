@@ -2,108 +2,103 @@
 {% load static %}
 
 {% block title %}{{ titulo }} - EDUVIA{% endblock %}
-
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/asistencia.css' %}">
+<link rel="stylesheet" href="{% static 'css/asistencia/index.css' %}">
 {% endblock %}
-
 {% block content %}
-<div class="asistencia-container">
-    <div class="container-fluid">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <!-- Tarjeta Principal -->
-                <div class="main-card shadow-sm">
-                    <!-- Encabezado -->
-                    <div class="main-header bg-primary text-white">
-                        <div class="header-content">
-                            <div class="header-icon">
-                                <i class="fas fa-clipboard-check"></i>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                    <small>Gestión de asistencia escolar</small>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- Registrar Asistencia -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-success hover-card">
+                                <div class="card-body text-center d-flex flex-column">
+                                    <div class="mb-4">
+                                        <i class="fas fa-plus-circle fa-4x text-success"></i>
+                                    </div>
+                                    <h5 class="card-title text-success">Registrar Asistencia</h5>
+                                    <p class="card-text flex-grow-1">
+                                        Tomar asistencia diaria de los estudiantes por asignatura y curso.
+                                        Registre la presencia, ausencias, tardanzas y justificaciones.
+                                    </p>
+                                    <div class="mt-auto">
+                                        <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-success btn-lg">
+                                            <i class="fas fa-clipboard-check me-2"></i>
+                                            Registrar Asistencia
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="header-text">
-                                <h1 class="header-title">{{ titulo }}</h1>
-                                <p class="header-subtitle">Gestión de asistencia escolar</p>
+                        </div>
+
+                        <!-- Ver Asistencias -->
+                        <div class="col-md-6">
+                            <div class="card h-100 border-info hover-card">
+                                <div class="card-body text-center d-flex flex-column">
+                                    <div class="mb-4">
+                                        <i class="fas fa-eye fa-4x text-info"></i>
+                                    </div>
+                                    <h5 class="card-title text-info">Ver Asistencias</h5>
+                                    <p class="card-text flex-grow-1">
+                                        Consultar y revisar los registros de asistencia por fecha, curso y asignatura.
+                                        Filtrar por estado y generar reportes.
+                                    </p>
+                                    <div class="mt-auto">
+                                        <a href="{% url 'asistencia:ver_asistencias' %}" class="btn btn-info btn-lg">
+                                            <i class="fas fa-eye me-2"></i>
+                                            Ver Asistencias
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Cuerpo Principal -->
-                    <div class="main-body">
-                        <!-- Tarjetas de Acción Principal -->
-                        <div class="action-cards-grid">
-                            <!-- Registrar Asistencia -->
-                            <div class="action-card success-card">
-                                <div class="card-content">
-                                    <div class="card-icon">
-                                        <i class="fas fa-plus-circle"></i>
-                                    </div>
-                                    <div class="card-info">
-                                        <h3 class="card-title">Registrar Asistencia</h3>
-                                        <p class="card-description">
-                                            Tomar asistencia diaria de los estudiantes por asignatura y curso.
-                                            Registre la presencia, ausencias, tardanzas y justificaciones.
-                                        </p>
-                                    </div>
-                                    <div class="card-action">
-                                        <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-success">
-                                            <i class="fas fa-clipboard-check"></i>
-                                            <span>Registrar Asistencia</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Ver Asistencias -->
-                            <div class="action-card info-card">
-                                <div class="card-content">
-                                    <div class="card-icon">
-                                        <i class="fas fa-eye"></i>
-                                    </div>
-                                    <div class="card-info">
-                                        <h3 class="card-title">Ver Asistencias</h3>
-                                        <p class="card-description">
-                                            Consultar y revisar los registros de asistencia por fecha, curso y asignatura.
-                                            Filtrar por estado y generar reportes.
-                                        </p>
-                                    </div>
-                                    <div class="card-action">
-                                        <a href="{% url 'asistencia:ver_asistencias' %}" class="btn btn-info">
-                                            <i class="fas fa-eye"></i>
-                                            <span>Ver Asistencias</span>
-                                        </a>
+                    <!-- Estadísticas (solo para superusuarios) -->
+                    {% if request.user.is_superuser %}
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card border-warning hover-card">
+                                <div class="card-body text-center">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <i class="fas fa-chart-bar fa-3x text-warning"></i>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <h6 class="card-title text-warning mb-1">
+                                                Estadísticas de Asistencia
+                                            </h6>
+                                            <p class="text-muted mb-0">
+                                                Ver reportes estadísticos y análisis de asistencia por curso y asignatura.
+                                            </p>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <a href="{% url 'asistencia:estadisticas' %}" class="btn btn-outline-warning">
+                                                <i class="fas fa-chart-line me-2"></i>
+                                                Ver Estadísticas
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Estadísticas (solo para superusuarios) -->
-                        {% if request.user.is_superuser %}
-                        <div class="statistics-section">
-                            <div class="statistics-card">
-                                <div class="statistics-content">
-                                    <div class="statistics-icon">
-                                        <i class="fas fa-chart-bar"></i>
-                                    </div>
-                                    <div class="statistics-info">
-                                        <h4 class="statistics-title">Estadísticas de Asistencia</h4>
-                                        <p class="statistics-description">
-                                            Ver reportes estadísticos y análisis de asistencia por curso y asignatura.
-                                        </p>
-                                    </div>
-                                    <div class="statistics-action">
-                                        <a href="{% url 'asistencia:estadisticas' %}" class="btn btn-warning">
-                                            <i class="fas fa-chart-line"></i>
-                                            <span>Ver Estadísticas</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
 {% endblock %}

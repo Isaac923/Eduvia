@@ -7,6 +7,11 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from .models import Usuario
 from django.core.paginator import Paginator 
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+def is_superuser(user):
+    """Función para verificar si el usuario es superusuario"""
+    return user.is_superuser
 
 def login_view(request):
     if request.method == 'POST':
@@ -29,6 +34,24 @@ def login_view(request):
                     messages.success(request, f'Bienvenido {authenticated_user.first_name or "Usuario"}!')
                 return redirect('usuarios:inicio')
             else:
+                # CAMBIO: Si falla la autenticación Django, verificar si existe en EDUVIA
+                # y sincronizar la contraseña
+                try:
+                    usuario_eduvia = Usuario.objects.get(rut=rut)
+                    if usuario_eduvia.check_password(password):
+                        # La contraseña es correcta en EDUVIA, sincronizar con Django
+                        django_user.set_password(password)
+                        django_user.save()
+                        
+                        # Intentar autenticar nuevamente
+                        authenticated_user = authenticate(request, username=rut, password=password)
+                        if authenticated_user is not None:
+                            login(request, authenticated_user)
+                            messages.success(request, f'Bienvenido {usuario_eduvia.nombres}!')
+                            return redirect('usuarios:inicio')
+                except Usuario.DoesNotExist:
+                    pass
+                
                 messages.error(request, 'Contraseña incorrecta.')
                 return render(request, 'Login.html')
         except User.DoesNotExist:
@@ -59,13 +82,17 @@ def login_view(request):
                     }
                 )
                 
+                # CAMBIO: Siempre sincronizar la contraseña
+                django_user.set_password(password)
+                
                 # Actualizar datos si ya existía
                 if not created:
                     django_user.email = usuario_eduvia.correo
                     django_user.first_name = usuario_eduvia.nombres
                     django_user.last_name = usuario_eduvia.apellidos
                     django_user.is_staff = usuario_eduvia.rol == 'admin'
-                    django_user.save()
+                
+                django_user.save()
                 
                 # Hacer login
                 login(request, django_user)
@@ -93,6 +120,8 @@ def logout_view(request):
 def inicio_view(request):
     return render(request, 'inicio.html')
 
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def lista_usuarios(request):
     usuarios_list = Usuario.objects.all()
     paginator = Paginator(usuarios_list, 10)
@@ -102,6 +131,8 @@ def lista_usuarios(request):
     return render(request, 'usuarios/lista_usuarios.html', {'usuarios': usuarios})
 
 @require_http_methods(["GET", "POST"])
+@login_required
+@user_passes_test(is_superuser, login_url='usuarios:inicio')
 def nuevo_usuario(request):
     if request.method == 'POST':
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'

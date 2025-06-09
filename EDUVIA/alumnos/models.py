@@ -177,13 +177,15 @@ class Alumno(models.Model):
             nombres.append(self.apellido_materno)
         return ' '.join(nombres)
     
-    def __str__(self):
-        return self.nombre_completo    @property
+    @property
     def edad(self):
         today = date.today()
         return today.year - self.fecha_nacimiento.year - (
             (today.month, today.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
         )
+
+    def __str__(self):
+        return self.nombre_completo
 
     def save(self, *args, **kwargs):
         # Si es un nuevo alumno, asegurar que esté activo

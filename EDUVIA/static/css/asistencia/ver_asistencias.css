@@ -1,0 +1,52 @@
+
+.avatar-sm {
+    width: 35px;
+    height: 35px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.table th {
+    border-top: none;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-pointer:hover {
+    background-color: rgba(0,0,0,0.05) !important;
+}
+
+.collapse-icon {
+    transition: transform 0.3s ease;
+}
+
+.collapse-icon.rotated {
+    transform: rotate(90deg);
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+.modificar-asistencia-btn {
+    transition: all 0.3s ease;
+}
+
+.modificar-asistencia-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+}
+
+.card-header:hover {
+    background-color: rgba(0,0,0,0.03) !important;
+}

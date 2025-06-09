@@ -3,6 +3,10 @@
 
 {% block title %}{{ titulo }} - EDUVIA{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/asistencia/seleccionar_asignatura.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -16,6 +20,21 @@
                     <small>Seleccione la asignatura y curso para registrar asistencia</small>
                     {% if es_superusuario %}
                         <br><small><i class="fas fa-user-cog me-1"></i>Como administrador, también puede asignar profesores a cada curso específico</small>
+                    {% endif %}
+                </div>
+                <!-- Agregar esto después del card-header para debug -->
+                <div class="alert alert-info">
+                    <strong>DEBUG:</strong>
+                    <p>Es superusuario: {{ es_superusuario }}</p>
+                    <p>Total asignaturas: {{ asignaturas|length }}</p>
+                    <p>Total profesores: {{ profesores|length }}</p>
+                    {% if profesores %}
+                        <p>Profesores disponibles:</p>
+                        <ul>
+                        {% for profesor in profesores %}
+                            <li>{{ profesor.nombres }} {{ profesor.apellidos }} ({{ profesor.rol }})</li>
+                        {% endfor %}
+                        </ul>
                     {% endif %}
                 </div>
                 <div class="card-body">
@@ -231,24 +250,8 @@
     </div>
 </div>
 
-<style>
-.hover-card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.hover-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-}
-
-.form-select-sm {
-    font-size: 0.875rem;
-}
-</style>
-{% endblock %}
-
-{% block extra_js %}
 <script>
+    
 // SweetAlert2 para asignación de profesores
 document.addEventListener('DOMContentLoaded', function() {
     const selectores = document.querySelectorAll('select[name="profesor_id"]');
@@ -436,5 +439,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
 </script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/asistencia/seleccionar_asignatura.js' %}"></script>
 {% endblock %}

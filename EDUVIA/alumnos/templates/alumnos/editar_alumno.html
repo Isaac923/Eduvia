@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Editar Alumno: {{ alumno.nombre_completo }}{% endblock %}
 {% block content %}
 <div class="container mt-4">
@@ -279,43 +280,5 @@
     </div>
 </div>
 
-<script>
-    // Script para manejar la visibilidad del campo de año de repitencia
-    document.addEventListener('DOMContentLoaded', function() {
-        const cursoRepetidoSelect = document.getElementById('{{ form.curso_repetido.id_for_label }}');
-        const anioRepitenciaInput = document.getElementById('{{ form.anio_repitencia.id_for_label }}').parentNode;
-        
-        function toggleAnioRepitencia() {
-            if (cursoRepetidoSelect.value === 'Ninguno') {
-                anioRepitenciaInput.style.display = 'none';
-            } else {
-                anioRepitenciaInput.style.display = 'block';
-            }
-        }
-        
-        // Ejecutar al cargar la página
-        toggleAnioRepitencia();
-        
-        // Ejecutar cuando cambie la selección
-        cursoRepetidoSelect.addEventListener('change', toggleAnioRepitencia);
-        
-        // Script para manejar la visibilidad del campo de profesional de apoyo
-        const programaPieSelect = document.getElementById('{{ form.programa_pie.id_for_label }}');
-        const profesionalApoyoSelect = document.getElementById('{{ form.profesional_apoyo.id_for_label }}').parentNode;
-        
-        function toggleProfesionalApoyo() {
-            if (programaPieSelect.value === 'No') {
-                profesionalApoyoSelect.style.display = 'none';
-            } else {
-                profesionalApoyoSelect.style.display = 'block';
-            }
-        }
-        
-        // Ejecutar al cargar la página
-        toggleProfesionalApoyo();
-        
-        // Ejecutar cuando cambie la selección
-        programaPieSelect.addEventListener('change', toggleProfesionalApoyo);
-    });
-</script>
+<script src="{% static 'js/editar_alumno.js' %}"></script>
 {% endblock %}
