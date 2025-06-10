@@ -6,130 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/notas/notas_generales.css' %}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<style>
-    .year-selector-container {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 25px;
-        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
 
-    .year-selector-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 15px;
-    }
-
-    .year-selector-title {
-        color: white;
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .year-controls {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .year-select {
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        color: white;
-        padding: 8px 15px;
-        font-size: 1rem;
-        font-weight: 500;
-        min-width: 120px;
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
-    }
-
-    .year-select:focus {
-        outline: none;
-        border-color: rgba(255, 255, 255, 0.6);
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.2);
-    }
-
-    .year-select option {
-        background: #2c3e50;
-        color: white;
-        padding: 8px;
-    }
-
-    .btn-add-year {
-        background: rgba(255, 255, 255, 0.2);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.2rem;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-
-    .btn-add-year:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-        transform: scale(1.05);
-        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-    }
-
-    .year-info {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 0.9rem;
-    }
-
-    .year-stat {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 5px 12px;
-        border-radius: 20px;
-        backdrop-filter: blur(5px);
-    }
-
-    .year-stat i {
-        font-size: 0.8rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .year-selector-header {
-            flex-direction: column;
-            gap: 15px;
-            align-items: stretch;
-        }
-
-        .year-controls {
-            justify-content: center;
-        }
-
-        .year-info {
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-    }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -355,9 +232,12 @@
                     
                     <!-- Promedio -->
                     <td class="promedio-cell">
-                        <div class="promedio-container">
-                            <span class="promedio-value" data-alumno-id="{{ alumno.id }}">--</span>
-                            <small class="promedio-info text-muted d-block" style="font-size: 0.75em;">
+                        <div class="promedio-container" data-alumno-id="{{ alumno.id }}" id="promedio-container-{{ alumno.id }}">
+                            <span class="promedio-value" data-alumno-id="{{ alumno.id }}">
+                                <i class="promedio-icon"></i>
+                                <span class="promedio-numero">--</span>
+                            </span>
+                            <small class="promedio-info text-muted d-block">
                                 <span class="promedio-detalle" data-alumno-id="{{ alumno.id }}"></span>
                             </small>
                         </div>
@@ -398,6 +278,60 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Leyenda de colores (agregar después de la tabla) -->
+{% if alumnos %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-palette me-2"></i>
+                    Leyenda de Colores - Promedios
+                </h6>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="promedio-container promedio-excelente mb-2">
+                            <span class="promedio-value">
+                                <i class="promedio-icon fas fa-star"></i>
+                                6.0 - 7.0
+                            </span>
+                            <small class="promedio-info">Excelente</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="promedio-container promedio-bueno mb-2">
+                            <span class="promedio-value">
+                                <i class="promedio-icon fas fa-thumbs-up"></i>
+                                5.0 - 5.9
+                            </span>
+                            <small class="promedio-info">Bueno</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="promedio-container promedio-regular mb-2">
+                            <span class="promedio-value">
+                                <i class="promedio-icon fas fa-exclamation-triangle"></i>
+                                4.0 - 4.9
+                            </span>
+                            <small class="promedio-info">Regular</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="promedio-container promedio-insuficiente mb-2">
+                            <span class="promedio-value">
+                                <i class="promedio-icon fas fa-times-circle"></i>
+                                1.0 - 3.9
+                            </span>
+                            <small class="promedio-info">Insuficiente</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Modal para agregar nuevo año -->
 <div class="modal fade" id="agregarAnoModal" tabindex="-1" aria-labelledby="agregarAnoModalLabel" aria-hidden="true">
@@ -764,9 +698,23 @@ function cambiarAno() {
     const anoSeleccionado = document.getElementById('year-filter').value;
     document.getElementById('hidden-year').value = anoSeleccionado;
     
-    // Actualizar la URL con el nuevo año
+    // Mantener todos los filtros actuales y solo cambiar el año
     const url = new URL(window.location);
     url.searchParams.set('year', anoSeleccionado);
+    
+    // Mantener otros filtros si existen
+    const materia = document.getElementById('materia-filter').value;
+    const semestre = document.getElementById('semestre-filter').value;
+    const nivel = document.getElementById('nivel-filter').value;
+    const estado = document.getElementById('estado-filter').value;
+    const alumno = document.getElementById('buscar-alumno').value;
+    
+    if (materia) url.searchParams.set('materia', materia);
+    if (semestre) url.searchParams.set('semestre', semestre);
+    if (nivel && nivel !== 'todos') url.searchParams.set('nivel', nivel);
+    if (estado) url.searchParams.set('estado', estado);
+    if (alumno) url.searchParams.set('alumno', alumno);
+    
     window.location.href = url.toString();
 }
 
@@ -830,6 +778,8 @@ document.getElementById('agregarAnoForm').addEventListener('submit', function(e)
 
 // Funciones JavaScript para la gestión de notas con porcentaje y año
 function abrirModalEditarNota(alumnoId, materia, semestre, numeroNota, valorActual, ano) {
+    console.log('Abriendo modal para:', {alumnoId, materia, semestre, numeroNota, valorActual, ano});
+    
     // Configurar los campos del modal
     document.getElementById('modal-alumno-id').value = alumnoId;
     document.getElementById('modal-materia').value = materia;
@@ -840,16 +790,23 @@ function abrirModalEditarNota(alumnoId, materia, semestre, numeroNota, valorActu
     // Obtener información del alumno
     const alumnoRow = document.querySelector(`tr[data-alumno-id="${alumnoId}"]`);
     const alumnoNombre = alumnoRow.querySelector('.alumno-details strong').textContent;
-    const alumnoRut = alumnoRow.querySelector('.alumno-details small').textContent;
     
     document.getElementById('modal-alumno-nombre').textContent = alumnoNombre;
     
     // Formatear nombre de materia
-    const materiaFormateada = materia.charAt(0).toUpperCase() + materia.slice(1);
+    const materiasNombres = {
+        'matematicas': 'Matemáticas',
+        'lenguaje': 'Lenguaje y Comunicación',
+        'ciencias': 'Ciencias Naturales',
+        'historia': 'Historia y Geografía',
+        'ingles': 'Inglés'
+    };
+    
+    const materiaFormateada = materiasNombres[materia] || materia;
     document.getElementById('modal-materia-info').textContent = `${materiaFormateada} - ${semestre}° Semestre ${ano} - Nota ${numeroNota}`;
     
     // Configurar valores actuales
-    if (valorActual && valorActual !== '--') {
+    if (valorActual && valorActual !== '--' && valorActual !== '') {
         document.getElementById('modal-calificacion').value = valorActual;
     } else {
         document.getElementById('modal-calificacion').value = '';
@@ -866,6 +823,14 @@ function abrirModalEditarNota(alumnoId, materia, semestre, numeroNota, valorActu
     
     // Ocultar vista previa
     document.getElementById('vista-previa-calculo').style.display = 'none';
+    
+    // Mostrar botón eliminar si la nota existe
+    const btnEliminar = document.getElementById('btn-eliminar-nota');
+    if (valorActual && valorActual !== '--' && valorActual !== '') {
+        btnEliminar.style.display = 'inline-block';
+    } else {
+        btnEliminar.style.display = 'none';
+    }
     
     // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('editarNotaModal'));
@@ -902,6 +867,15 @@ document.getElementById('editarNotaForm').addEventListener('submit', function(e)
     
     const formData = new FormData(this);
     
+    console.log('Enviando datos:', {
+        alumno_id: formData.get('alumno_id'),
+        materia: formData.get('materia'),
+        semestre: formData.get('semestre'),
+        ano: formData.get('ano'),
+        numero_nota: formData.get('numero_nota'),
+        calificacion: formData.get('calificacion')
+    });
+    
     // Enviar datos al servidor
     fetch('/notas/guardar-nota/', {
         method: 'POST',
@@ -912,6 +886,8 @@ document.getElementById('editarNotaForm').addEventListener('submit', function(e)
     })
     .then(response => response.json())
     .then(data => {
+        console.log('Respuesta del servidor:', data);
+        
         if (data.success) {
             Swal.fire({
                 icon: 'success',
@@ -949,6 +925,8 @@ document.getElementById('editarNotaForm').addEventListener('submit', function(e)
 });
 
 function actualizarNotaEnTabla(alumnoId, numeroNota, calificacion, porcentaje) {
+    console.log('Actualizando nota en tabla:', {alumnoId, numeroNota, calificacion, porcentaje});
+    
     // Buscar el input de la nota específica
     const notaInput = document.querySelector(`input[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`);
     if (notaInput) {
@@ -974,66 +952,86 @@ function actualizarNotaEnTabla(alumnoId, numeroNota, calificacion, porcentaje) {
     }
 }
 
+// Función para colorear el promedio según la nota
+function colorearPromedio(alumnoId, promedio) {
+    const container = document.getElementById(`promedio-container-${alumnoId}`);
+    const promedioNumero = container.querySelector('.promedio-numero');
+    const icon = container.querySelector('.promedio-icon');
+    
+    if (!container || !promedioNumero || !icon) return;
+    
+    // Limpiar clases anteriores
+    container.className = 'promedio-container';
+    
+    if (!promedio || promedio === '--' || promedio === 0) {
+        container.classList.add('promedio-sin-nota');
+        icon.className = 'promedio-icon fas fa-minus';
+        promedioNumero.textContent = '--';
+        return;
+    }
+    
+    const nota = parseFloat(promedio);
+    promedioNumero.textContent = nota.toFixed(1);
+    
+    if (nota >= 6.0) {
+        // Excelente (6.0 - 7.0)
+        container.classList.add('promedio-excelente');
+        icon.className = 'promedio-icon fas fa-star';
+    } else if (nota >= 5.0) {
+        // Bueno (5.0 - 5.9)
+        container.classList.add('promedio-bueno');
+        icon.className = 'promedio-icon fas fa-thumbs-up';
+    } else if (nota >= 4.0) {
+        // Regular (4.0 - 4.9)
+        container.classList.add('promedio-regular');
+        icon.className = 'promedio-icon fas fa-exclamation-triangle';
+    } else {
+        // Insuficiente (1.0 - 3.9)
+        container.classList.add('promedio-insuficiente');
+        icon.className = 'promedio-icon fas fa-times-circle';
+    }
+}
+
+// Actualiza la función recalcularPromedio existente
 function recalcularPromedio(alumnoId) {
+    console.log('Recalculando promedio para alumno:', alumnoId);
+    
     // Obtener todas las notas del alumno
     const notasInputs = document.querySelectorAll(`input[data-alumno-id="${alumnoId}"]`);
     let totalNotas = 0;
     let sumaNotas = 0;
-    let sumaPorcentajes = 0;
-    let notasConPorcentaje = 0;
-    let notasSinPorcentaje = 0;
-    let detalleCalculo = [];
     
     notasInputs.forEach(input => {
         const valor = parseFloat(input.value);
         if (!isNaN(valor) && valor > 0) {
-            // Aquí necesitarías obtener el porcentaje desde la base de datos
-            // Por ahora simulamos que no hay porcentaje
             totalNotas++;
             sumaNotas += valor;
-            notasSinPorcentaje++;
         }
     });
     
     let promedio = 0;
     if (totalNotas > 0) {
-        if (notasConPorcentaje > 0) {
-            // Cálculo con porcentajes mixtos
-            const promedioSinPorcentaje = notasSinPorcentaje > 0 ? (sumaNotas - sumaPorcentajes) / notasSinPorcentaje : 0;
-            promedio = (sumaPorcentajes + promedioSinPorcentaje * (100 - sumaPorcentajes) / 100);
-        } else {
-            // Promedio simple
-            promedio = sumaNotas / totalNotas;
-        }
+        promedio = sumaNotas / totalNotas;
     }
     
-    // Actualizar el promedio en la tabla
-    const promedioElement = document.querySelector(`.promedio-value[data-alumno-id="${alumnoId}"]`);
-    if (promedioElement) {
-        promedioElement.textContent = promedio > 0 ? promedio.toFixed(1) : '--';
-    }
+    // Aplicar colores al promedio
+    colorearPromedio(alumnoId, promedio);
     
     // Actualizar detalle del promedio
     const detalleElement = document.querySelector(`.promedio-detalle[data-alumno-id="${alumnoId}"]`);
     if (detalleElement) {
-        if (notasConPorcentaje > 0) {
-            detalleElement.textContent = `${notasConPorcentaje} con %, ${notasSinPorcentaje} normales`;
-        } else {
-            detalleElement.textContent = totalNotas > 0 ? `${totalNotas} notas` : '';
-        }
+        detalleElement.textContent = totalNotas > 0 ? `${totalNotas} notas` : '';
     }
 }
 
 function limpiarFiltros() {
-    // Mantener el año seleccionado pero limpiar otros filtros
     const anoActual = document.getElementById('year-filter').value;
-    const url = new URL(window.location);
-    url.search = ''; // Limpiar todos los parámetros
+    const url = new URL(window.location.origin + window.location.pathname);
     url.searchParams.set('year', anoActual); // Mantener solo el año
     window.location.href = url.toString();
 }
 
-// Función para eliminar nota (si se implementa)
+// Función para eliminar nota
 document.getElementById('btn-eliminar-nota').addEventListener('click', function() {
     const alumnoId = document.getElementById('modal-alumno-id').value;
     const numeroNota = document.getElementById('modal-numero-nota').value;
@@ -1049,7 +1047,6 @@ document.getElementById('btn-eliminar-nota').addEventListener('click', function(
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Aquí enviarías la petición para eliminar la nota
             eliminarNota(alumnoId, numeroNota);
         }
     });
@@ -1128,7 +1125,8 @@ function verHistorialNotas(alumnoId) {
     document.getElementById('historial-error').style.display = 'none';
     
     // Cargar historial
-    fetch(`/notas/historial-alumno/${alumnoId}/`)
+    const ano = document.getElementById('year-filter').value;
+    fetch(`/notas/historial-alumno/${alumnoId}/?ano=${ano}`)
     .then(response => response.json())
     .then(data => {
         if (data.success) {
@@ -1158,7 +1156,7 @@ function verHistorialNotas(alumnoId) {
     });
 }
 
-llenarTablaHistorial(tablaId, notas) {
+function llenarTablaHistorial(tablaId, notas) {
     const tbody = document.getElementById(tablaId);
     tbody.innerHTML = '';
     
@@ -1193,34 +1191,42 @@ function exportarHistorialAlumno() {
     });
 }
 
-// Cargar notas existentes al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-    // Cargar notas para cada alumno visible
+// Función para aplicar colores a todos los promedios visibles al cargar la página
+function aplicarColoresPromediosIniciales() {
     const alumnosRows = document.querySelectorAll('.alumno-row');
     alumnosRows.forEach(row => {
         const alumnoId = row.dataset.alumnoId;
-        cargarNotasAlumno(alumnoId);
+        // Inicializar con promedio 0 (sin nota)
+        colorearPromedio(alumnoId, 0);
     });
-});
+}
 
+// Actualiza la función cargarNotasAlumno para aplicar colores
 function cargarNotasAlumno(alumnoId) {
     const materia = document.getElementById('materia-filter').value;
     const semestre = document.getElementById('semestre-filter').value;
     const ano = document.getElementById('year-filter').value;
     
-    if (!materia) return;
+    if (!materia) {
+        console.log('No hay materia seleccionada, saltando carga de notas');
+        return;
+    }
+    
+    console.log(`Cargando notas para alumno ${alumnoId}: materia=${materia}, semestre=${semestre}, ano=${ano}`);
     
     fetch(`/notas/obtener-notas/${alumnoId}/?materia=${materia}&semestre=${semestre}&ano=${ano}`)
     .then(response => response.json())
     .then(data => {
+        console.log(`Notas recibidas para alumno ${alumnoId}:`, data);
+        
         if (data.success && data.notas) {
-            // Actualizar cada nota en la tabla
+            // Actualizar notas en la tabla
             data.notas.forEach(nota => {
                 const notaInput = document.querySelector(`input[data-alumno-id="${alumnoId}"][data-numero-nota="${nota.numero}"]`);
                 if (notaInput) {
                     notaInput.value = nota.calificacion;
+                    notaInput.setAttribute('data-ano', ano);
                     
-                    // Mostrar indicador de porcentaje si existe
                     if (nota.porcentaje && nota.porcentaje > 0) {
                         const statusContainer = notaInput.parentElement.querySelector('.nota-status');
                         const iconoPorcentaje = statusContainer.querySelector('.nota-ponderada');
@@ -1230,17 +1236,16 @@ function cargarNotasAlumno(alumnoId) {
                 }
             });
             
-            // Actualizar promedio
+            // Aplicar colores al promedio
             if (data.promedio) {
-                const promedioElement = document.querySelector(`.promedio-value[data-alumno-id="${alumnoId}"]`);
-                if (promedioElement) {
-                    promedioElement.textContent = data.promedio;
-                }
+                colorearPromedio(alumnoId, data.promedio);
                 
                 const detalleElement = document.querySelector(`.promedio-detalle[data-alumno-id="${alumnoId}"]`);
                 if (detalleElement && data.detalle_promedio) {
                     detalleElement.textContent = data.detalle_promedio;
                 }
+            } else {
+                colorearPromedio(alumnoId, 0);
             }
         }
     })
@@ -1248,6 +1253,21 @@ function cargarNotasAlumno(alumnoId) {
         console.error('Error al cargar notas:', error);
     });
 }
+
+// Ejecutar cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Página cargada, aplicando colores iniciales y cargando notas...');
+    
+    // Aplicar colores iniciales
+    aplicarColoresPromediosIniciales();
+    
+    // Cargar notas para cada alumno visible
+    const alumnosRows = document.querySelectorAll('.alumno-row');
+    alumnosRows.forEach(row => {
+        const alumnoId = row.dataset.alumnoId;
+        cargarNotasAlumno(alumnoId);
+    });
+});
 </script>
 {% endblock %}
 

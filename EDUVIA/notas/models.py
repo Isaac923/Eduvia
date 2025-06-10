@@ -1,6 +1,21 @@
 from django.db import models
-from alumnos.models import Alumno
 from django.core.validators import MinValueValidator, MaxValueValidator
+from datetime import datetime
+from alumnos.models import Alumno
+
+class AnoAcademico(models.Model):
+    """Modelo para gestionar los años académicos disponibles"""
+    ano = models.IntegerField(unique=True, validators=[MinValueValidator(2025)])
+    activo = models.BooleanField(default=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-ano']
+        verbose_name = 'Año Académico'
+        verbose_name_plural = 'Años Académicos'
+    
+    def __str__(self):
+        return f"Año Académico {self.ano}"
 
 class Nota(models.Model):
     MATERIAS_CHOICES = [
@@ -17,8 +32,9 @@ class Nota(models.Model):
     ]
     
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='notas')
-    materia = models.CharField(max_length=20, choices=MATERIAS_CHOICES)
+    materia = models.CharField(max_length=50, choices=MATERIAS_CHOICES)
     semestre = models.IntegerField(choices=SEMESTRE_CHOICES)
+    ano = models.IntegerField(validators=[MinValueValidator(2025)], default=2025)
     numero_nota = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)])
     calificacion = models.DecimalField(
         max_digits=3, 
@@ -29,87 +45,63 @@ class Nota(models.Model):
         null=True, 
         blank=True,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
-        help_text="Porcentaje de ponderación para el promedio"
+        help_text="Porcentaje que representa esta nota en el promedio final"
     )
-    ano_academico = models.IntegerField(default=2025)  # Cambio aquí: por defecto 2025
     fecha_evaluacion = models.DateField()
-    observaciones = models.TextField(blank=True, null=True)
+    observaciones = models.TextField(blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ['alumno', 'materia', 'semestre', 'numero_nota', 'ano_academico']
-        ordering = ['ano_academico', 'semestre', 'materia', 'numero_nota']
+        unique_together = ['alumno', 'materia', 'semestre', 'ano', 'numero_nota']
+        ordering = ['ano', 'semestre', 'materia', 'numero_nota']
         verbose_name = 'Nota'
         verbose_name_plural = 'Notas'
+        indexes = [
+            models.Index(fields=['alumno', 'materia', 'semestre', 'ano']),
+            models.Index(fields=['ano', 'semestre']),
+        ]
     
     def __str__(self):
-        return f"{self.alumno.nombre_completo} - {self.get_materia_display()} - Nota {self.numero_nota} ({self.ano_academico})"
+        return f"{self.alumno.nombre_completo} - {self.get_materia_display()} - Nota {self.numero_nota} ({self.ano})"
     
     def save(self, *args, **kwargs):
-        # Validar que el año académico no sea menor a 2025
-        if self.ano_academico < 2025:
-            raise ValueError("El año académico no puede ser menor a 2025")
         super().save(*args, **kwargs)
-
-class AnoAcademico(models.Model):
-    """Modelo para gestionar los años académicos disponibles"""
-    ano = models.IntegerField(unique=True, validators=[MinValueValidator(2025)])  # Solo mínimo, sin máximo
-    activo = models.BooleanField(default=True)
-    fecha_inicio = models.DateField(null=True, blank=True)
-    fecha_fin = models.DateField(null=True, blank=True)
-    observaciones = models.TextField(blank=True, null=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+        # Actualizar promedio después de guardar
+        self.actualizar_promedio()
     
-    class Meta:
-        ordering = ['-ano']
-        verbose_name = 'Año Académico'
-        verbose_name_plural = 'Años Académicos'
-    
-    def __str__(self):
-        return f"Año Académico {self.ano}"
-    
-    def clean(self):
-        """Validación personalizada"""
-        if self.ano < 2025:
-            raise ValidationError('El año académico debe ser 2025 o posterior.')
-        
-        # Validación opcional para años muy lejanos
-        if self.ano > datetime.now().year + 100:
-            raise ValidationError('El año parece demasiado lejano en el futuro.')
-    
-    @classmethod
-    def get_anos_disponibles(cls):
-        """Retorna lista de años académicos disponibles"""
-        return cls.objects.filter(activo=True).values_list('ano', flat=True).order_by('ano')
-    
-    @classmethod
-    def get_ano_actual(cls):
-        """Retorna el año académico actual o 2025 por defecto"""
+    def actualizar_promedio(self):
+        """Actualiza el promedio de la materia después de guardar una nota"""
         try:
-            return cls.objects.filter(activo=True).latest('ano').ano
-        except cls.DoesNotExist:
-            return 2025
+            promedio_obj, created = PromedioMateria.objects.get_or_create(
+                alumno=self.alumno,
+                materia=self.materia,
+                semestre=self.semestre,
+                ano=self.ano
+            )
+            promedio_obj.calcular_promedio()
+        except Exception as e:
+            print(f"Error al actualizar promedio: {e}")
 
 class PromedioMateria(models.Model):
-    """Modelo para almacenar promedios calculados por materia"""
+    """Modelo para almacenar los promedios calculados por materia"""
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='promedios')
-    materia = models.CharField(max_length=20, choices=Nota.MATERIAS_CHOICES)
+    materia = models.CharField(max_length=50, choices=Nota.MATERIAS_CHOICES)
     semestre = models.IntegerField(choices=Nota.SEMESTRE_CHOICES)
-    ano_academico = models.IntegerField(default=2025)
+    ano = models.IntegerField(validators=[MinValueValidator(2025)], default=2025)
     promedio = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
     total_notas = models.IntegerField(default=0)
     notas_con_porcentaje = models.IntegerField(default=0)
-    fecha_calculo = models.DateTimeField(auto_now=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ['alumno', 'materia', 'semestre', 'ano_academico']
-        ordering = ['ano_academico', 'semestre', 'materia']
+        unique_together = ['alumno', 'materia', 'semestre', 'ano']
+        ordering = ['ano', 'semestre', 'materia']
         verbose_name = 'Promedio por Materia'
         verbose_name_plural = 'Promedios por Materia'
     
     def __str__(self):
-        return f"{self.alumno.nombre_completo} - {self.get_materia_display()} - {self.semestre}° Sem. ({self.ano_academico}): {self.promedio}"
+        return f"{self.alumno.nombre_completo} - {self.get_materia_display()} - {self.semestre}° Sem. {self.ano}"
     
     def calcular_promedio(self):
         """Calcula el promedio basado en las notas del alumno"""
@@ -117,13 +109,14 @@ class PromedioMateria(models.Model):
             alumno=self.alumno,
             materia=self.materia,
             semestre=self.semestre,
-            ano_academico=self.ano_academico
+            ano=self.ano
         )
         
         if not notas.exists():
             self.promedio = None
             self.total_notas = 0
             self.notas_con_porcentaje = 0
+            self.save()
             return
         
         total_puntos = 0
@@ -132,7 +125,7 @@ class PromedioMateria(models.Model):
         notas_con_porcentaje = 0
         
         for nota in notas:
-            if nota.porcentaje:
+            if nota.porcentaje and nota.porcentaje > 0:
                 # Nota con porcentaje específico
                 total_puntos += float(nota.calificacion) * (nota.porcentaje / 100)
                 total_porcentaje_usado += nota.porcentaje
@@ -145,7 +138,12 @@ class PromedioMateria(models.Model):
         if notas_sin_porcentaje:
             promedio_sin_porcentaje = sum(notas_sin_porcentaje) / len(notas_sin_porcentaje)
             porcentaje_restante = max(0, 100 - total_porcentaje_usado)
-            total_puntos += promedio_sin_porcentaje * (porcentaje_restante / 100)
+            
+            if porcentaje_restante > 0:
+                total_puntos += promedio_sin_porcentaje * (porcentaje_restante / 100)
+            elif total_porcentaje_usado == 0:
+                # Si no hay porcentajes, usar promedio simple
+                total_puntos = promedio_sin_porcentaje
         
         self.promedio = round(total_puntos, 1) if total_puntos > 0 else None
         self.total_notas = notas.count()
