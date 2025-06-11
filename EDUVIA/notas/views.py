@@ -1,12 +1,18 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q, Avg, Count
-from datetime import datetime, date
-from decimal import Decimal
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.contrib import messages
+from datetime import datetime
+import json
+
+# Importar tus modelos
 from alumnos.models import Alumno
-from .models import Nota, PromedioMateria, AnoAcademico
+from .models import Nota, AnoAcademico, PromedioMateria
 
 def notas_generales(request):
     """Vista principal para gestión de notas"""
@@ -92,202 +98,103 @@ def notas_generales(request):
     
     return render(request, 'notas_generales.html', context)
 
+@login_required
 def obtener_notas(request, alumno_id):
     """Vista para obtener las notas de un alumno específico"""
     try:
         materia = request.GET.get('materia')
-        semestre = request.GET.get('semestre', '1')
-        ano = request.GET.get('ano', datetime.now().year)
+        semestre = int(request.GET.get('semestre', 1))
+        ano = int(request.GET.get('ano', datetime.now().year))
         
-        if not materia:
-            return JsonResponse({
-                'success': False,
-                'message': 'Materia requerida'
-            })
+        alumno = get_object_or_404(Alumno, id=alumno_id)
         
-        # Convertir a enteros
-        semestre = int(semestre)
-        ano = int(ano)
-        
-        # Obtener las notas del alumno
         notas = Nota.objects.filter(
-            alumno_id=alumno_id,
+            alumno=alumno,
             materia=materia,
             semestre=semestre,
             ano=ano
-        ).order_by('numero_nota')
+        )
         
-        # Formatear las notas para el frontend
-        notas_data = []
+        notas_data = {}
         for nota in notas:
-            notas_data.append({
-                'numero': nota.numero_nota,
+            notas_data[f'nota{nota.numero_nota}'] = {
                 'calificacion': float(nota.calificacion),
                 'porcentaje': nota.porcentaje,
-                'fecha_evaluacion': nota.fecha_evaluacion.strftime('%Y-%m-%d'),
+                'fecha_evaluacion': nota.fecha_evaluacion.strftime('%Y-%m-%d') if nota.fecha_evaluacion else None,
                 'observaciones': nota.observaciones
-            })
-        
-        # Obtener promedio
-        try:
-            promedio_obj = PromedioMateria.objects.get(
-                alumno_id=alumno_id,
-                materia=materia,
-                semestre=semestre,
-                ano=ano
-            )
-            promedio = float(promedio_obj.promedio) if promedio_obj.promedio else 0
-            detalle_promedio = f"{promedio_obj.total_notas} notas"
-            if promedio_obj.notas_con_porcentaje > 0:
-                detalle_promedio += f" ({promedio_obj.notas_con_porcentaje} con %)"
-        except PromedioMateria.DoesNotExist:
-            promedio = 0
-            detalle_promedio = ""
+            }
         
         return JsonResponse({
             'success': True,
-            'notas': notas_data,
-            'promedio': promedio,
-            'detalle_promedio': detalle_promedio
+            'notas': notas_data
         })
         
     except Exception as e:
-        print(f"Error al obtener notas: {e}")
         return JsonResponse({
             'success': False,
-            'message': f'Error al obtener notas: {str(e)}'
+            'message': f'Error al obtener las notas: {str(e)}'
         })
 
+@login_required
+@require_http_methods(["POST"])
 def guardar_nota(request):
-    """Vista para guardar una nota"""
-    if request.method == 'POST':
-        try:
-            # Obtener datos del formulario
-            alumno_id = request.POST.get('alumno_id')
-            materia = request.POST.get('materia')
-            semestre = int(request.POST.get('semestre'))
-            ano = int(request.POST.get('ano'))
-            numero_nota = int(request.POST.get('numero_nota'))
-            calificacion = float(request.POST.get('calificacion'))
-            porcentaje = request.POST.get('porcentaje')
-            fecha_evaluacion = request.POST.get('fecha_evaluacion')
-            observaciones = request.POST.get('observaciones', '')
-            
-            print(f"Datos recibidos: alumno_id={alumno_id}, materia={materia}, semestre={semestre}, ano={ano}, numero_nota={numero_nota}, calificacion={calificacion}")
-            
-            # Validaciones
-            if not alumno_id:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'ID de alumno requerido'
-                })
-            
-            if not materia:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Materia requerida'
-                })
-            
-            if not (1.0 <= calificacion <= 7.0):
-                return JsonResponse({
-                    'success': False,
-                    'message': 'La calificación debe estar entre 1.0 y 7.0'
-                })
-            
-            if not (1 <= numero_nota <= 6):
-                return JsonResponse({
-                    'success': False,
-                    'message': 'El número de nota debe estar entre 1 y 6'
-                })
-            
-            # Validar porcentaje
-            if porcentaje and porcentaje.strip():
-                try:
-                    porcentaje = int(porcentaje)
-                    if not (0 <= porcentaje <= 100):
-                        return JsonResponse({
-                            'success': False,
-                            'message': 'El porcentaje debe estar entre 0 y 100'
-                        })
-                except (ValueError, TypeError):
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'Porcentaje inválido'
-                    })
-            else:
-                porcentaje = None
-            
-            # Validar fecha
-            if fecha_evaluacion:
-                try:
-                    fecha_evaluacion = datetime.strptime(fecha_evaluacion, '%Y-%m-%d').date()
-                except (ValueError, TypeError):
-                    fecha_evaluacion = date.today()
-            else:
-                fecha_evaluacion = date.today()
-            
-            # Obtener el alumno
-            try:
-                alumno = Alumno.objects.get(id=alumno_id)
-            except Alumno.DoesNotExist:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Alumno no encontrado'
-                })
-            
-            # Crear o actualizar la nota
-            nota, created = Nota.objects.update_or_create(
-                alumno=alumno,
-                materia=materia,
-                semestre=semestre,
-                ano=ano,
-                numero_nota=numero_nota,
-                defaults={
-                    'calificacion': Decimal(str(calificacion)),
-                    'porcentaje': porcentaje,
-                    'fecha_evaluacion': fecha_evaluacion,
-                    'observaciones': observaciones
-                }
-            )
-            
-            print(f"Nota {'creada' if created else 'actualizada'}: {nota}")
-            
-            # Calcular promedio actualizado
-            try:
-                promedio_obj, _ = PromedioMateria.objects.get_or_create(
-                    alumno=alumno,
-                    materia=materia,
-                    semestre=semestre,
-                    ano=ano
-                )
-                promedio_obj.calcular_promedio()
-                promedio_actual = float(promedio_obj.promedio) if promedio_obj.promedio else 0
-                
-                print(f"Promedio calculado: {promedio_actual}")
-                
-            except Exception as e:
-                print(f"Error al calcular promedio: {e}")
-                promedio_actual = 0
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Nota guardada correctamente',
-                'alumno_id': alumno_id,
-                'numero_nota': numero_nota,
-                'calificacion': float(calificacion),
-                'porcentaje': porcentaje,
-                'promedio': promedio_actual,
-                'created': created
-            })
-            
-        except Exception as e:
-            print(f"Error al guardar nota: {e}")
+    """Vista para guardar una nota individual"""
+    try:
+        alumno_id = request.POST.get('alumno_id')
+        materia = request.POST.get('materia')
+        semestre = int(request.POST.get('semestre'))
+        ano = int(request.POST.get('ano'))
+        numero_nota = int(request.POST.get('numero_nota'))
+        calificacion = float(request.POST.get('calificacion'))
+        porcentaje = request.POST.get('porcentaje')
+        fecha_evaluacion = request.POST.get('fecha_evaluacion')
+        observaciones = request.POST.get('observaciones', '')
+        
+        # Validar datos
+        if not all([alumno_id, materia, semestre, ano, numero_nota, calificacion]):
             return JsonResponse({
                 'success': False,
-                'message': f'Error al guardar la nota: {str(e)}'
+                'message': 'Faltan datos requeridos'
             })
-    
-    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+        
+        if calificacion < 1.0 or calificacion > 7.0:
+            return JsonResponse({
+                'success': False,
+                'message': 'La calificación debe estar entre 1.0 y 7.0'
+            })
+        
+        # Obtener alumno
+        alumno = get_object_or_404(Alumno, id=alumno_id)
+        
+        # Crear o actualizar nota
+        nota, created = Nota.objects.update_or_create(
+            alumno=alumno,
+            materia=materia,
+            semestre=semestre,
+            ano=ano,
+            numero_nota=numero_nota,
+            defaults={
+                'calificacion': calificacion,
+                'porcentaje': int(porcentaje) if porcentaje else None,
+                'fecha_evaluacion': fecha_evaluacion,
+                'observaciones': observaciones
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Nota guardada correctamente',
+            'alumno_id': alumno_id,
+            'numero_nota': numero_nota,
+            'calificacion': float(calificacion),
+            'porcentaje': nota.porcentaje
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al guardar la nota: {str(e)}'
+        })
 
 def agregar_ano(request):
     """Vista para agregar un nuevo año académico"""
@@ -408,54 +315,40 @@ def historial_alumno(request, alumno_id):
             'message': f'Error al cargar el historial: {str(e)}'
         })
 
+@login_required
+@require_http_methods(["POST"])
 def eliminar_nota(request):
-    """Vista para eliminar una nota específica"""
-    if request.method == 'POST':
-        try:
-            alumno_id = request.POST.get('alumno_id')
-            materia = request.POST.get('materia')
-            semestre = int(request.POST.get('semestre'))
-            ano = int(request.POST.get('ano'))
-            numero_nota = int(request.POST.get('numero_nota'))
-            
-            # Buscar y eliminar la nota
-            nota = get_object_or_404(
-                Nota,
-                alumno_id=alumno_id,
-                materia=materia,
-                semestre=semestre,
-                ano=ano,
-                numero_nota=numero_nota
-            )
-            
+    """Vista para eliminar una nota individual"""
+    try:
+        alumno_id = request.POST.get('alumno_id')
+        materia = request.POST.get('materia')
+        semestre = int(request.POST.get('semestre'))
+        ano = int(request.POST.get('ano'))
+        numero_nota = int(request.POST.get('numero_nota'))
+        
+        # Buscar y eliminar la nota
+        nota = Nota.objects.filter(
+            alumno_id=alumno_id,
+            materia=materia,
+            semestre=semestre,
+            ano=ano,
+            numero_nota=numero_nota
+        ).first()
+        
+        if nota:
             nota.delete()
-            
-            # Recalcular promedio
-            try:
-                promedio_obj = PromedioMateria.objects.get(
-                    alumno_id=alumno_id,
-                    materia=materia,
-                    semestre=semestre,
-                    ano=ano
-                )
-                promedio_obj.calcular_promedio()
-            except PromedioMateria.DoesNotExist:
-                pass
-            
             return JsonResponse({
                 'success': True,
                 'message': 'Nota eliminada correctamente'
             })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Nota no encontrada'
+            })
             
-        except Nota.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'message': 'La nota no existe'
-            })
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'Error al eliminar la nota: {str(e)}'
-            })
-    
-    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al eliminar la nota: {str(e)}'
+        })

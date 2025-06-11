@@ -31,29 +31,20 @@ class Nota(models.Model):
         (2, 'Segundo Semestre'),
     ]
     
-    alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='notas')
-    materia = models.CharField(max_length=50, choices=MATERIAS_CHOICES)
-    semestre = models.IntegerField(choices=SEMESTRE_CHOICES)
-    ano = models.IntegerField(validators=[MinValueValidator(2025)], default=2025)
-    numero_nota = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)])
-    calificacion = models.DecimalField(
-        max_digits=3, 
-        decimal_places=1,
-        validators=[MinValueValidator(1.0), MaxValueValidator(7.0)]
-    )
-    porcentaje = models.IntegerField(
-        null=True, 
-        blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
-        help_text="Porcentaje que representa esta nota en el promedio final"
-    )
+    alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
+    materia = models.CharField(max_length=20, choices=MATERIAS_CHOICES)
+    semestre = models.IntegerField(choices=[(1, '1° Semestre'), (2, '2° Semestre')])
+    numero_nota = models.IntegerField(choices=[(i, f'Nota {i}') for i in range(1, 7)])
+    calificacion = models.DecimalField(max_digits=3, decimal_places=1)
+    porcentaje = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, default=None)  # Agregar este campo
     fecha_evaluacion = models.DateField()
-    observaciones = models.TextField(blank=True)
+    observaciones = models.TextField(blank=True, null=True)
+    ano = models.IntegerField()
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_modificacion = models.DateTimeField(auto_now=True)
     
     class Meta:
-        unique_together = ['alumno', 'materia', 'semestre', 'ano', 'numero_nota']
+        unique_together = ['alumno', 'materia', 'semestre', 'numero_nota', 'ano']
         ordering = ['ano', 'semestre', 'materia', 'numero_nota']
         verbose_name = 'Nota'
         verbose_name_plural = 'Notas'
