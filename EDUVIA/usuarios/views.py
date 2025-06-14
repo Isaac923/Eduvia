@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import check_password  # AGREGAR ESTA LÍNEA
+from django.utils import timezone  # AGREGAR ESTA LÍNEA
 from .models import Usuario
 from django.core.paginator import Paginator 
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -28,6 +30,21 @@ def login_view(request):
             authenticated_user = authenticate(request, username=rut, password=password)
             if authenticated_user is not None:
                 login(request, authenticated_user)
+                
+                # NUEVO: Agregar datos EDUVIA al usuario Django si existe
+                try:
+                    usuario_eduvia = Usuario.objects.get(rut=rut)
+                    authenticated_user._eduvia_data = {
+                        'rol': usuario_eduvia.rol,
+                        'tipo_usuario': getattr(usuario_eduvia, 'tipo_usuario', None),
+                        'asignatura': getattr(usuario_eduvia, 'asignatura', None),
+                        'telefono': getattr(usuario_eduvia, 'telefono', None),
+                        'rut_original': usuario_eduvia.rut,
+                        'usuario_eduvia_id': usuario_eduvia.id
+                    }
+                except Usuario.DoesNotExist:
+                    pass
+                
                 if authenticated_user.is_superuser:
                     messages.success(request, f'Bienvenido Superadministrador!')
                 else:
@@ -47,6 +64,17 @@ def login_view(request):
                         authenticated_user = authenticate(request, username=rut, password=password)
                         if authenticated_user is not None:
                             login(request, authenticated_user)
+                            
+                            # NUEVO: Agregar datos EDUVIA
+                            authenticated_user._eduvia_data = {
+                                'rol': usuario_eduvia.rol,
+                                'tipo_usuario': getattr(usuario_eduvia, 'tipo_usuario', None),
+                                'asignatura': getattr(usuario_eduvia, 'asignatura', None),
+                                'telefono': getattr(usuario_eduvia, 'telefono', None),
+                                'rut_original': usuario_eduvia.rut,
+                                'usuario_eduvia_id': usuario_eduvia.id
+                            }
+                            
                             messages.success(request, f'Bienvenido {usuario_eduvia.nombres}!')
                             return redirect('usuarios:inicio')
                 except Usuario.DoesNotExist:
@@ -93,6 +121,16 @@ def login_view(request):
                     django_user.is_staff = usuario_eduvia.rol == 'admin'
                 
                 django_user.save()
+                
+                # NUEVO: Agregar datos EDUVIA al usuario Django
+                django_user._eduvia_data = {
+                    'rol': usuario_eduvia.rol,
+                    'tipo_usuario': getattr(usuario_eduvia, 'tipo_usuario', None),
+                    'asignatura': getattr(usuario_eduvia, 'asignatura', None),
+                    'telefono': getattr(usuario_eduvia, 'telefono', None),
+                    'rut_original': usuario_eduvia.rut,
+                    'usuario_eduvia_id': usuario_eduvia.id
+                }
                 
                 # Hacer login
                 login(request, django_user)
@@ -147,13 +185,26 @@ def nuevo_usuario(request):
             correo = request.POST.get('correo', '').strip()
             rol = request.POST.get('rol', '').strip()
             estado = request.POST.get('estado', 'active')
-            funcion = request.POST.get('funcion', '').strip()
+            asignatura = request.POST.get('asignatura', '').strip() if rol == 'profesor' else None
             
             # Validar campos básicos requeridos
             if not all([rut, password, nombres, apellidos, correo, rol]):
                 error_data = {
                     'success': False,
                     'message': 'Por favor, complete todos los campos obligatorios.'
+                }
+                
+                if is_ajax:
+                    return JsonResponse(error_data, status=400)
+                else:
+                    messages.error(request, error_data['message'])
+                    return render(request, 'usuarios/nuevo_usuario.html')
+            
+            # NUEVO: Validar asignatura para profesores
+            if rol == 'profesor' and not asignatura:
+                error_data = {
+                    'success': False,
+                    'message': 'Debe seleccionar una asignatura para el profesor.'
                 }
                 
                 if is_ajax:
@@ -200,8 +251,9 @@ def nuevo_usuario(request):
                 correo=correo,
                 rol=rol,
                 estado=estado,
-                funcion=funcion
+                asignatura=asignatura
             )
+            
             usuario.save()
             
             success_data = {
@@ -244,12 +296,25 @@ def editar_usuario(request, usuario_id):
             correo = request.POST.get('correo', '').strip()
             rol = request.POST.get('rol', '').strip()
             estado = request.POST.get('estado', '').strip()
-            funcion = request.POST.get('funcion', '').strip()
+            asignatura = request.POST.get('asignatura', '').strip() if rol == 'profesor' else None
             
             if not all([rut, nombres, apellidos, correo, rol, estado]):
                 error_data = {
                     'success': False,
                     'message': 'Por favor, complete todos los campos obligatorios.'
+                }
+                
+                if is_ajax:
+                    return JsonResponse(error_data)
+                else:
+                    messages.error(request, error_data['message'])
+                    return render(request, 'usuarios/editar_usuario.html', {'usuario': usuario})
+            
+            # NUEVO: Validar asignatura para profesores
+            if rol == 'profesor' and not asignatura:
+                error_data = {
+                    'success': False,
+                    'message': 'Debe seleccionar una asignatura para el profesor.'
                 }
                 
                 if is_ajax:
@@ -289,7 +354,13 @@ def editar_usuario(request, usuario_id):
             usuario.correo = correo
             usuario.rol = rol
             usuario.estado = estado
-            usuario.funcion = funcion
+            
+            # NUEVO: Actualizar asignatura
+            if rol == 'profesor' and asignatura:
+                usuario.asignatura = asignatura
+            elif rol != 'profesor':
+                usuario.asignatura = None  # Limpiar asignatura si no es profesor
+            
             usuario.save()
             
             success_data = {

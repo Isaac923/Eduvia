@@ -191,10 +191,13 @@
                         <select id="asignatura" name="asignatura" class="form-select">
                             <option value="">Seleccione una asignatura...</option>
                             <option value="matematicas" {% if usuario.asignatura == 'matematicas' %}selected{% endif %}>📐 Matemáticas</option>
+                            <option value="lenguaje_basica" {% if usuario.asignatura == 'lenguaje_basica' %}selected{% endif %}>📝 Lenguaje Básica</option>
                             <option value="lenguaje" {% if usuario.asignatura == 'lenguaje' %}selected{% endif %}>📝 Lenguaje y Comunicación</option>
                             <option value="ciencias" {% if usuario.asignatura == 'ciencias' %}selected{% endif %}>🔬 Ciencias Naturales</option>
                             <option value="historia" {% if usuario.asignatura == 'historia' %}selected{% endif %}>🏛️ Historia y Geografía</option>
                             <option value="ingles" {% if usuario.asignatura == 'ingles' %}selected{% endif %}>🇺🇸 Inglés</option>
+                            <option value="estudios_sociales" {% if usuario.asignatura == 'estudios_sociales' %}selected{% endif %}>🌍 Estudios Sociales</option>
+                            <option value="f_instrumental" {% if usuario.asignatura == 'f_instrumental' %}selected{% endif %}>🎵 F. Instrumental</option>
                         </select>
                         <div class="error-message" id="asignatura-error" style="display: none;">
                             <i class="fas fa-exclamation-circle"></i> <span id="asignatura-error-text">Debe seleccionar una asignatura</span>

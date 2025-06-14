@@ -82,7 +82,7 @@
                 <div class="nav-section">
                     <h4>Evaluación</h4>
                     <ul>
-                        <li class="{% if request.resolver_match.namespace == 'notas' %}active{% endif %}">
+                        <li class="{% if request.resolver_match.namespace == 'notas' and request.resolver_match.url_name == 'notas_generales' %}active{% endif %}">
                             <a href="{% url 'notas:notas_generales' %}">
                                 <i class="fas fa-star"></i>
                                 <span>Notas Generales</span>

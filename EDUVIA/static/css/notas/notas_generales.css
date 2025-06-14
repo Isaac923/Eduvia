@@ -1509,126 +1509,408 @@
         background: transparent;
     }
 }
+    /* ============================================================================
+   ESTILOS PARA SELECTOR DE AÑO ACADÉMICO - ESTILO EDUVIA
+   ============================================================================ */
 
- .year-selector-container {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.year-selector-container {
+    background: linear-gradient(135deg, #667eea 0%, #0c5460 100%);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.year-selector-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.year-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.year-selector-title {
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.year-selector-title i {
+    margin-right: 12px;
+    font-size: 1.8rem;
+    color: #ffd700;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.year-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.year-select {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4a5568;
+    min-width: 140px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.year-select:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: #ffd700;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.year-select:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+    background: rgba(255, 255, 255, 1);
+}
+
+.btn-add-year {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5568;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-add-year::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    transform: translate(-50%, -50%);
+}
+
+.btn-add-year:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+}
+
+.btn-add-year:hover::before {
+    width: 100%;
+    height: 100%;
+}
+
+.btn-add-year:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+.year-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.year-stat {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    color: #ffffff;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-width: 200px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.year-stat:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.year-stat i {
+    margin-right: 12px;
+    font-size: 1.3rem;
+    color: #ffd700;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.year-stat span {
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.year-stat strong {
+    color: #ffd700;
+    font-size: 1.1em;
+    margin-left: 5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .year-selector-container {
+        padding: 20px 15px;
         border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 25px;
-        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.1);
     }
-
+    
     .year-selector-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 15px;
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
     }
-
+    
     .year-selector-title {
-        color: white;
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        font-size: 1.3rem;
     }
-
+    
     .year-controls {
-        display: flex;
-        align-items: center;
+        justify-content: center;
+    }
+    
+    .year-select {
+        min-width: 120px;
+        padding: 10px 15px;
+        font-size: 1rem;
+    }
+    
+    .btn-add-year {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+    
+    .year-info {
+        flex-direction: column;
         gap: 15px;
     }
+    
+    .year-stat {
+        min-width: 100%;
+        justify-content: center;
+        padding: 12px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .year-selector-container {
+        margin: 0 -15px 20px -15px;
+        border-radius: 0;
+    }
+    
+    .year-selector-title {
+        font-size: 1.2rem;
+    }
+    
+    .year-selector-title i {
+        font-size: 1.5rem;
+        margin-right: 8px;
+    }
+    
+    .year-select {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .year-stat {
+        padding: 10px 15px;
+        border-radius: 12px;
+    }
+    
+    .year-stat i {
+        font-size: 1.2rem;
+        margin-right: 10px;
+    }
+}
+
+/* Animaciones adicionales */
+@keyframes yearSelectorPulse {
+    0% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); }
+    50% { box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4); }
+    100% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); }
+}
+
+.year-selector-container:hover {
+    animation: yearSelectorPulse 2s ease-in-out infinite;
+}
+
+/* Efectos de carga */
+.year-selector-loading {
+    position: relative;
+}
+
+.year-selector-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: yearSelectorShimmer 2s infinite;
+}
+
+@keyframes yearSelectorShimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Estilos para otros elementos existentes */
+.nota-con-porcentaje {
+    position: relative;
+}
+
+.porcentaje-indicator {
+    font-size: 0.7em;
+    color: #28a745;
+    font-weight: bold;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.promedio-detalle-extended {
+    font-size: 0.75em;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
 
     .year-select {
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        color: white;
-        padding: 8px 15px;
-        font-size: 1rem;
-        font-weight: 500;
-        min-width: 120px;
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
+        background: rgba(45, 55, 72, 0.95);
+        color: #e2e8f0;
+        border-color: rgba(255, 255, 255, 0.2);
     }
-
-    .year-select:focus {
-        outline: none;
-        border-color: rgba(255, 255, 255, 0.6);
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.2);
+    
+    .year-select:hover {
+        background: rgba(45, 55, 72, 1);
+        border-color: #ffd700;
     }
-
-    .year-select option {
-        background: #2c3e50;
-        color: white;
-        padding: 8px;
-    }
-
-    .btn-add-year {
-        background: rgba(255, 255, 255, 0.2);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.2rem;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-
-    .btn-add-year:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-        transform: scale(1.05);
-        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-    }
-
-    .year-info {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 0.9rem;
-    }
-
+    
     .year-stat {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 5px 12px;
-        border-radius: 20px;
-        backdrop-filter: blur(5px);
+        background: rgba(0, 0, 0, 0.3);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .year-stat:hover {
+        background: rgba(0, 0, 0, 0.4);
     }
 
-    .year-stat i {
-        font-size: 0.8rem;
-    }
+    .nota-con-porcentaje {
+    position: relative;
+}
 
-    /* Responsive */
-    @media (max-width: 768px) {
-        .year-selector-header {
-            flex-direction: column;
-            gap: 15px;
-            align-items: stretch;
-        }
+.porcentaje-indicator {
+    font-size: 0.7em;
+    color: #28a745;
+    font-weight: bold;
+}
 
-        .year-controls {
-            justify-content: center;
-        }
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
 
-        .year-info {
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-    }
+.promedio-detalle-extended {
+    font-size: 0.75em;
+    color: #6c757d;
+    margin-top: 2px;
+}
+/* Mostrar porcentaje encima de las notas */
+.nota-input-container {
+    position: relative;
+    display: inline-block;
+}
+
+.nota-input[data-porcentaje]:not([data-porcentaje=""]):not([data-porcentaje="0"])::before {
+    content: attr(data-porcentaje) "%";
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Variante con tooltip hover */
+.nota-input[data-porcentaje]:not([data-porcentaje=""]):not([data-porcentaje="0"]):hover::after {
+    content: "Peso: " attr(data-porcentaje) "% del promedio";
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 15;
+}
+.materia-fija {
+    display: flex;
+    align-items: center;
+    height: 38px;
+}
+
+.materia-profesor-badge {
+    background: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+

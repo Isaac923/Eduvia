@@ -15,6 +15,17 @@ class Usuario(models.Model):
         ('pending', 'Pendiente'),
     ]
     
+    ASIGNATURA_CHOICES = [
+        ('matematicas', 'Matemáticas'),
+        ('lenguaje_basica', 'Lenguaje Básica'),
+        ('lenguaje', 'Lenguaje y Comunicación'),
+        ('ciencias', 'Ciencias Naturales'),
+        ('historia', 'Historia y Geografía'),
+        ('ingles', 'Inglés'),
+        ('estudios_sociales', 'Estudios Sociales'),
+        ('f_instrumental', 'Formación Instrumental'),
+    ]
+    
     # Validador para RUT chileno (formato: 12.345.678-9)
     rut_validator = RegexValidator(
         regex=r'^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$',
@@ -56,14 +67,23 @@ class Usuario(models.Model):
         default='inactive', 
         verbose_name="Estado"
     )
-    funcion = models.CharField(
-        max_length=200, 
-        blank=True, 
-        null=True, 
-        verbose_name="Función"
+    
+    # NUEVO: Campo asignatura para profesores (reemplaza funcion)
+    asignatura = models.CharField(
+        max_length=50,
+        choices=ASIGNATURA_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name="Asignatura",
+        help_text="Asignatura que imparte el profesor (solo para rol profesor)"
     )
+    
+    # MANTENER: Campo funcion por compatibilidad (se puede eliminar después)
+   
+    
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
     fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name="Última Modificación")
+    ultimo_acceso = models.DateTimeField(null=True, blank=True, verbose_name="Último Acceso")
     
     # Campo interno para controlar cuándo hashear la contraseña
     _password_changed = False
@@ -74,10 +94,33 @@ class Usuario(models.Model):
         ordering = ['-fecha_creacion']
     
     def __str__(self):
+        if self.rol == 'profesor' and self.asignatura:
+            asignatura_display = dict(self.ASIGNATURA_CHOICES).get(self.asignatura, self.asignatura)
+            return f"{self.nombres} {self.apellidos} ({self.rut}) - Profesor de {asignatura_display}"
         return f"{self.nombres} {self.apellidos} ({self.rut})"
     
     def nombre_completo(self):
         return f"{self.nombres} {self.apellidos}"
+    
+    def get_asignatura_display_custom(self):
+        """Retorna el nombre completo de la asignatura"""
+        if self.asignatura:
+            return dict(self.ASIGNATURA_CHOICES).get(self.asignatura, self.asignatura)
+        return None
+    
+    def clean(self):
+        """Validación personalizada"""
+        from django.core.exceptions import ValidationError
+        
+        # Si es profesor, debe tener asignatura
+        if self.rol == 'profesor' and not self.asignatura:
+            raise ValidationError({
+                'asignatura': 'Los profesores deben tener una asignatura asignada.'
+            })
+        
+        # Si no es profesor, no debe tener asignatura
+        if self.rol != 'profesor' and self.asignatura:
+            self.asignatura = None
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -85,6 +128,9 @@ class Usuario(models.Model):
         self._original_password = self.password
     
     def save(self, *args, **kwargs):
+        # Ejecutar validación personalizada
+        self.clean()
+        
         # Solo hashear la contraseña si:
         # 1. Es un nuevo usuario (pk is None) Y la contraseña no está hasheada
         # 2. O si la contraseña cambió explícitamente

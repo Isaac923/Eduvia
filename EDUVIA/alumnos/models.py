@@ -13,6 +13,17 @@ class Apoderado(models.Model):
         return self.nombre
 
 
+class AlumnoManager(models.Manager):
+    def buscar_por_nombre(self, termino):
+        """Busca alumnos por cualquier parte del nombre"""
+        return self.filter(
+            Q(primer_nombre__icontains=termino) |
+            Q(segundo_nombre__icontains=termino) |
+            Q(apellido_paterno__icontains=termino) |
+            Q(apellido_materno__icontains=termino) |
+            Q(rut__icontains=termino)
+        )
+
 class Alumno(models.Model):
     # Datos de matrícula
     id = models.AutoField(primary_key=True)  # N°Matricula
@@ -163,18 +174,25 @@ class Alumno(models.Model):
     # Relaciones
     apoderado = models.ForeignKey(Apoderado, on_delete=models.SET_NULL, null=True, blank=True)
 
+    objects = AlumnoManager()
+
     @property
     def nombre_completo(self):
-        """Retorna el nombre completo del alumno"""
+        """Devuelve el nombre completo del alumno"""
         nombres = []
+        
         if self.primer_nombre:
             nombres.append(self.primer_nombre)
+        
         if self.segundo_nombre:
             nombres.append(self.segundo_nombre)
+        
         if self.apellido_paterno:
             nombres.append(self.apellido_paterno)
+        
         if self.apellido_materno:
             nombres.append(self.apellido_materno)
+        
         return ' '.join(nombres)
     
     @property
@@ -198,3 +216,8 @@ class Alumno(models.Model):
         elif self.nivel.endswith('B'):
             self.jornada = 'vespertina'
         super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'alumnos_alumno'
+        verbose_name = 'Alumno'
+        verbose_name_plural = 'Alumnos'

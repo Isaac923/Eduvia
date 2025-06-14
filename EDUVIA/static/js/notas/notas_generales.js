@@ -1,12 +1,32 @@
 // ============================================================================
-// NOTAS GENERALES - JAVASCRIPT COMPLETO (VERSIÓN CORREGIDA)
+// NOTAS GENERALES - JAVASCRIPT COMPLETO (VERSIÓN CON PORCENTAJES VISIBLES)
 // ============================================================================
+
+// ============================================================================
+// FUNCIÓN UTILITARIA PARA COOKIES (CSRF TOKEN) - DEBE IR AL PRINCIPIO
+// ============================================================================
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
 // Variables globales
 let currentAlumnoId = null;
 let currentMateria = null;
-let currentSemestre = null;
+let currentSemestre = null;                                                                 
 let currentAno = null;
+let notasConPorcentaje = {}; // Cache para almacenar porcentajes
 
 // ============================================================================
 // INICIALIZACIÓN
@@ -120,28 +140,78 @@ function mostrarIndicadorCarga() {
 // ============================================================================
 // GESTIÓN DE AÑOS ACADÉMICOS
 // ============================================================================
+// Función para cambiar año (versión simple)
 function cambiarAno() {
-    const anoSeleccionado = document.getElementById('year-filter').value;
-    document.getElementById('hidden-year').value = anoSeleccionado;
+    const yearSelect = document.getElementById('year-filter');
+    const nuevoAno = yearSelect.value;
     
+    console.log('Cambiando año a:', nuevoAno);
+    
+    // Mostrar indicador de carga
+    Swal.fire({
+        title: 'Cambiando año académico...',
+        text: 'Por favor espera...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Simplemente recargar la página con el nuevo año
     const url = new URL(window.location);
-    url.searchParams.set('year', anoSeleccionado);
+    url.searchParams.set('year', nuevoAno);
     
-    // Mantener otros filtros
-    const materia = document.getElementById('materia-filter').value;
-    const semestre = document.getElementById('semestre-filter').value;
-    const nivel = document.getElementById('nivel-filter').value;
-    const estado = document.getElementById('estado-filter').value;
-    const alumno = document.getElementById('buscar-alumno').value;
-    
-    if (materia) url.searchParams.set('materia', materia);
-    if (semestre) url.searchParams.set('semestre', semestre);
-    if (nivel && nivel !== 'todos') url.searchParams.set('nivel', nivel);
-    if (estado) url.searchParams.set('estado', estado);
-    if (alumno) url.searchParams.set('alumno', alumno);
-    
-    window.location.href = url.toString();
+    setTimeout(() => {
+        Swal.fire({
+            icon: 'success',
+            title: '¡Año actualizado!',
+            text: `Cambiando al año académico ${nuevoAno}`,
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            window.location.href = url.toString();
+        });
+    }, 500);
 }
+
+// Función para verificar cambios de año (para profesores)
+function verificarCambioAno() {
+    const anoActualPagina = parseInt(document.querySelector('[data-ano-actual]')?.dataset.anoActual);
+    
+    if (!anoActualPagina) return;
+    
+    fetch('/notas/obtener-ano-sistema/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.ano !== anoActualPagina) {
+                // El año del sistema cambió, mostrar notificación y recargar
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Año académico actualizado',
+                    text: `El administrador ha cambiado el año académico a ${data.ano}. La página se actualizará automáticamente.`,
+                    timer: 3000,
+                    showConfirmButton: false
+                }).then(() => {
+                    const url = new URL(window.location);
+                    url.searchParams.set('year', data.ano);
+                    window.location.href = url.toString();
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error verificando año del sistema:', error);
+        });
+}
+
+// Para profesores: verificar cambios cada 30 segundos
+document.addEventListener('DOMContentLoaded', function() {
+    const esProfesor = document.querySelector('.materia-profesor-badge');
+    
+    if (esProfesor) {
+        console.log('Iniciando verificación automática de año para profesor');
+        setInterval(verificarCambioAno, 30000); // Verificar cada 30 segundos
+    }
+});
 
 function mostrarModalAgregarAno() {
     const anoActual = parseInt(document.getElementById('year-filter').value);
@@ -301,16 +371,28 @@ function abrirModalEditarNota(alumnoId, materia, semestre, numeroNota, valorActu
     document.getElementById('modal-materia-info').textContent = 
         `${materiaFormateada} - ${semestre}° Semestre ${ano} - Nota ${numeroNota}`;
     
+    // Obtener datos existentes de la nota (incluyendo porcentaje)
+    const cacheKey = `${alumnoId}_${materia}_${semestre}_${numeroNota}`;
+    const notaExistente = notasConPorcentaje[cacheKey];
+    
     // Configurar valores actuales
     if (valorActual && valorActual !== '--' && valorActual !== '') {
         document.getElementById('modal-calificacion').value = valorActual;
+        
+        // Si hay porcentaje guardado, mostrarlo
+        if (notaExistente && notaExistente.porcentaje) {
+            document.getElementById('modal-porcentaje').value = notaExistente.porcentaje;
+        } else {
+            document.getElementById('modal-porcentaje').value = '';
+        }
+        
         calcularVistaPrevia();
     } else {
         document.getElementById('modal-calificacion').value = '';
+        document.getElementById('modal-porcentaje').value = '';
     }
     
     // Limpiar otros campos
-    document.getElementById('modal-porcentaje').value = '';
     document.getElementById('modal-fecha').value = new Date().toISOString().split('T')[0];
     document.getElementById('modal-observaciones').value = '';
     
@@ -335,10 +417,10 @@ function calcularVistaPrevia() {
         document.getElementById('nota-original-preview').textContent = calificacion.toFixed(1);
         
         if (porcentaje) {
-            const contribucion = (calificacion * porcentaje / 100).toFixed(2);
-            document.getElementById('contribucion-preview').textContent = contribucion;
+            const contribucion = (calificacion * porcentaje / 100);
+            document.getElementById('contribucion-preview').textContent = contribucion.toFixed(3);
             document.getElementById('detalle-calculo').textContent = 
-                `Cálculo: ${calificacion} × ${porcentaje}% = ${contribucion} puntos para el promedio`;
+                `Cálculo: ${calificacion} × ${porcentaje}% = ${contribucion.toFixed(3)} puntos para el promedio`;
         } else {
             document.getElementById('contribucion-preview').textContent = 'Sin porcentaje asignado';
             document.getElementById('detalle-calculo').textContent = 
@@ -354,13 +436,14 @@ function calcularVistaPrevia() {
 function guardarNota() {
     const formData = new FormData(document.getElementById('editarNotaForm'));
     
-    console.log('Guardando nota:', {
+    console.log('Guardando nota con datos:', {
         alumno_id: formData.get('alumno_id'),
         materia: formData.get('materia'),
         semestre: formData.get('semestre'),
         ano: formData.get('ano'),
         numero_nota: formData.get('numero_nota'),
-        calificacion: formData.get('calificacion')
+        calificacion: formData.get('calificacion'),
+        porcentaje: formData.get('porcentaje')
     });
     
     // Mostrar indicador de carga
@@ -409,6 +492,13 @@ function guardarNota() {
             // Actualizar tabla
             actualizarNotaEnTabla(data.alumno_id, data.numero_nota, data.calificacion, data.porcentaje);
             
+            // Guardar porcentaje en cache para cálculos
+            const cacheKey = `${data.alumno_id}_${currentMateria}_${currentSemestre}_${data.numero_nota}`;
+            notasConPorcentaje[cacheKey] = {
+                calificacion: parseFloat(data.calificacion),
+                porcentaje: data.porcentaje ? parseFloat(data.porcentaje) : null
+            };
+            
             // Recalcular promedio
             setTimeout(() => recalcularPromedio(data.alumno_id), 100);
             
@@ -433,6 +523,9 @@ function guardarNota() {
     });
 }
 
+// ============================================================================
+// FUNCIÓN MEJORADA PARA ACTUALIZAR NOTA EN TABLA CON PORCENTAJE VISIBLE
+// ============================================================================
 function actualizarNotaEnTabla(alumnoId, numeroNota, calificacion, porcentaje) {
     console.log('Actualizando nota en tabla:', {alumnoId, numeroNota, calificacion, porcentaje});
     
@@ -440,12 +533,16 @@ function actualizarNotaEnTabla(alumnoId, numeroNota, calificacion, porcentaje) {
     if (notaInput) {
         notaInput.value = calificacion;
         
-        // Mostrar indicadores
+        // Actualizar atributos de datos
+        notaInput.setAttribute('data-calificacion', calificacion);
+        notaInput.setAttribute('data-porcentaje', porcentaje || '');
+        
+        // Mostrar indicadores de estado
         const statusContainer = notaInput.parentElement.querySelector('.nota-status');
         if (statusContainer) {
             const iconoPorcentaje = statusContainer.querySelector('.nota-ponderada');
             
-            if (porcentaje && porcentaje > 0) {
+            if (porcentaje && parseFloat(porcentaje) > 0) {
                 if (iconoPorcentaje) {
                     iconoPorcentaje.style.display = 'inline';
                     iconoPorcentaje.title = `Nota con ${porcentaje}% asignado`;
@@ -465,6 +562,63 @@ function actualizarNotaEnTabla(alumnoId, numeroNota, calificacion, porcentaje) {
                 setTimeout(() => {
                     iconoGuardado.style.display = 'none';
                 }, 3000);
+            }
+        }
+        
+        // NUEVO: Mostrar porcentaje visible en la celda
+        mostrarPorcentajeEnCelda(alumnoId, numeroNota, calificacion, porcentaje);
+        
+        // NUEVO: Mostrar detalles de contribución
+        mostrarDetallesContribucion(alumnoId, numeroNota, calificacion, porcentaje);
+    }
+}
+
+// ============================================================================
+// NUEVAS FUNCIONES PARA MOSTRAR PORCENTAJES VISIBLES
+// ============================================================================
+function mostrarPorcentajeEnCelda(alumnoId, numeroNota, calificacion, porcentaje) {
+    const porcentajeDisplay = document.querySelector(
+        `.porcentaje-display[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`
+    );
+    
+    if (porcentajeDisplay) {
+        if (porcentaje && parseFloat(porcentaje) > 0) {
+            const porcentajeValue = porcentajeDisplay.querySelector('.porcentaje-value');
+            if (porcentajeValue) {
+                porcentajeValue.textContent = porcentaje;
+            }
+            porcentajeDisplay.style.display = 'block';
+            
+            // Agregar clase para estilo
+            porcentajeDisplay.classList.add('porcentaje-activo');
+        } else {
+            porcentajeDisplay.style.display = 'none';
+            porcentajeDisplay.classList.remove('porcentaje-activo');
+        }
+    }
+}
+
+function mostrarDetallesContribucion(alumnoId, numeroNota, calificacion, porcentaje) {
+    const notaDetails = document.querySelector(
+        `.nota-details[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`
+    );
+    
+    if (notaDetails) {
+        const notaOriginal = notaDetails.querySelector('.nota-original span');
+        const notaContribucion = notaDetails.querySelector('.nota-contribucion span');
+        
+        if (notaOriginal && notaContribucion) {
+            notaOriginal.textContent = parseFloat(calificacion).toFixed(1);
+            
+            if (porcentaje && parseFloat(porcentaje) > 0) {
+                const contribucion = (parseFloat(calificacion) * parseFloat(porcentaje)) / 100;
+                notaContribucion.textContent = contribucion.toFixed(3);
+                notaDetails.style.display = 'block';
+                notaDetails.classList.add('nota-con-porcentaje');
+            } else {
+                notaContribucion.textContent = 'Normal';
+                notaDetails.style.display = 'none';
+                notaDetails.classList.remove('nota-con-porcentaje');
             }
         }
     }
@@ -517,6 +671,8 @@ function eliminarNota(alumnoId, numeroNota) {
             const notaInput = document.querySelector(`input[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`);
             if (notaInput) {
                 notaInput.value = '';
+                notaInput.setAttribute('data-calificacion', '');
+                notaInput.setAttribute('data-porcentaje', '');
                 
                 // Ocultar indicadores
                 const statusContainer = notaInput.parentElement.querySelector('.nota-status');
@@ -525,7 +681,14 @@ function eliminarNota(alumnoId, numeroNota) {
                         icon.style.display = 'none';
                     });
                 }
+                
+                // Ocultar porcentaje y detalles
+                ocultarPorcentajeYDetalles(alumnoId, numeroNota);
             }
+            
+            // Eliminar del cache
+            const cacheKey = `${alumnoId}_${currentMateria}_${currentSemestre}_${numeroNota}`;
+            delete notasConPorcentaje[cacheKey];
             
             // Recalcular promedio
             setTimeout(() => recalcularPromedio(alumnoId), 100);
@@ -550,8 +713,73 @@ function eliminarNota(alumnoId, numeroNota) {
     });
 }
 
+function ocultarPorcentajeYDetalles(alumnoId, numeroNota) {
+    // Ocultar porcentaje
+    const porcentajeDisplay = document.querySelector(
+        `.porcentaje-display[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`
+    );
+    if (porcentajeDisplay) {
+        porcentajeDisplay.style.display = 'none';
+        porcentajeDisplay.classList.remove('porcentaje-activo');
+    }
+    
+    // Ocultar detalles
+    const notaDetails = document.querySelector(
+        `.nota-details[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`
+    );
+    if (notaDetails) {
+        notaDetails.style.display = 'none';
+        notaDetails.classList.remove('nota-con-porcentaje');
+    }
+}
+
 // ============================================================================
-// CÁLCULO DE PROMEDIOS
+// FUNCIÓN PRINCIPAL PARA FORMATEAR PROMEDIO CON 3 DECIMALES
+// ============================================================================
+function formatearPromedioFinal(promedio) {
+    if (!promedio || isNaN(promedio)) return '--';
+    
+    // Convertir a número con alta precisión y formatear a exactamente 3 decimales
+    const numeroPromedio = parseFloat(promedio);
+    
+    // Usar toFixed(3) para garantizar exactamente 3 decimales
+    return numeroPromedio.toFixed(3);
+}
+
+// ============================================================================
+// UTILIDADES PARA FORMATEO
+// ============================================================================
+function formatearNota(nota) {
+    if (!nota || nota === '--' || nota === '') return '--';
+    const num = parseFloat(nota);
+    return isNaN(num) ? '--' : num.toFixed(1);
+}
+
+function formatearPromedio(promedio) {
+    if (!promedio || isNaN(promedio)) return '--';
+    return parseFloat(promedio).toFixed(3);
+}
+
+function validarNota(nota) {
+    const num = parseFloat(nota);
+    return !isNaN(num) && num >= 1.0 && num <= 7.0;
+}
+
+function validarPorcentaje(porcentaje) {
+    if (!porcentaje || porcentaje === '') return true; // Porcentaje es opcional
+    const num = parseFloat(porcentaje);
+    return !isNaN(num) && num >= 0 && num <= 100;
+}
+
+function obtenerColorPromedio(promedio) {
+    if (promedio >= 6.0) return '#28a745'; // Verde
+    if (promedio >= 5.0) return '#ffc107'; // Amarillo
+    if (promedio >= 4.0) return '#fd7e14'; // Naranja
+    return '#dc3545'; // Rojo
+}
+
+// ============================================================================
+// CÁLCULO DE PROMEDIOS CON PORCENTAJES (MODIFICADO PARA 3 DECIMALES)
 // ============================================================================
 function recalcularPromedio(alumnoId) {
     console.log('Recalculando promedio para alumno:', alumnoId);
@@ -560,12 +788,38 @@ function recalcularPromedio(alumnoId) {
     if (!alumnoRow) return;
     
     const notasInputs = alumnoRow.querySelectorAll('.nota-input');
-    const notas = [];
+    const notasParaPromedio = [];
+    let sumaTotal = 0;
+    let sumaPorcentajes = 0;
+    let hayPorcentajes = false;
     
-    notasInputs.forEach(input => {
+    notasInputs.forEach((input, index) => {
         const valor = parseFloat(input.value);
         if (!isNaN(valor) && valor > 0) {
-            notas.push(valor);
+            const numeroNota = index + 1;
+            const cacheKey = `${alumnoId}_${currentMateria}_${currentSemestre}_${numeroNota}`;
+            const notaData = notasConPorcentaje[cacheKey];
+            
+            if (notaData && notaData.porcentaje && notaData.porcentaje > 0) {
+                // Nota con porcentaje - usar mayor precisión en cálculos internos
+                const contribucion = (valor * notaData.porcentaje) / 100;
+                sumaTotal += contribucion;
+                sumaPorcentajes += notaData.porcentaje;
+                hayPorcentajes = true;
+                
+                notasParaPromedio.push({
+                    valor: valor,
+                    porcentaje: notaData.porcentaje,
+                    contribucion: contribucion
+                });
+            } else {
+                // Nota sin porcentaje
+                notasParaPromedio.push({
+                    valor: valor,
+                    porcentaje: null,
+                    contribucion: valor
+                });
+            }
         }
     });
     
@@ -576,12 +830,48 @@ function recalcularPromedio(alumnoId) {
     const promedioDetalle = promedioContainer.querySelector('.promedio-detalle');
     const promedioIcon = promedioContainer.querySelector('.promedio-icon');
     
-    if (notas.length > 0) {
-        const suma = notas.reduce((acc, nota) => acc + nota, 0);
-        const promedio = suma / notas.length;
+    if (notasParaPromedio.length > 0) {
+        let promedio;
+        let detalleTexto;
         
-        promedioNumero.textContent = promedio.toFixed(1);
-        promedioDetalle.textContent = `${notas.length} nota${notas.length > 1 ? 's' : ''}`;
+        if (hayPorcentajes && sumaPorcentajes > 0) {
+            // Cálculo con porcentajes
+            const notasSinPorcentaje = notasParaPromedio.filter(n => !n.porcentaje);
+            const notasConPorcentajeArray = notasParaPromedio.filter(n => n.porcentaje);
+            
+            if (sumaPorcentajes === 100) {
+                // Solo porcentajes que suman 100%
+                promedio = sumaTotal;
+                detalleTexto = `${notasConPorcentajeArray.length} nota${notasConPorcentajeArray.length > 1 ? 's' : ''} ponderada${notasConPorcentajeArray.length > 1 ? 's' : ''}`;
+            } else if (notasSinPorcentaje.length > 0) {
+                // Mezcla de notas con y sin porcentaje
+                const sumaSinPorcentaje = notasSinPorcentaje.reduce((acc, n) => acc + n.valor, 0);
+                const porcentajeRestante = Math.max(0, 100 - sumaPorcentajes);
+                
+                if (porcentajeRestante > 0) {
+                    const promedioSinPorcentaje = sumaSinPorcentaje / notasSinPorcentaje.length;
+                    const contribucionSinPorcentaje = (promedioSinPorcentaje * porcentajeRestante) / 100;
+                    promedio = sumaTotal + contribucionSinPorcentaje;
+                } else {
+                    promedio = sumaTotal;
+                }
+                
+                detalleTexto = `${notasParaPromedio.length} notas (${notasConPorcentajeArray.length} ponderadas)`;
+            } else {
+                // Solo notas con porcentaje pero no suman 100%
+                promedio = (sumaTotal * 100) / sumaPorcentajes;
+                detalleTexto = `${notasConPorcentajeArray.length} nota${notasConPorcentajeArray.length > 1 ? 's' : ''} ponderada${notasConPorcentajeArray.length > 1 ? 's' : ''} (${sumaPorcentajes}%)`;
+            }
+        } else {
+            // Cálculo tradicional (promedio simple)
+            const suma = notasParaPromedio.reduce((acc, nota) => acc + nota.valor, 0);
+            promedio = suma / notasParaPromedio.length;
+            detalleTexto = `${notasParaPromedio.length} nota${notasParaPromedio.length > 1 ? 's' : ''}`;
+        }
+        
+        // USAR LA FUNCIÓN CORRECTA: formatearPromedioFinal
+        promedioNumero.textContent = formatearPromedioFinal(promedio);
+        promedioDetalle.textContent = detalleTexto;
         
         // Aplicar clases según el promedio
         promedioContainer.className = 'promedio-container';
@@ -612,7 +902,7 @@ function recalcularPromedio(alumnoId) {
 }
 
 // ============================================================================
-// CARGAR NOTAS EXISTENTES
+// CARGAR NOTAS EXISTENTES CON PORCENTAJES
 // ============================================================================
 function cargarNotasExistentes() {
     console.log('Cargando notas existentes...');
@@ -635,7 +925,7 @@ function cargarNotasExistentes() {
         .then(response => response.json())
         .then(data => {
             if (data.success && data.notas) {
-                // Llenar las notas en los inputs
+                // Llenar las notas en los inputs y cache de porcentajes
                 for (let i = 1; i <= 6; i++) {
                     const notaData = data.notas[`nota${i}`];
                     if (notaData) {
@@ -643,20 +933,28 @@ function cargarNotasExistentes() {
                         if (input) {
                             input.value = notaData.calificacion;
                             
+                            // Guardar en cache para cálculos
+                            const cacheKey = `${alumnoId}_${materia}_${semestre}_${i}`;
+                            notasConPorcentaje[cacheKey] = {
+                                calificacion: parseFloat(notaData.calificacion),
+                                porcentaje: notaData.porcentaje ? parseFloat(notaData.porcentaje) : null
+                            };
+                            
                             // Mostrar indicador de porcentaje si existe
-                            if (notaData.porcentaje && notaData.porcentaje > 0) {
+                            if (notaData.porcentaje && parseFloat(notaData.porcentaje) > 0) {
                                 const statusContainer = input.parentElement.querySelector('.nota-status');
                                 const iconoPorcentaje = statusContainer?.querySelector('.nota-ponderada');
                                 if (iconoPorcentaje) {
                                     iconoPorcentaje.style.display = 'inline';
                                     iconoPorcentaje.title = `Nota con ${notaData.porcentaje}% asignado`;
+                                    iconoPorcentaje.style.color = '#28a745';
                                 }
                             }
                         }
                     }
                 }
                 
-                // Recalcular promedio
+                // Recalcular promedio con porcentajes
                 recalcularPromedio(alumnoId);
             }
         })
@@ -667,11 +965,12 @@ function cargarNotasExistentes() {
 }
 
 // ============================================================================
-// HISTORIAL DE NOTAS
+// HISTORIAL DE NOTAS CON PORCENTAJES
 // ============================================================================
 function verHistorialNotas(alumnoId) {
     console.log('Abriendo historial para alumno:', alumnoId);
     
+    // Mostrar modal y loading
     const modal = new bootstrap.Modal(document.getElementById('historialNotasModal'));
     modal.show();
     
@@ -680,144 +979,103 @@ function verHistorialNotas(alumnoId) {
     document.getElementById('historial-content').style.display = 'none';
     document.getElementById('historial-error').style.display = 'none';
     
-    // Cargar historial
-    const ano = document.getElementById('year-filter').value;
-    fetch(`/notas/historial-alumno/${alumnoId}/?ano=${ano}`)
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Ocultar loading
-            document.getElementById('historial-loading').style.display = 'none';
-            document.getElementById('historial-content').style.display = 'block';
-            
-            // Llenar información del alumno
-            document.getElementById('historial-alumno-nombre').textContent = data.alumno.nombre;
-            document.getElementById('historial-alumno-info').textContent = `${data.alumno.rut} - ${data.alumno.nivel}`;
-            
-            const anoElement = document.getElementById('historial-ano-badge');
-            if (anoElement) {
-                anoElement.textContent = `Año ${ano}`;
+    // Obtener año actual
+    const anoActual = document.getElementById('hidden-year')?.value || new Date().getFullYear();
+    
+    // Hacer petición AJAX
+    fetch(`/notas/historial-notas/${alumnoId}/?ano=${anoActual}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
-            // Llenar tablas de notas por semestre
-            llenarTablaHistorial('notas-semestre1', data.notas_semestre1 || [], 1);
-            llenarTablaHistorial('notas-semestre2', data.notas_semestre2 || [], 2);
-            
-        } else {
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                mostrarHistorialNotas(data);
+            } else {
+                throw new Error(data.message || 'Error al cargar el historial');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
             document.getElementById('historial-loading').style.display = 'none';
             document.getElementById('historial-error').style.display = 'block';
-            document.getElementById('historial-error-message').textContent = 
-                data.message || 'Error al cargar el historial';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('historial-loading').style.display = 'none';
-        document.getElementById('historial-error').style.display = 'block';
-        document.getElementById('historial-error-message').textContent = 'Error de conexión';
-    });
+            document.getElementById('historial-error-message').textContent = error.message;
+        });
 }
 
-function llenarTablaHistorial(tablaId, notas, semestre) {
-    const tbody = document.getElementById(tablaId);
-    if (!tbody) return;
+function mostrarHistorialNotas(data) {
+    // Ocultar loading
+    document.getElementById('historial-loading').style.display = 'none';
+    document.getElementById('historial-content').style.display = 'block';
     
+    // Llenar información del alumno
+    document.getElementById('historial-alumno-nombre').textContent = data.alumno.nombre;
+    document.getElementById('historial-alumno-info').textContent = `RUT: ${data.alumno.rut} | Nivel: ${data.alumno.nivel}`;
+    document.getElementById('historial-ano-badge').textContent = `Año ${data.ano}`;
+    
+    // Llenar tablas de semestres
+    llenarTablaSemestre('semestre1', data.historial.semestre1, data.es_profesor);
+    llenarTablaSemestre('semestre2', data.historial.semestre2, data.es_profesor);
+    
+    // Actualizar badges de conteo
+    const countS1 = Object.keys(data.historial.semestre1).length;
+    const countS2 = Object.keys(data.historial.semestre2).length;
+    
+    document.getElementById('badge-semestre1').textContent = countS1;
+    document.getElementById('badge-semestre2').textContent = countS2;
+}
+
+function llenarTablaSemestre(semestreId, materias, esProfesor) {
+    const tbody = document.getElementById(`notas-${semestreId}`);
     tbody.innerHTML = '';
     
-    const materiasNombres = {
-        'matematicas': 'Matemáticas',
-        'lenguaje': 'Lenguaje y Comunicación',
-        'ciencias': 'Ciencias Naturales',
-        'historia': 'Historia y Geografía',
-        'ingles': 'Inglés'
-    };
-    
-    let totalNotas = 0;
-    let materiasConNotas = 0;
-    let sumaPromedios = 0;
-    
-    if (notas && notas.length > 0) {
-        notas.forEach(materia => {
-            const row = document.createElement('tr');
-            
-            // Calcular promedio de la materia
-            const notasArray = [
-                materia.nota1, materia.nota2, materia.nota3,
-                materia.nota4, materia.nota5, materia.nota6
-            ].filter(nota => nota && parseFloat(nota) > 0);
-            
-            let promedio = '--';
-            let clasePromedio = '';
-            let iconoEstado = '<i class="fas fa-minus text-muted"></i>';
-            
-            if (notasArray.length > 0) {
-                const suma = notasArray.reduce((acc, nota) => acc + parseFloat(nota), 0);
-                const promedioNum = suma / notasArray.length;
-                promedio = promedioNum.toFixed(1);
-                
-                totalNotas += notasArray.length;
-                materiasConNotas++;
-                sumaPromedios += promedioNum;
-                
-                if (promedioNum >= 6.0) {
-                    clasePromedio = 'text-success fw-bold';
-                    iconoEstado = '<i class="fas fa-star text-success"></i>';
-                } else if (promedioNum >= 5.0) {
-                    clasePromedio = 'text-warning fw-bold';
-                    iconoEstado = '<i class="fas fa-check-circle text-warning"></i>';
-                } else if (promedioNum >= 4.0) {
-                    clasePromedio = 'text-orange fw-bold';
-                    iconoEstado = '<i class="fas fa-exclamation-circle text-orange"></i>';
-                } else {
-                    clasePromedio = 'text-danger fw-bold';
-                    iconoEstado = '<i class="fas fa-times-circle text-danger"></i>';
-                }
-            }
-            
-            row.innerHTML = `
-                <td><strong>${materiasNombres[materia.codigo] || materia.nombre}</strong></td>
-                <td class="text-center">${materia.nota1 ? parseFloat(materia.nota1).toFixed(1) : '--'}</td>
-                <td class="text-center">${materia.nota2 ? parseFloat(materia.nota2).toFixed(1) : '--'}</td>
-                <td class="text-center">${materia.nota3 ? parseFloat(materia.nota3).toFixed(1) : '--'}</td>
-                <td class="text-center">${materia.nota4 ? parseFloat(materia.nota4).toFixed(1) : '--'}</td>
-                <td class="text-center">${materia.nota5 ? parseFloat(materia.nota5).toFixed(1) : '--'}</td>
-                <td class="text-center">${materia.nota6 ? parseFloat(materia.nota6).toFixed(1) : '--'}</td>
-                <td class="text-center ${clasePromedio}">${promedio}</td>
-                <td class="text-center">${iconoEstado}</td>
-            `;
-            
-            tbody.appendChild(row);
-        });
-    } else {
-        // Mostrar mensaje cuando no hay notas
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td colspan="9" class="text-center text-muted py-4">
-                <i class="fas fa-clipboard-list fa-2x mb-2"></i><br>
-                No hay notas registradas para este semestre
-            </td>
+    if (Object.keys(materias).length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center text-muted py-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ${esProfesor ? 'No hay notas registradas en tu materia para este semestre' : 'No hay notas registradas para este semestre'}
+                </td>
+            </tr>
         `;
-        tbody.appendChild(row);
+        return;
     }
     
-    // Actualizar resumen del semestre
-    const materiasElement = document.getElementById(`materias-con-notas-s${semestre}`);
-    const promedioElement = document.getElementById(`promedio-general-s${semestre}`);
-    const totalElement = document.getElementById(`total-notas-s${semestre}`);
-    const badgeElement = document.getElementById(`badge-semestre${semestre}`);
-    
-    if (materiasElement) materiasElement.textContent = materiasConNotas;
-    if (totalElement) totalElement.textContent = totalNotas;
-    if (badgeElement) badgeElement.textContent = totalNotas;
-    
-    if (promedioElement) {
-        if (materiasConNotas > 0) {
-            const promedioGeneral = sumaPromedios / materiasConNotas;
-            promedioElement.textContent = promedioGeneral.toFixed(1);
-        } else {
-            promedioElement.textContent = '--';
+    Object.entries(materias).forEach(([materia, datos]) => {
+        const row = document.createElement('tr');
+        
+        // Nombre de la materia
+        let html = `<td><strong>${datos.nombre}</strong></td>`;
+        
+        // Notas 1-6
+        for (let i = 1; i <= 6; i++) {
+            const nota = datos.notas[`nota${i}`];
+            if (nota) {
+                let notaHtml = `<span class="nota-valor">${nota.calificacion}</span>`;
+                if (nota.porcentaje) {
+                    notaHtml += `<br><small class="text-info">${nota.porcentaje}%</small>`;
+                }
+                html += `<td>${notaHtml}</td>`;
+            } else {
+                html += `<td class="text-muted">--</td>`;
+            }
         }
-    }
+        
+        // Promedio
+        const promedio = datos.promedio;
+        const clasePromedio = promedio >= 4.0 ? 'text-success' : 'text-danger';
+        html += `<td><strong class="${clasePromedio}">${promedio > 0 ? promedio : '--'}</strong></td>`;
+        
+        // Estado
+        const estado = promedio >= 4.0 ? 'Aprobado' : (promedio > 0 ? 'Reprobado' : 'Sin notas');
+        const claseEstado = promedio >= 4.0 ? 'badge bg-success' : (promedio > 0 ? 'badge bg-danger' : 'badge bg-secondary');
+        html += `<td><span class="${claseEstado}">${estado}</span></td>`;
+        
+        row.innerHTML = html;
+        tbody.appendChild(row);
+    });
 }
 
 function exportarHistorialAlumno() {
@@ -854,6 +1112,12 @@ function exportarHistorialAlumno() {
                     contenido += `${materia}: ${notas.join(' | ')} | Promedio: ${promedio}\n`;
                 }
             });
+        }
+        
+        // CAMBIO: Agregar promedio general del semestre con 3 decimales
+        const promedioGeneralElement = document.getElementById(`promedio-general-s${semestre}`);
+        if (promedioGeneralElement && promedioGeneralElement.textContent !== '--') {
+            contenido += `Promedio General del Semestre: ${promedioGeneralElement.textContent}\n`;
         }
         contenido += '\n';
     }
@@ -895,24 +1159,44 @@ function configurarAlertas() {
 }
 
 // ============================================================================
-// UTILIDADES ADICIONALES
+// VALIDACIONES DEL FORMULARIO
 // ============================================================================
-function formatearNota(nota) {
-    if (!nota || nota === '--' || nota === '') return '--';
-    const num = parseFloat(nota);
-    return isNaN(num) ? '--' : num.toFixed(1);
-}
-
-function validarNota(nota) {
-    const num = parseFloat(nota);
-    return !isNaN(num) && num >= 1.0 && num <= 7.0;
-}
-
-function obtenerColorPromedio(promedio) {
-    if (promedio >= 6.0) return '#28a745'; // Verde
-    if (promedio >= 5.0) return '#ffc107'; // Amarillo
-    if (promedio >= 4.0) return '#fd7e14'; // Naranja
-    return '#dc3545'; // Rojo
+function validarFormularioNota() {
+    const calificacion = document.getElementById('modal-calificacion').value;
+    const porcentaje = document.getElementById('modal-porcentaje').value;
+    const fecha = document.getElementById('modal-fecha').value;
+    
+    // Validar calificación (obligatoria)
+    if (!calificacion || !validarNota(calificacion)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de validación',
+            text: 'La calificación debe estar entre 1.0 y 7.0'
+        });
+        return false;
+    }
+    
+    // Validar porcentaje (opcional)
+    if (porcentaje && !validarPorcentaje(porcentaje)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de validación',
+            text: 'El porcentaje debe estar entre 0 y 100'
+        });
+        return false;
+    }
+    
+    // Validar fecha (obligatoria)
+    if (!fecha) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de validación',
+            text: 'La fecha de evaluación es obligatoria'
+        });
+        return false;
+    }
+    
+    return true;
 }
 
 // ============================================================================
@@ -964,7 +1248,7 @@ document.addEventListener('hidden.bs.modal', function (event) {
 });
 
 // ============================================================================
-// FUNCIONES EXPUESTAS GLOBALMENTE
+// FUNCIONES EXPUESTAS GLOBALMENTE (CORREGIDAS)
 // ============================================================================
 // Estas funciones deben estar disponibles globalmente para el HTML
 window.cambiarAno = cambiarAno;
@@ -977,6 +1261,9 @@ window.exportarHistorialAlumno = exportarHistorialAlumno;
 window.recalcularPromedio = recalcularPromedio;
 window.guardarNota = guardarNota;
 window.eliminarNota = eliminarNota;
+window.validarFormularioNota = validarFormularioNota;
+window.formatearPromedioFinal = formatearPromedioFinal; // FUNCIÓN PRINCIPAL
+window.formatearPromedio = formatearPromedio; // FUNCIÓN ALTERNATIVA
 
 // ============================================================================
 // INICIALIZACIÓN FINAL
@@ -993,7 +1280,8 @@ if (typeof bootstrap === 'undefined') {
 }
 
 // Mensaje de confirmación en consola
-console.log('%c✅ EDUVIA - Sistema de Notas Inicializado', 'color: #28a745; font-weight: bold; font-size: 14px;');
+console.log('%c✅ EDUVIA - Sistema de Notas con Porcentajes y Precisión de 3 Decimales Inicializado', 'color: #28a745; font-weight: bold; font-size: 14px;');
+console.log('%c📊 Los promedios ahora se muestran con exactamente 3 decimales (ej: 3.850)', 'color: #17a2b8; font-weight: bold;');
 
 // ============================================================================
 // DEBUGGING - SOLO PARA DESARROLLO
@@ -1007,6 +1295,7 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
                 currentMateria,
                 currentSemestre,
                 currentAno,
+                notasConPorcentaje,
                 filtros: {
                     materia: document.getElementById('materia-filter')?.value,
                     semestre: document.getElementById('semestre-filter')?.value,
@@ -1015,10 +1304,35 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
             });
         },
         
-        simularGuardadoNota: function(alumnoId, numeroNota, calificacion) {
+        simularGuardadoNota: function(alumnoId, numeroNota, calificacion, porcentaje = null) {
             console.log('Simulando guardado de nota...');
-            actualizarNotaEnTabla(alumnoId, numeroNota, calificacion, null);
+            actualizarNotaEnTabla(alumnoId, numeroNota, calificacion, porcentaje);
+            
+            // Actualizar cache
+            const cacheKey = `${alumnoId}_${currentMateria}_${currentSemestre}_${numeroNota}`;
+            notasConPorcentaje[cacheKey] = {
+                calificacion: parseFloat(calificacion),
+                porcentaje: porcentaje ? parseFloat(porcentaje) : null
+            };
+            
             recalcularPromedio(alumnoId);
+        },
+        
+        mostrarCachePorcentajes: function() {
+            console.log('Cache de porcentajes:', notasConPorcentaje);
+        },
+        
+        calcularPromedioTest: function(notas) {
+            const resultado = calcularPromedioConPorcentajes(notas);
+            console.log(`Promedio calculado: ${formatearPromedioFinal(resultado)}`);
+            return resultado;
+        },
+        
+        // FUNCIÓN CORREGIDA: Probar formateo de promedio
+        probarFormateoPromedio: function(valor) {
+            console.log(`Valor original: ${valor}`);
+            console.log(`Formateado a 3 decimales: ${formatearPromedioFinal(valor)}`);
+            return formatearPromedioFinal(valor);
         },
         
         limpiarConsola: function() {
@@ -1028,4 +1342,50 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
     };
     
     console.log('%c🔧 Funciones de debugging disponibles en window.debugNotas', 'color: #ffc107;');
+    console.log('%c📊 Ejemplo de uso: debugNotas.probarFormateoPromedio(3.8567)', 'color: #17a2b8;');
+    console.log('%c📊 Ejemplo de uso: debugNotas.calcularPromedioTest([{valor: 6.5, porcentaje: 30}, {valor: 5.8, porcentaje: 70}])', 'color: #17a2b8;');
 }
+
+// ============================================================================
+// EVENTOS ADICIONALES PARA VALIDACIÓN EN TIEMPO REAL
+// ============================================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación en tiempo real para el modal de editar nota
+    const modalCalificacion = document.getElementById('modal-calificacion');
+    const modalPorcentaje = document.getElementById('modal-porcentaje');
+    
+    if (modalCalificacion) {
+        modalCalificacion.addEventListener('input', function() {
+            const valor = parseFloat(this.value);
+            if (this.value && (!isNaN(valor) && (valor < 1.0 || valor > 7.0))) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+            calcularVistaPrevia();
+        });
+    }
+    
+    if (modalPorcentaje) {
+        modalPorcentaje.addEventListener('input', function() {
+            const valor = parseFloat(this.value);
+            if (this.value && (!isNaN(valor) && (valor < 0 || valor > 100))) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+            calcularVistaPrevia();
+        });
+    }
+    
+    // Modificar el evento submit del formulario para incluir validación
+    const editarNotaForm = document.getElementById('editarNotaForm');
+    if (editarNotaForm) {
+        editarNotaForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validarFormularioNota()) {
+                guardarNota();
+            }
+        });
+    }
+});

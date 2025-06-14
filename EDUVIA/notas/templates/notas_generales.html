@@ -6,6 +6,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/notas/notas_generales.css' %}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
 {% endblock %}
 
 {% block content %}
@@ -28,7 +29,8 @@
         </div>
     {% endif %}
 
-    <!-- Selector de Año -->
+    <!-- Selector de Año - Solo para administradores -->
+    {% if usuario.is_superuser %}
     <div class="year-selector-container">
         <div class="year-selector-header">
             <h4 class="year-selector-title">
@@ -65,6 +67,7 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 
     <!-- Filtros Horizontales Compactos -->
     <div class="filters-horizontal-container">
@@ -83,14 +86,36 @@
 
                 <!-- Filtro por materia -->
                 <div class="filter-item">
-                    <select class="form-select-sm" id="materia-filter" name="materia">
-                        <option value="" {% if not materia_filter %}selected{% endif %}>Seleccionar materia</option>
-                        <option value="matematicas" {% if materia_filter == 'matematicas' %}selected{% endif %}>📐 Matemáticas</option>
-                        <option value="lenguaje" {% if materia_filter == 'lenguaje' %}selected{% endif %}>📝 Lenguaje</option>
-                        <option value="ciencias" {% if materia_filter == 'ciencias' %}selected{% endif %}>🔬 Ciencias</option>
-                        <option value="historia" {% if materia_filter == 'historia' %}selected{% endif %}>🏛️ Historia</option>
-                        <option value="ingles" {% if materia_filter == 'ingles' %}selected{% endif %}>🇺🇸 Inglés</option>
-                    </select>
+                    {% if usuario.is_superuser %}
+                        <!-- Administradores pueden seleccionar cualquier materia -->
+                        <select class="form-select-sm" id="materia-filter" name="materia">
+                            <option value="" {% if not materia_filter %}selected{% endif %}>Seleccionar materia</option>
+                            <option value="matematicas" {% if materia_filter == 'matematicas' %}selected{% endif %}>📐 Matemáticas</option>
+                            <option value="lenguaje" {% if materia_filter == 'lenguaje' %}selected{% endif %}>📝 Lenguaje</option>
+                            <option value="ciencias" {% if materia_filter == 'ciencias' %}selected{% endif %}>🔬 Ciencias</option>
+                            <option value="historia" {% if materia_filter == 'historia' %}selected{% endif %}>🏛️ Historia</option>
+                            <option value="ingles" {% if materia_filter == 'ingles' %}selected{% endif %}>🇺🇸 Inglés</option>
+                            <option value="estudios_sociales" {% if materia_filter == 'estudios_sociales' %}selected{% endif %}>🌍 Estudios Sociales</option>
+                            <option value="f_instrumental" {% if materia_filter == 'f_instrumental' %}selected{% endif %}>🎵 F. Instrumental</option>
+                        </select>
+                    {% elif usuario.rol == 'profesor' %}
+                        <!-- Profesores ven su materia fija (solo visual) -->
+                        <div class="materia-fija">
+                            <span class="materia-profesor-badge">
+                                {% if usuario.asignatura == 'matematicas' %}📐 Matemáticas
+                                {% elif usuario.asignatura == 'lenguaje' %}📝 Lenguaje
+                                {% elif usuario.asignatura == 'ciencias' %}🔬 Ciencias
+                                {% elif usuario.asignatura == 'historia' %}🏛️ Historia
+                                {% elif usuario.asignatura == 'ingles' %}🇺🇸 Inglés
+                                {% elif usuario.asignatura == 'estudios_sociales' %}🌍 Estudios Sociales
+                                {% elif usuario.asignatura == 'f_instrumental' %}🎵 F. Instrumental
+                                {% else %}📚 {{ usuario.asignatura|title }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <!-- Campo oculto para enviar la materia del profesor -->
+                        <input type="hidden" name="materia" value="{{ usuario.asignatura }}">
+                    {% endif %}
                 </div>
 
                 <!-- Filtro por semestre -->
@@ -111,13 +136,18 @@
                     </select>
                 </div>
 
-                <!-- Filtro por estado -->
+                <!-- Filtro por estado - Solo para administradores -->
+                {% if usuario.is_superuser %}
                 <div class="filter-item">
                     <select class="form-select-sm" id="estado-filter" name="estado">
                         <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>Solo Activos</option>
                         <option value="todos" {% if estado_filter == 'todos' %}selected{% endif %}>Todos</option>
                     </select>
                 </div>
+                {% else %}
+                <!-- Para profesores, siempre mostrar solo activos -->
+                <input type="hidden" name="estado" value="activo">
+                {% endif %}
 
                 <!-- Solo botón de limpiar filtros -->
                 <div class="filter-buttons">
@@ -131,26 +161,33 @@
     </div>
 
     <!-- Información de la materia seleccionada -->
-    {% if materia_filter %}
+    {% if materia_filter or request.user.rol == 'profesor' %}
     <div class="materia-info-compact">
         <div class="materia-header-inline">
             <h4 class="materia-title">
-                {% if materia_filter == 'matematicas' %}📐 Matemáticas
-                {% elif materia_filter == 'lenguaje' %}📝 Lenguaje y Comunicación
-                {% elif materia_filter == 'ciencias' %}🔬 Ciencias Naturales
-                {% elif materia_filter == 'historia' %}🏛️ Historia y Geografía
-                {% elif materia_filter == 'ingles' %}🇺🇸 Inglés
+                {% if request.user.rol == 'profesor' %}
+                    <!-- Para profesores, mostrar su materia asignada -->
+                    {% if usuario.asignatura == 'matematicas' %}📐 Matemáticas
+                    {% elif usuario.asignatura == 'lenguaje' %}📝 Lenguaje y Comunicación
+                    {% elif usuario.asignatura == 'ciencias' %}🔬 Ciencias Naturales
+                    {% elif usuario.asignatura == 'historia' %}🏛️ Historia y Geografía
+                    {% elif usuario.asignatura == 'ingles' %}🇺🇸 Inglés
+                    {% elif usuario.asignatura == 'estudios_sociales' %}🌍 Estudios Sociales
+                    {% elif usuario.asignatura == 'f_instrumental' %}🎵 F. Instrumental
+                    {% endif %}
+                {% else %}
+                    <!-- Para administradores, mostrar la materia seleccionada -->
+                    {% if materia_filter == 'matematicas' %}📐 Matemáticas
+                    {% elif materia_filter == 'lenguaje' %}📝 Lenguaje y Comunicación
+                    {% elif materia_filter == 'ciencias' %}🔬 Ciencias Naturales
+                    {% elif materia_filter == 'historia' %}🏛️ Historia y Geografía
+                    {% elif materia_filter == 'ingles' %}🇺🇸 Inglés
+                    {% elif materia_filter == 'estudios_sociales' %}🌍 Estudios Sociales
+                    {% elif materia_filter == 'f_instrumental' %}🎵 F. Instrumental
+                    {% endif %}
                 {% endif %}
                 - {{ semestre_filter }}° Semestre - {{ ano_actual }}
             </h4>
-            <div class="materia-stats-inline">
-                <span class="stat-badge">
-                    <i class="fas fa-users"></i> {{ total_alumnos }} alumnos
-                </span>
-                <span class="stat-badge">
-                    <i class="fas fa-chart-line"></i> Promedio: {{ promedio_general|floatformat:1 }}
-                </span>
-            </div>
         </div>
     </div>
     {% endif %}
@@ -190,7 +227,7 @@
                 <tr class="alumno-row" data-alumno-id="{{ alumno.id }}">
                     <td class="alumno-info">
                         <div class="alumno-details">
-                            <strong>{{ alumno.nombre_completo }}</strong>
+                            <strong>{{ alumno.primer_nombre }} {{ alumno.segundo_nombre }}</strong>
                             <small class="text-muted d-block">{{ alumno.rut }}</small>
                         </div>
                     </td>
@@ -209,17 +246,45 @@
                                    data-semestre="{{ semestre_filter }}"
                                    data-ano="{{ ano_actual }}"
                                    data-numero-nota="{{ i }}"
+                                   data-nota-id=""
+                                   data-calificacion=""
+                                   data-porcentaje=""
+                                   data-contribucion=""
                                    min="1.0" 
                                    max="7.0" 
                                    step="0.1"
                                    placeholder="--"
                                    title="Nota {{ i }} - {{ semestre_filter }}° Semestre {{ ano_actual }} - Click para editar"
+                                   {% if not es_profesor %}readonly{% endif %}
                                    onclick="abrirModalEditarNota({{ alumno.id }}, '{{ materia_filter }}', {{ semestre_filter }}, {{ i }}, this.value, {{ ano_actual }})"
-                                   readonly>
-                            <div class="nota-status">
-                                <i class="fas fa-save nota-saved" style="display: none;" title="Nota guardada"></i>
-                                <i class="fas fa-exclamation-triangle nota-error" style="display: none;" title="Error al guardar"></i>
-                                <i class="fas fa-percentage nota-ponderada" style="display: none; color: #28a745;" title="Nota con porcentaje asignado"></i>
+                                   onchange="{% if es_profesor %}guardarNotaRapida(this){% endif %}">
+        
+                            <!-- Contenedor de indicadores de estado -->
+                            <div class="nota-indicators">
+                                <!-- Indicador de nota guardada -->
+                                <div class="nota-status">
+                                    <i class="fas fa-save nota-saved" style="display: none;" title="Nota guardada"></i>
+                                    <i class="fas fa-exclamation-triangle nota-error" style="display: none;" title="Error al guardar"></i>
+                                    <i class="fas fa-percentage nota-ponderada" style="display: none;" title="Nota con porcentaje asignado"></i>
+                                </div>
+                                
+                                <!-- Indicador de porcentaje visible MEJORADO -->
+                                <div class="porcentaje-display" style="display: none;" 
+                                     data-alumno-id="{{ alumno.id }}" 
+                                     data-numero-nota="{{ i }}">
+                                    <span class="porcentaje-badge">
+                                        <i class="fas fa-percentage"></i>
+                                        <span class="porcentaje-value">0</span>%
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- NUEVO: Mostrar detalles de la nota cuando tiene porcentaje -->
+                            <div class="nota-details" style="display: none;" 
+                                 data-alumno-id="{{ alumno.id }}" 
+                                 data-numero-nota="{{ i }}">
+                                <small class="nota-original">Nota: <span>--</span></small>
+                                <small class="nota-contribucion">Contribuye: <span>--</span></small>
                             </div>
                         </div>
                     </td>
@@ -241,11 +306,14 @@
                     <!-- Acciones -->
                     <td class="acciones-cell">
                         <div class="action-buttons">
+                            <!-- Mostrar botón de historial tanto para profesores como administradores -->
+                            {% if usuario.is_superuser or usuario.rol == 'profesor' %}
                             <button class="btn-action btn-view" 
                                     onclick="verHistorialNotas({{ alumno.id }})"
                                     title="Ver historial de notas">
                                 <i class="fas fa-eye"></i>
                             </button>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
@@ -259,17 +327,25 @@
         <div class="empty-icon">
             <i class="fas fa-clipboard-list fa-4x"></i>
         </div>
-        {% if not materia_filter %}
+        {% if request.user.rol == 'profesor' %}
+            <h3>Visualizando: {{ request.user.asignatura|title }}</h3>
+            <p>Aquí puedes ver y gestionar las notas de todos los alumnos en tu materia asignada.</p>
+            <p>Usa los filtros para encontrar alumnos específicos por nivel o semestre.</p>
+            <button class="btn-eduvia btn-primary" onclick="limpiarFiltros()">
+                <i class="fas fa-refresh me-2"></i>
+                Limpiar Filtros
+            </button>
+        {% elif not materia_filter %}
             <h3>Selecciona una materia para comenzar</h3>
             <p>Por favor, selecciona una materia en los filtros para ver las notas de los alumnos.</p>
         {% else %}
             <h3>No hay alumnos para mostrar</h3>
             <p>No se encontraron alumnos que coincidan con los filtros seleccionados para el año {{ ano_actual }}.</p>
+            <button class="btn-eduvia btn-primary" onclick="limpiarFiltros()">
+                <i class="fas fa-refresh me-2"></i>
+                Limpiar Filtros
+            </button>
         {% endif %}
-        <button class="btn-eduvia btn-primary" onclick="limpiarFiltros()">
-            <i class="fas fa-refresh me-2"></i>
-            Limpiar Filtros
-        </button>
     </div>
     {% endif %}
 </div>
@@ -462,7 +538,8 @@
     </div>
 </div>
 
-<!-- Modal para ver historial de notas -->
+<!-- Modal para ver historial de notas - Disponible para profesores y administradores -->
+{% if usuario.is_superuser or usuario.rol == 'profesor' %}
 <div class="modal fade" id="historialNotasModal" tabindex="-1" aria-labelledby="historialNotasModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -612,6 +689,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 
 <!-- Paginación -->
@@ -666,4 +744,286 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/notas/notas_generales.js' %}"></script>
+{% if es_profesor and materia_filter %}
+<script>
+// Script para cargar notas automáticamente para profesores (MEJORADO)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== CARGANDO NOTAS PARA PROFESOR ===');
+    console.log('Materia:', '{{ materia_filter }}');
+    console.log('Semestre:', '{{ semestre_filter }}');
+    console.log('Año:', '{{ ano_actual }}');
+    
+    // Verificar que tenemos todos los datos necesarios
+    if (!('{{ materia_filter }}') || !('{{ semestre_filter }}') || !('{{ ano_actual }}')) {
+        console.warn('Faltan datos para cargar las notas');
+        return;
+    }
+    
+    // Cargar notas para cada alumno visible
+    const alumnosRows = document.querySelectorAll('.alumno-row');
+    console.log('Alumnos encontrados:', alumnosRows.length);
+    
+    if (alumnosRows.length === 0) {
+        console.log('No hay alumnos para cargar notas');
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.id = 'loading-notas';
+    loadingIndicator.className = 'alert alert-info text-center';
+    loadingIndicator.innerHTML = `
+        <div class="spinner-border spinner-border-sm me-2" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        Cargando notas del año {{ ano_actual }}...
+    `;
+    
+    const container = document.querySelector('.notas-container');
+    if (container) {
+        container.insertBefore(loadingIndicator, container.querySelector('.notas-table-container'));
+    }
+    
+    let notasCargadas = 0;
+    const totalAlumnos = alumnosRows.length;
+    
+    alumnosRows.forEach(function(row, index) {
+        const alumnoId = row.getAttribute('data-alumno-id');
+        if (alumnoId) {
+            console.log(`Cargando notas para alumno ID: ${alumnoId} (${index + 1}/${totalAlumnos})`);
+            
+            // Pequeño delay para evitar saturar el servidor
+            setTimeout(() => {
+                cargarNotasAlumno(alumnoId, '{{ materia_filter }}', {{ semestre_filter }}, {{ ano_actual }})
+                    .then(() => {
+                        notasCargadas++;
+                        console.log(`✓ Notas cargadas: ${notasCargadas}/${totalAlumnos}`);
+                        
+                        // Remover indicador cuando todas las notas estén cargadas
+                        if (notasCargadas === totalAlumnos) {
+                            const loading = document.getElementById('loading-notas');
+                            if (loading) {
+                                loading.remove();
+                            }
+                            console.log('✅ Todas las notas han sido cargadas');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error cargando notas para alumno ${alumnoId}:`, error);
+                        notasCargadas++;
+                        
+                        if (notasCargadas === totalAlumnos) {
+                            const loading = document.getElementById('loading-notas');
+                            if (loading) {
+                                loading.remove();
+                            }
+                        }
+                    });
+            }, index * 100); // 100ms de delay entre cada petición
+        }
+    });
+});
+
+// Función para cargar notas de un alumno específico (MEJORADA)
+function cargarNotasAlumno(alumnoId, materia, semestre, ano) {
+    return new Promise((resolve, reject) => {
+        const url = `/notas/obtener-notas/${alumnoId}/`;
+        const params = new URLSearchParams({
+            materia: materia,
+            semestre: semestre,
+            ano: ano
+        });
+        
+        console.log(`Solicitando notas: ${url}?${params.toString()}`);
+        
+        fetch(`${url}?${params.toString()}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(`Notas recibidas para alumno ${alumnoId}:`, data);
+                
+                if (data.success && data.notas) {
+                    // Actualizar cada nota en la interfaz
+                    for (let numeroNota = 1; numeroNota <= 6; numeroNota++) {
+                        const notaKey = `nota${numeroNota}`;
+                        const notaData = data.notas[notaKey];
+                        
+                        if (notaData) {
+                            const input = document.querySelector(`input[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`);
+                            if (input) {
+                                // Establecer el valor
+                                input.value = notaData.calificacion;
+                                
+                                // Actualizar atributos de datos
+                                input.setAttribute('data-calificacion', notaData.calificacion);
+                                if (notaData.porcentaje) {
+                                    input.setAttribute('data-porcentaje', notaData.porcentaje);
+                                    
+                                    // Mostrar indicador de porcentaje
+                                    mostrarIndicadorPorcentaje(alumnoId, numeroNota, notaData.porcentaje, notaData.calificacion);
+                                }
+                                
+                                // Mostrar indicador de guardado
+                                mostrarIndicadorGuardado(input);
+                                
+                                console.log(`✓ Nota ${numeroNota} cargada: ${notaData.calificacion}`);
+                            }
+                        }
+                    }
+                    
+                    // Calcular y mostrar promedio
+                    calcularPromedioAlumno(alumnoId);
+                    resolve();
+                } else {
+                    console.warn(`No se encontraron notas para alumno ${alumnoId}`);
+                    resolve();
+                }
+            })
+            .catch(error => {
+                console.error(`Error cargando notas para alumno ${alumnoId}:`, error);
+                reject(error);
+            });
+    });
+}
+
+// Función para mostrar indicador de porcentaje (MEJORADA)
+function mostrarIndicadorPorcentaje(alumnoId, numeroNota, porcentaje, calificacion) {
+    const porcentajeDisplay = document.querySelector(`[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"].porcentaje-display`);
+    if (porcentajeDisplay) {
+        const porcentajeValue = porcentajeDisplay.querySelector('.porcentaje-value');
+        if (porcentajeValue) {
+            porcentajeValue.textContent = porcentaje;
+            porcentajeDisplay.style.display = 'block';
+        }
+    }
+    
+    // Mostrar icono de porcentaje
+    const input = document.querySelector(`input[data-alumno-id="${alumnoId}"][data-numero-nota="${numeroNota}"]`);
+    if (input) {
+        const container = input.closest('.nota-input-container');
+        if (container) {
+            const iconoPonderada = container.querySelector('.nota-ponderada');
+            if (iconoPonderada) {
+                iconoPonderada.style.display = 'inline';
+                iconoPonderada.title = `Nota con ${porcentaje}% de peso`;
+            }
+        }
+    }
+}
+
+// Función para mostrar indicador de guardado
+function mostrarIndicadorGuardado(input) {
+    const container = input.closest('.nota-input-container');
+    if (container) {
+        const iconoGuardado = container.querySelector('.nota-saved');
+        if (iconoGuardado) {
+            iconoGuardado.style.display = 'inline';
+            iconoGuardado.title = 'Nota guardada en el sistema';
+        }
+    }
+}
+
+// Función para calcular promedio del alumno (MEJORADA)
+function calcularPromedioAlumno(alumnoId) {
+    const inputs = document.querySelectorAll(`input[data-alumno-id="${alumnoId}"]`);
+    let sumaTotal = 0;
+    let sumaPorcentajes = 0;
+    let notasConPorcentaje = 0;
+    let notasSinPorcentaje = 0;
+    let sumaNotasSinPorcentaje = 0;
+    let detalleCalculo = [];
+    
+    inputs.forEach(input => {
+        const calificacion = parseFloat(input.value);
+        const porcentaje = parseFloat(input.getAttribute('data-porcentaje') || 0);
+        const numeroNota = input.getAttribute('data-numero-nota');
+        
+        if (!isNaN(calificacion) && calificacion > 0) {
+            if (porcentaje > 0) {
+                // Nota con porcentaje
+                const contribucion = (calificacion * porcentaje) / 100;
+                sumaTotal += contribucion;
+                sumaPorcentajes += porcentaje;
+                notasConPorcentaje++;
+                detalleCalculo.push(`Nota ${numeroNota}: ${calificacion} (${porcentaje}%) = ${contribucion.toFixed(2)}`);
+            } else {
+                // Nota sin porcentaje
+                sumaNotasSinPorcentaje += calificacion;
+                notasSinPorcentaje++;
+                detalleCalculo.push(`Nota ${numeroNota}: ${calificacion}`);
+            }
+        }
+    });
+    
+    let promedio = 0;
+    let tipoCalculo = '';
+    
+    if (notasConPorcentaje > 0 && notasSinPorcentaje > 0) {
+        // Hay notas con y sin porcentaje
+        const porcentajeRestante = 100 - sumaPorcentajes;
+        const promedioSinPorcentaje = sumaNotasSinPorcentaje / notasSinPorcentaje;
+        const contribucionSinPorcentaje = (promedioSinPorcentaje * porcentajeRestante) / 100;
+        promedio = sumaTotal + contribucionSinPorcentaje;
+        tipoCalculo = 'mixto';
+    } else if (notasConPorcentaje > 0) {
+        // Solo notas con porcentaje
+        promedio = sumaTotal;
+        tipoCalculo = 'ponderado';
+    } else if (notasSinPorcentaje > 0) {
+        // Solo notas sin porcentaje
+        promedio = sumaNotasSinPorcentaje / notasSinPorcentaje;
+        tipoCalculo = 'simple';
+    }
+    
+    // Mostrar promedio
+    const promedioElement = document.querySelector(`.promedio-numero`);
+    const promedioContainer = document.querySelector(`#promedio-container-${alumnoId}`);
+    
+    if (promedioContainer) {
+        const promedioNumero = promedioContainer.querySelector('.promedio-numero');
+        const promedioDetalle = promedioContainer.querySelector('.promedio-detalle');
+        const promedioValue = promedioContainer.querySelector('.promedio-value');
+        
+        if (promedio > 0) {
+            if (promedioNumero) promedioNumero.textContent = promedio.toFixed(1);
+            if (promedioDetalle) {
+                let detalleTexto = '';
+                if (tipoCalculo === 'ponderado') {
+                    detalleTexto = `Promedio ponderado (${sumaPorcentajes}%)`;
+                } else if (tipoCalculo === 'mixto') {
+                    detalleTexto = `Promedio mixto (${notasConPorcentaje} ponderadas, ${notasSinPorcentaje} simples)`;
+                } else {
+                    detalleTexto = `Promedio simple (${notasSinPorcentaje} notas)`;
+                }
+                promedioDetalle.textContent = detalleTexto;
+            }
+            
+            if (promedioValue) {
+                promedioValue.className = `promedio-value ${promedio >= 4.0 ? 'aprobado' : 'reprobado'}`;
+                
+                // Agregar icono según el estado
+                const icon = promedioValue.querySelector('.promedio-icon');
+                if (icon) {
+                    icon.className = `promedio-icon fas ${promedio >= 4.0 ? 'fa-check-circle text-success' : 'fa-times-circle text-danger'}`;
+                }
+            }
+        } else {
+            if (promedioNumero) promedioNumero.textContent = '--';
+            if (promedioDetalle) promedioDetalle.textContent = 'Sin notas registradas';
+            if (promedioValue) {
+                promedioValue.className = 'promedio-value';
+                const icon = promedioValue.querySelector('.promedio-icon');
+                if (icon) {
+                    icon.className = 'promedio-icon fas fa-minus-circle text-muted';
+                }
+            }
+        }
+    }
+}
+</script>
+{% endif %}
 {% endblock %}
