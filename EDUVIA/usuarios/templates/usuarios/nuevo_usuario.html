@@ -4,7 +4,7 @@
 {% block title %}Nuevo Usuario - EDUVIA{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/nuevo_usuario.css' %}">
+<link rel="stylesheet" href="{% static 'css/usuarios/nuevo_usuario.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 /* Estilos para que funcione correctamente */
@@ -349,8 +349,8 @@
                     <label>Tipo de Usuario <span class="required">*</span></label>
                     <div class="selector-group">
                         <div class="selector-btn" data-rol="usuario" id="btn-rol-usuario">
-                            <i class="fas fa-user"></i>
-                            <span>Usuario</span>
+                            <i class="fas fa-user-shield"></i>
+                            <span>Administrador</span>
                         </div>
                         <div class="selector-btn" data-rol="profesor" id="btn-rol-profesor">
                             <i class="fas fa-chalkboard-teacher"></i>
@@ -358,31 +358,14 @@
                         </div>
                     </div>
                     <input type="hidden" name="rol" id="rol" value="" required>
+                    <!-- Campo oculto para tipo_usuario cuando sea administrador -->
+                    <input type="hidden" name="tipo_usuario" id="tipo_usuario_hidden" value="">
                     <small class="form-text">Seleccione el tipo de usuario</small>
                     <div id="error-rol" class="error-message">
                         <i class="fas fa-exclamation-triangle"></i> Debe seleccionar un tipo de usuario
                     </div>
                     
-                    <!-- Dropdown condicional para Usuario -->
-                    <div class="conditional-dropdown" id="dropdown-usuario">
-                        <div class="form-group">
-                            <label for="tipo-usuario">Nivel de Usuario <span class="required">*</span></label>
-                            <div class="input-group">
-                                <span class="input-icon"><i class="fas fa-user-cog"></i></span>
-                                <select id="tipo-usuario" name="tipo_usuario" class="form-control">
-                                    <option value="">Seleccione nivel de usuario</option>
-                                    <option value="regular">Usuario Regular</option>
-                                    <option value="admin">Administrador</option>
-                                </select>
-                            </div>
-                            <small class="form-text">Usuario Regular: acceso básico | Administrador: acceso completo</small>
-                            <div class="invalid-feedback">
-                                <i class="fas fa-exclamation-circle"></i> Debe seleccionar un nivel de usuario
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Dropdown condicional para Profesor -->
+                    <!-- Solo dropdown para Profesor -->
                     <div class="conditional-dropdown" id="dropdown-profesor">
                         <div class="form-group">
                             <label for="asignatura">Asignatura <span class="required">*</span></label>
@@ -391,9 +374,10 @@
                                 <select id="asignatura" name="asignatura" class="form-control">
                                     <option value="">Seleccione una asignatura</option>
                                     <option value="matematicas">Matemáticas</option>
-                                    <option value="lenguaje">Lenguaje y Comunicación</option>
-                                    <option value="ciencias">Ciencias Naturales</option>
-                                    <option value="historia">Historia y Geografía</option>
+                                    <option value="lenguaje">Lenguaje basica</option>
+                                    <option value="lenguaje">Lenguaje</option>
+                                    <option value="ciencias">Ciencias</option>
+                                    <option value="historia">Historia</option>
                                     <option value="ingles">Inglés</option>
                                 </select>
                             </div>
@@ -442,37 +426,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const telefonoInput = document.getElementById('telefono');
     const correoInput = document.getElementById('correo');
     const rolInput = document.getElementById('rol');
-    const tipoUsuarioSelect = document.getElementById('tipo-usuario');
+    const tipoUsuarioHidden = document.getElementById('tipo_usuario_hidden');
     const asignaturaSelect = document.getElementById('asignatura');
     const btnRolUsuario = document.getElementById('btn-rol-usuario');
     const btnRolProfesor = document.getElementById('btn-rol-profesor');
-    const dropdownUsuario = document.getElementById('dropdown-usuario');
     const dropdownProfesor = document.getElementById('dropdown-profesor');
     const errorRol = document.getElementById('error-rol');
     const btnSubmit = document.getElementById('btn-submit');
 
-    // Elementos del modal de corrección
-    const correctionModal = document.getElementById('correctionModal');
-    const modalRut = document.getElementById('modal-rut');
-    const modalPassword = document.getElementById('modal-password');
-    const modalNombres = document.getElementById('modal-nombres');
-    const modalApellidos = document.getElementById('modal-apellidos');
-    const modalTelefono = document.getElementById('modal-telefono');
-    const modalCorreo = document.getElementById('modal-correo');
-    const modalBtnUsuario = document.getElementById('modal-btn-usuario');
-    const modalBtnProfesor = document.getElementById('modal-btn-profesor');
-    const modalTipoUsuario = document.getElementById('modal-tipo-usuario');
-    const modalAsignatura = document.getElementById('modal-asignatura');
-    const modalTipoUsuarioGroup = document.getElementById('modal-tipo-usuario-group');
-    const modalAsignaturaGroup = document.getElementById('modal-asignatura-group');
-
     console.log('Elementos encontrados:', {
         btnRolUsuario: !!btnRolUsuario,
         btnRolProfesor: !!btnRolProfesor,
-        dropdownUsuario: !!dropdownUsuario,
         dropdownProfesor: !!dropdownProfesor,
-        rolInput: !!rolInput,
-        correctionModal: !!correctionModal
+        rolInput: !!rolInput
     });
 
     // ========== FUNCIONES DE VALIDACIÓN ==========
@@ -552,35 +518,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ========== FUNCIONES DE MANEJO DE ROLES ==========
     
-    function ocultarTodosDropdowns() {
-        console.log('Ocultando todos los dropdowns');
-        dropdownUsuario.classList.remove('show');
+    function ocultarDropdown() {
+        console.log('Ocultando dropdown de profesor');
         dropdownProfesor.classList.remove('show');
         errorRol.classList.remove('show');
         
-        // Limpiar selecciones
-        if (tipoUsuarioSelect) {
-            tipoUsuarioSelect.value = '';
-            tipoUsuarioSelect.classList.remove('is-valid', 'is-invalid');
-        }
+        // Limpiar selección de asignatura
         if (asignaturaSelect) {
             asignaturaSelect.value = '';
             asignaturaSelect.classList.remove('is-valid', 'is-invalid');
         }
     }
 
-    function mostrarDropdown(tipo) {
-        console.log('Mostrando dropdown para:', tipo);
-        
-        // Ocultar todos primero
-        ocultarTodosDropdowns();
-        
-        // Mostrar el correcto
-        if (tipo === 'usuario') {
-            dropdownUsuario.classList.add('show');
-        } else if (tipo === 'profesor') {
-            dropdownProfesor.classList.add('show');
-        }
+    function mostrarDropdownProfesor() {
+        console.log('Mostrando dropdown para profesor');
+        dropdownProfesor.classList.add('show');
     }
 
     function seleccionarRol(rol) {
@@ -590,16 +542,21 @@ document.addEventListener('DOMContentLoaded', function() {
         btnRolUsuario.classList.remove('active');
         btnRolProfesor.classList.remove('active');
         
-        // Activar el botón correspondiente y establecer el valor correcto
+        // Ocultar dropdown primero
+        ocultarDropdown();
+        
         if (rol === 'usuario') {
             btnRolUsuario.classList.add('active');
             rolInput.value = 'usuario';
-            mostrarDropdown('usuario');
-            console.log('Rol establecido como USUARIO:', rolInput.value);
+            // Establecer automáticamente como admin
+            tipoUsuarioHidden.value = 'admin';
+            console.log('Rol establecido como ADMINISTRADOR:', rolInput.value, tipoUsuarioHidden.value);
         } else if (rol === 'profesor') {
             btnRolProfesor.classList.add('active');
             rolInput.value = 'profesor';
-            mostrarDropdown('profesor');
+            // Limpiar tipo_usuario para profesores
+            tipoUsuarioHidden.value = '';
+            mostrarDropdownProfesor();
             console.log('Rol establecido como PROFESOR:', rolInput.value);
         }
         
@@ -616,12 +573,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let detalleRol = '';
         
         if (rolInput.value === 'usuario') {
-            rolTexto = 'Usuario';
-            if (tipoUsuarioSelect.value === 'admin') {
-                detalleRol = 'Administrador';
-            } else if (tipoUsuarioSelect.value === 'regular') {
-                detalleRol = 'Usuario Regular';
-            }
+            rolTexto = 'Administrador';
+            detalleRol = 'Acceso completo al sistema';
         } else if (rolInput.value === 'profesor') {
             rolTexto = 'Profesor';
             const asignaturaSeleccionada = asignaturaSelect.options[asignaturaSelect.selectedIndex];
@@ -670,10 +623,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Proceder con la creación
                 proceedWithCreation();
             }
-            // Si cancela, no hacer nada
         });
     }
 
@@ -709,14 +660,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Enfocar el primer campo para corregir
                 document.getElementById('rut').focus();
             }
         });
     }
 
     function proceedWithCreation() {
-        // Mostrar loading
         Swal.fire({
             title: 'Creando usuario...',
             html: '<i class="fas fa-spinner fa-spin"></i> Por favor espere mientras se registra el usuario',
@@ -728,13 +677,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Deshabilitar botón de envío
         if (btnSubmit) {
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
         }
         
-        // Enviar formulario con fetch para interceptar errores
         const formData = new FormData(form);
         
         fetch(form.action, {
@@ -755,7 +702,6 @@ document.addEventListener('DOMContentLoaded', function() {
             Swal.close();
             
             if (ok && status === 200 && data.success) {
-                // Usuario creado exitosamente
                 Swal.fire({
                     title: '¡Éxito!',
                     text: data.message,
@@ -766,7 +712,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = "{% url 'usuarios:lista_usuarios' %}";
                 });
             } else {
-                // Error: Usuario ya existe o otro error
                 const errorMessage = data && data.message ? data.message : null;
                 showUserExistsAlert(errorMessage);
             }
@@ -777,7 +722,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showUserExistsAlert();
         })
         .finally(() => {
-            // Rehabilitar botón
             if (btnSubmit) {
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = '<i class="fas fa-save"></i> Guardar Usuario';
@@ -790,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Botones de rol
     btnRolUsuario.addEventListener('click', function(e) {
         e.preventDefault();
-        console.log('Click en botón Usuario');
+        console.log('Click en botón Administrador');
         seleccionarRol('usuario');
     });
 
@@ -841,18 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Dropdowns condicionales
-    tipoUsuarioSelect.addEventListener('change', function() {
-        console.log('Cambio en tipo usuario:', this.value);
-        if (this.value) {
-            this.classList.remove('is-invalid');
-            this.classList.add('is-valid');
-        } else {
-            this.classList.remove('is-valid');
-            this.classList.add('is-invalid');
-        }
-    });
-
+    // Dropdown de asignatura
     asignaturaSelect.addEventListener('change', function() {
         console.log('Cambio en asignatura:', this.value);
         if (this.value) {
@@ -864,10 +797,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ========== VALIDACIÓN DEL FORMULARIO CON MODAL ==========
+    // ========== VALIDACIÓN DEL FORMULARIO ==========
     
     form.addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevenir envío inmediato
+        e.preventDefault();
         
         console.log('=== VALIDANDO FORMULARIO ===');
         console.log('Valor del rol antes de validar:', rolInput.value);
@@ -882,14 +815,8 @@ document.addEventListener('DOMContentLoaded', function() {
             errorRol.classList.add('show');
         }
         
-        // Validar dropdown condicional según el rol
-        if (rolInput.value === 'usuario') {
-            if (!tipoUsuarioSelect.value) {
-                formularioValido = false;
-                errores.push('Debe seleccionar el nivel de usuario');
-                tipoUsuarioSelect.classList.add('is-invalid');
-            }
-        } else if (rolInput.value === 'profesor') {
+        // Validar asignatura solo si es profesor
+        if (rolInput.value === 'profesor') {
             if (!asignaturaSelect.value) {
                 formularioValido = false;
                 errores.push('Debe seleccionar una asignatura');
@@ -942,7 +869,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 confirmButtonText: '<i class="fas fa-check"></i> Entendido'
             });
             
-            // Enfocar el primer campo con error
             const primerCampoError = form.querySelector('.is-invalid, .form-control:invalid');
             if (primerCampoError) {
                 primerCampoError.focus();
@@ -954,18 +880,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Si todo está válido, mostrar modal de confirmación final
         showFinalConfirmation();
         
-        return false; // Prevenir envío directo
+        return false;
     });
 
     // ========== DEBUGGING ADICIONAL ==========
     
-    // Verificar cambios en el campo rol
     if (rolInput) {
         rolInput.addEventListener('change', function() {
             console.log('Campo rol cambió a:', this.value);
         });
         
-        // Observer para detectar cambios en el valor
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
@@ -980,21 +904,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ========== FUNCIONES GLOBALES ==========
-    
-    // Hacer funciones accesibles globalmente para onclick
-    window.closeCorrectionModal = closeCorrectionModal;
-    window.applyCorrectionAndProceed = applyCorrectionAndProceed;
-
     // ========== INICIALIZACIÓN ==========
     
-    // Ocultar dropdowns al cargar
-    ocultarTodosDropdowns();
+    // Ocultar dropdown al cargar
+    ocultarDropdown();
     
     // Limpiar valor del rol al inicio
     if (rolInput) {
         rolInput.value = '';
         console.log('Valor inicial del rol limpiado:', rolInput.value);
+    }
+    
+    // Limpiar tipo_usuario_hidden al inicio
+    if (tipoUsuarioHidden) {
+        tipoUsuarioHidden.value = '';
     }
     
     // Enfocar el primer campo

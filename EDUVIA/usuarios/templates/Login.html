@@ -1,19 +1,36 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="es">
-
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inicio_login_base/login.css' %}">
+{% endblock %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Chaminade</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/Login.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+
 </head>
 
 <body>
+    <style>
+    body {
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('{% static "images/CECH.png" %}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        font-family: 'Poppins', sans-serif;
+    }
+    </style>
     <!-- Previous content remains unchanged until the login form -->
     <div class="container">
         <div class="row main-row align-items-center justify-content-center">
@@ -44,11 +61,6 @@
                         </div>
 
                         <div class="info-feature">
-                            <i class="fas fa-calendar-alt"></i>
-                            <div class="info-feature-text">Calendario de cursos y evaluaciones</div>
-                        </div>
-
-                        <div class="info-feature">
                             <i class="fas fa-chart-line"></i>
                             <div class="info-feature-text">Seguimiento de progreso académico</div>
                         </div>
@@ -61,6 +73,7 @@
                 <div class="card-wrapper">
                     <div class="login-container">
                         <div class="login-header text-center">
+                            <img class="image" src="{% static 'images/favicon-32x32.png' %}"alt="Logo de la institución" />
                             <h2>Iniciar Sesión</h2>
                             <p>Accede a tu plataforma educativa</p>
                         </div>
@@ -152,175 +165,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{% static 'js/inicio_login_base/Login.js' %}"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const rutInput = document.getElementById('rut');
-            const rutError = document.getElementById('rut-error');
-
-            // Función para formatear RUT mientras se escribe
-            function formatRut(input) {
-                let value = input.value.replace(/[^0-9kK]/g, '').toUpperCase();
-
-                if (value.length <= 1) {
-                    input.value = value;
-                    return;
-                }
-
-                // Separar dígito verificador
-                const dv = value.slice(-1);
-                let numero = value.slice(0, -1);
-
-                // Agregar puntos cada 3 dígitos desde la derecha
-                numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                // Combinar con guión y DV
-                input.value = numero + '-' + dv;
-            }
-
-            // Función para validar RUT chileno
-            function validarRut(rut) {
-                // Limpiar RUT
-                rut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
-                
-                if (rut.length < 2) {
-                    return false;
-                }
-                
-                // Separar número y dígito verificador
-                const numero = rut.slice(0, -1);
-                const dv = rut.slice(-1);
-                
-                // Calcular dígito verificador
-                let suma = 0;
-                let multiplicador = 2;
-                
-                for (let i = numero.length - 1; i >= 0; i--) {
-                    suma += parseInt(numero.charAt(i)) * multiplicador;
-                    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
-                }
-                
-                const resto = suma % 11;
-                const dvCalculado = resto < 2 ? resto.toString() : resto === 10 ? 'K' : (11 - resto).toString();
-                
-                return dv === dvCalculado;
-            }
-
-            // Event listener para formatear RUT
-            rutInput.addEventListener('input', function () {
-                formatRut(this);
-                
-                // Validar si tiene suficiente longitud
-                if (this.value.length >= 3) {
-                    if (validarRut(this.value)) {
-                        this.classList.remove('is-invalid');
-                        this.classList.add('is-valid');
-                        rutError.style.display = 'none';
-                    } else {
-                        this.classList.remove('is-valid');
-                        this.classList.add('is-invalid');
-                        rutError.style.display = 'block';
-                    }
-                } else {
-                    this.classList.remove('is-valid', 'is-invalid');
-                    rutError.style.display = 'none';
-                }
-            });
-
-            // Validación del formulario antes de enviar
-            document.querySelector('.login-form').addEventListener('submit', function(e) {
-                const rutValue = rutInput.value;
-                
-                if (!rutValue.trim()) {
-                    e.preventDefault();
-                    rutInput.classList.add('is-invalid');
-                    rutError.textContent = 'El RUT es requerido';
-                    rutError.style.display = 'block';
-                    rutInput.focus();
-                    return false;
-                }
-                
-                if (!validarRut(rutValue)) {
-                    e.preventDefault();
-                    rutInput.classList.add('is-invalid');
-                    rutError.innerHTML = '<i class="fas fa-exclamation-circle"></i> RUT inválido. Verifique el formato y dígito verificador.';
-                    rutError.style.display = 'block';
-                    rutInput.focus();
-                    return false;
-                }
-                
-                // Si llegamos aquí, el RUT es válido
-                return true;
-            });
-
-            // Auto-cerrar alertas después de 5 segundos
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    if (alert.parentNode) {
-                        alert.style.transition = 'opacity 0.5s ease';
-                        alert.style.opacity = '0';
-                        setTimeout(() => {
-                            if (alert.parentNode) {
-                                alert.remove();
-                            }
-                        }, 500);
-                    }
-                }, 5000);
-            });
-        });
-    </script>
-
-    <style>
-        /* Estilos adicionales para mejorar la validación visual */
-        .form-control.is-valid {
-            border-color: #198754;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.94-.94 2.94 2.94l6.13 8.66 2.3 4.83z'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right calc(0.375em + 0.1875rem) center;
-            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-        }
-
-        .form-control.is-invalid {
-            border-color: #dc3545;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right calc(0.375em + 0.1875rem) center;
-            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
-        }
-
-        .invalid-feedback {
-            display: none;
-            width: 100%;
-            margin-top: 0.25rem;
-            font-size: 0.875em;
-            color: #dc3545;
-        }
-
-        .form-control.is-invalid ~ .invalid-feedback {
-            display: block;
-        }
-
-        /* Mejorar el espaciado */
-        .login-header {
-            margin-bottom: 2rem;
-        }
-
-        .btn-login {
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .btn-login:disabled {
-            opacity: 0.8;
-        }
-    </style>
 </body>
+
 
 </html>

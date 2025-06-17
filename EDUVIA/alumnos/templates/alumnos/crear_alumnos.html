@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
+{%load static %}
 {% block title %}Crear Nuevo Alumno{% endblock %}
 {% block content %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/alumnos/lista_alumnos.css' %}">
+{% endblock %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-10 offset-md-1">
@@ -9,16 +13,8 @@
                     <h3 class="mb-0">Crear Nuevo Alumno</h3>
                 </div>
                 <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
                     <form method="post" novalidate>
                         {% csrf_token %}
-                        
                         <!-- Datos de matrícula -->
                         <div class="card mb-4">
                             <div class="card-header bg-secondary text-white">
@@ -130,6 +126,7 @@
                                         <div class="form-group mb-3">
                                             <label for="{{ form.telefono.id_for_label }}">Teléfono de Contacto</label>
                                             {{ form.telefono }}
+                                            <small class="form-text text-muted">Formato: +56 9 XXXX XXXX</small>
                                             {% if form.telefono.errors %}
                                                 <div class="text-danger">{{ form.telefono.errors }}</div>
                                             {% endif %}
@@ -344,4 +341,7 @@
         </div>
     </div>
 </div>
+{% block extra_js %}
+<script src="{% static 'js/alumnos/lista_alumnos.js' %}"></script>
+{% endblock %}
 {% endblock %}

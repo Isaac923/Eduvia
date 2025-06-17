@@ -3,7 +3,10 @@
 {% load asistencia_extras %}
 
 {% block title %}{{ titulo }} - EDUVIA{% endblock %}
-
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/asistencia/tomar_asistencia.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -154,24 +157,11 @@
     </div>
 </div>
 
-<style>
-.avatar-sm {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
-    font-weight: bold;
-}
 
-.btn-group .btn-check:checked + .btn {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
 
-.table tbody tr:hover {
-    background-color: rgba(0,0,0,0.02);
-}
-</style>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 function marcarTodos(estado) {
     const radios = document.querySelectorAll(`input[type="radio"][value="${estado}"]`);

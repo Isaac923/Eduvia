@@ -3,6 +3,9 @@
 
 {% block title %}{{ titulo }} - EDUVIA{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/asistencia/estadisticas.css' %}">
+{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -380,67 +383,5 @@
     </div>
 </div>
 
-<style>
-.hover-card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.hover-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
-.progress {
-    background-color: #e9ecef;
-}
-
-.card-header {
-    border-bottom: 2px solid rgba(0,0,0,0.1);
-}
-
-.border-end {
-    border-right: 1px solid #dee2e6 !important;
-}
-
-@media (max-width: 768px) {
-    .border-end {
-        border-right: none !important;
-        border-bottom: 1px solid #dee2e6 !important;
-        padding-bottom: 10px;
-        margin-bottom: 10px;
-    }
-}
-</style>
-
-<script>
-// Auto-submit form when filters change
-document.getElementById('asignatura').addEventListener('change', function() {
-    this.form.submit();
-});
-
-document.getElementById('curso').addEventListener('change', function() {
-    this.form.submit();
-});
-
-document.getElementById('nivel').addEventListener('change', function() {
-    this.form.submit();
-});
-
-// Tooltip para barras de progreso
-document.addEventListener('DOMContentLoaded', function() {
-    const progressBars = document.querySelectorAll('.progress-bar');
-    progressBars.forEach(function(bar) {
-        bar.setAttribute('data-bs-toggle', 'tooltip');
-        bar.setAttribute('data-bs-placement', 'top');
-    });
-    
-    // Inicializar tooltips si Bootstrap está disponible
-    if (typeof bootstrap !== 'undefined') {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    }
-});
-</script>
+<script src="{% static 'js/asistencia/estadisticas.js' %}"></script>
 {% endblock %}

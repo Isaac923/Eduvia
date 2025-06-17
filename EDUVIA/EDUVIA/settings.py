@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-l51pa=*b7)qx9y(!a7k+lmfbub^_$%acprg&y0we4u%7u=k2vq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True  # Modo desarrollo
 
 ALLOWED_HOSTS = []
 
@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'usuarios', 'alumnos', 'cursos', 'asistencia'
+    'usuarios', 'alumnos', 'cursos', 'asistencia', 'notas',
 ]
 
 MIDDLEWARE = [
@@ -64,7 +64,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'usuarios.context_processors.user_role_context',  # Agregar esta línea
             ],
         },
     },
@@ -84,10 +83,11 @@ DATABASES = {
         'PASSWORD': '1234',
         'HOST': 'localhost',
         'PORT': '5432',
+        'OPTIONS': {
+            'client_encoding': 'UTF8',
+        },
     }
 }
-
-
 
 
 # Password validation

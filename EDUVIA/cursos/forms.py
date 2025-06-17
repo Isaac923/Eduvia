@@ -28,16 +28,21 @@ class CursoForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Si estamos editando un curso existente, filtrar alumnos por nivel
-        if self.instance and self.instance.pk:
-            nivel_str = f"{self.instance.nivel}{self.instance.letra.upper()}"
-            self.fields['alumnos'].queryset = Alumno.objects.filter(
-                activo=True,
-                nivel=nivel_str
-            )
-        else:
-            # Si estamos creando un curso nuevo, mostrar solo alumnos activos
-            self.fields['alumnos'].queryset = Alumno.objects.filter(activo=True)
+        # Personalizar el queryset para evitar errores
+        try:
+            # Si estamos editando un curso existente, filtrar alumnos por nivel
+            if self.instance and self.instance.pk:
+                nivel_str = f"{self.instance.nivel}{self.instance.letra.upper()}"
+                self.fields['alumnos'].queryset = Alumno.objects.filter(
+                    activo=True,
+                    nivel=nivel_str
+                )
+            else:
+                # Si estamos creando un curso nuevo, mostrar solo alumnos activos
+                self.fields['alumnos'].queryset = Alumno.objects.filter(activo=True)
+        except Exception as e:
+            # En caso de error, usar un queryset vacío
+            self.fields['alumnos'].queryset = Alumno.objects.none()
 
         # Personalizar labels
         self.fields['nivel'].label = "Nivel del curso"

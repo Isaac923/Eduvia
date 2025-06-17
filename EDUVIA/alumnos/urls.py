@@ -13,6 +13,10 @@ urlpatterns = [
     path('<int:pk>/retirar/', views.retirar_alumno, name='retirar_alumno'),
     path('<int:pk>/cambiar-estado/', views.cambiar_estado_alumno, name='cambiar_estado_alumno'),
     
+    # Gestión de años académicos
+    path('crear-ano-academico/', views.crear_ano_academico, name='crear_ano_academico'),
+    path('activar-ano-academico/', views.activar_ano_academico, name='activar_ano_academico'),
+    
     # Rutas para apoderados
     path('guardar-apoderado/', views.guardar_apoderado, name='guardar_apoderado'),
     path('guardar-apoderado/<int:apoderado_id>/', views.guardar_apoderado, name='actualizar_apoderado'),

@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import make_password, check_password
 class Usuario(models.Model):
     ROL_CHOICES = [
         ('usuario', 'Usuario'),
+        ('profesor', 'Profesor'),
         ('admin', 'Administrador'),
     ]
     
@@ -12,6 +13,16 @@ class Usuario(models.Model):
         ('active', 'Activo'),
         ('inactive', 'Inactivo'),
         ('pending', 'Pendiente'),
+    ]
+    
+    ASIGNATURA_CHOICES = [
+        ('matematicas', 'Matemáticas'),
+        ('lenguaje', 'Lenguaje y Comunicación'),
+        ('ciencias', 'Ciencias Naturales'),
+        ('historia', 'Historia y Geografía'),
+        ('ingles', 'Inglés'),
+        ('estudios_sociales', 'Estudios Sociales'),
+        ('f_instrumental', 'F. Instrumental'),
     ]
     
     # Validador para RUT chileno (formato: 12.345.678-9)
@@ -55,11 +66,13 @@ class Usuario(models.Model):
         default='inactive', 
         verbose_name="Estado"
     )
-    funcion = models.CharField(
+    # CORREGIDO: Solo asignatura, sin funcion
+    asignatura = models.CharField(
         max_length=200, 
         blank=True, 
         null=True, 
-        verbose_name="Función"
+        choices=ASIGNATURA_CHOICES,
+        verbose_name="Asignatura"
     )
     fecha_creacion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
     fecha_modificacion = models.DateTimeField(auto_now=True, verbose_name="Última Modificación")
@@ -77,6 +90,8 @@ class Usuario(models.Model):
     
     def nombre_completo(self):
         return f"{self.nombres} {self.apellidos}"
+    
+    # ELIMINADO: La propiedad @property def asignatura que devolvía self.funcion
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

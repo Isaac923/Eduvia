@@ -4,20 +4,87 @@
 {% block title %}Lista de Alumnos{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/lista_alumnos.css' %}">
+<link rel="stylesheet" href="{% static 'css/alumnos/lista_alumnos.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="user-list-container">
+<div class="user-list-container" data-permite-edicion="{{ permite_edicion|yesno:'true,false' }}">
     <!-- Encabezado de la página -->
     <div class="page-header">
-        <h2>Lista de Alumnos</h2>
-        <a href="{% url 'alumnos:crear_alumno' %}" class="btn-eduvia btn-primary">
-            <i class="fas fa-plus-circle"></i> Nuevo Alumno
-        </a>
+        <div>
+            <h2>Lista de Alumnos - Año {{ ano_actual.ano }}</h2>
+            {% if not permite_edicion %}
+                <div class="alert alert-warning mt-2 mb-0 d-flex justify-content-between align-items-center border-0 shadow-sm" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); color: white;">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-lock fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold">
+                                <i class="fas fa-eye me-2"></i>Modo Solo Lectura
+                            </h6>
+                            <p class="mb-0 small opacity-90">
+                                Este año académico {{ ano_actual.ano }} está bloqueado. Solo se pueden realizar modificaciones en el año activo.
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-light btn-sm ms-3 shadow-sm" onclick="activarAno({{ ano_actual.ano }})" style="color: #fd7e14; font-weight: bold;">
+                        <i class="fas fa-unlock me-1"></i>Activar este año
+                    </button>
+                </div>
+            {% else %}
+                <div class="alert alert-success mt-2 mb-0 border-0 shadow-sm" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white;">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold">
+                                <i class="fas fa-unlock me-2"></i>Año Académico Activo
+                            </h6>
+                            <p class="mb-0 small opacity-90">
+                                Este es el año académico {{ ano_actual.ano }} activo. Puedes realizar todas las modificaciones necesarias.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="header-actions">
+            <!-- Selector de año académico -->
+            <select id="year-filter" class="form-select me-2" style="width: auto;" onchange="cambiarAno()">
+                {% for ano in anos_disponibles %}
+                    <option value="{{ ano.ano }}" {% if ano.ano == ano_actual.ano %}selected{% endif %}>
+                        Año {{ ano.ano }}{% if ano.activo %} (Activo){% endif %}{% if ano.es_bloqueado %} 🔒{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+            
+            <!-- Botón para activar año si no es el activo -->
+            {% if not permite_edicion %}
+                <button type="button" class="btn btn-warning" onclick="activarAno({{ ano_actual.ano }})">
+                    Activar Año
+                </button>
+            {% endif %}
+            
+            <!-- Botones solo si permite edición -->
+            {% if permite_edicion %}
+                <button type="button" class="btn-eduvia btn-secondary me-2" onclick="crearNuevoAno()">
+                    <i class="fas fa-calendar-plus"></i> Nuevo Año
+                </button>
+            
+                <a href="{% url 'alumnos:crear_alumno' %}" class="btn-eduvia btn-primary">
+                    <i class="fas fa-plus-circle"></i> Nuevo Alumno
+                </a>
+            {% else %}
+                <span class="text-muted">
+                    <i class="fas fa-lock me-1"></i>Año bloqueado
+                </span>
+            {% endif %}
+        </div>
     </div>
 
-    <!-- Mensajes en una posición fija, con auto-ocultamiento -->
+    <!-- Mensajes -->
     {% if messages %}
         <div class="messages-container mb-4">
             {% for message in messages %}
@@ -30,226 +97,316 @@
         </div>
     {% endif %}
 
-    <!-- Resto del contenido SIN mensajes -->
-    {% if alumnos %}
-    <!-- Búsqueda y filtros mejorados -->
-    <div class="search-filter-container">
-        <!-- NO incluir mensajes aquí -->
-        
-        <form method="get" id="filtro-form" class="filters-form">
-            <!-- Fila de búsqueda -->
-            <div class="search-row">
-                <div class="search-group">
-                    <label for="nombre-busqueda" class="search-label">
-                        <i class="fas fa-search"></i>
-                        Buscar alumno
-                    </label>
+    {% if alumnos_ano %}
+        <!-- Búsqueda y filtros -->
+        <div class="search-filter-container">
+            <div class="filters-row">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
                     <input type="text" 
-                           name="nombre" 
-                           id="nombre-busqueda" 
+                           id="searchInput" 
                            class="form-control search-input" 
-                           placeholder="Buscar por nombre del alumno..." 
+                           placeholder="🔍 Buscar por nombre del alumno..."
                            value="{{ nombre_busqueda }}">
                 </div>
-                <button type="submit" class="btn-search">
-                    <i class="fas fa-search"></i>
-                    <span>Buscar</span>
-                </button>
-            </div>
-            
-            <!-- Fila de filtros -->
-            <div class="filters-row">
                 <div class="filter-group">
-                    <label for="courseFilter" class="filter-label">
-                        <i class="fas fa-graduation-cap"></i>
-                        Nivel académico
-                    </label>
-                    <select class="form-select filter-dropdown" id="courseFilter" name="nivel">
-                        <option value="todos" {% if nivel_filter == 'todos' %}selected{% endif %}>
-                            Todos los niveles
-                        </option>
+                    <select id="filterNivel" class="form-select filter-dropdown filter-nivel">
+                        <option value="">🎓 Todos los niveles</option>
                         {% for nivel in niveles %}
                             <option value="{{ nivel }}" {% if nivel_filter == nivel %}selected{% endif %}>
-                                {{ nivel }}
+                                📚 {{ nivel }}
                             </option>
                         {% endfor %}
                     </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="statusFilter" class="filter-label">
-                        <i class="fas fa-toggle-on"></i>
-                        Estado
-                    </label>
-                    <select class="form-select filter-dropdown" id="statusFilter" name="estado">
-                        <option value="todos" {% if estado_filter == 'todos' %}selected{% endif %}>
-                            Todos los estados
-                        </option>
-                        <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>
-                            Activo
-                        </option>
-                        <option value="inactivo" {% if estado_filter == 'inactivo' %}selected{% endif %}>
-                            Inactivo
-                        </option>
+                    <select id="filterEstado" class="form-select filter-dropdown filter-estado">
+                        <option value="">📋 Todos los estados</option>
+                        <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>✅ Activo</option>
+                        <option value="inactivo" {% if estado_filter == 'inactivo' %}selected{% endif %}>❌ Inactivo</option>
                     </select>
                 </div>
-                
-                <!-- Botón para limpiar filtros -->
-                <div class="filter-actions">
-                    <button type="button" class="btn-clear" onclick="clearFilters()">
-                        <i class="fas fa-times"></i>
-                        <span>Limpiar</span>
-                    </button>
-                </div>
             </div>
-        </form>
-    </div>
-    {% else %}
-    <!-- Si no hay alumnos, mostrar mensajes aquí también -->
-    {% if messages %}
-        <div class="no-students-messages">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} mb-3 auto-hide-alert">
-                    <i class="fas fa-info-circle me-2"></i>
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
         </div>
-    {% endif %}
+        
+        <!-- Contenedor de tabla con scroll interno -->
+        <div class="table-container">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th class="col-id"><i class="fas fa-hashtag me-2"></i>ID</th>
+                        <th class="col-nombre"><i class="fas fa-user-graduate me-2"></i>Nombre</th>
+                        <th class="col-edad"><i class="fas fa-birthday-cake me-2"></i>Edad</th>
+                        <th class="col-nivel"><i class="fas fa-graduation-cap me-2"></i>Nivel</th>
+                        <th class="col-jornada"><i class="fas fa-clock me-2"></i>Jornada</th>
+                        <th class="col-estado"><i class="fas fa-toggle-on me-2"></i>Estado</th>
+                        <th class="col-acciones"><i class="fas fa-cogs me-2"></i>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for alumno_ano in alumnos_ano %}
+                    <tr class="alumno-row {% if not permite_edicion %}readonly-mode{% endif %}" 
+                        data-id="{{ alumno_ano.alumno.id }}" 
+                        data-nombre="{{ alumno_ano.alumno.nombre_completo|lower }}"
+                        data-edad="{{ alumno_ano.alumno.edad }}" 
+                        data-nivel="{{ alumno_ano.nivel }}"
+                        data-jornada="{{ alumno_ano.jornada }}" 
+                        data-direccion="{{ alumno_ano.alumno.direccion }}"
+                        data-telefono="{{ alumno_ano.alumno.telefono|default:'No registrado' }}"
+                        data-email="{{ alumno_ano.alumno.correo_electronico|default:'No registrado' }}"
+                        data-religion="{{ alumno_ano.alumno.religion }}" 
+                        data-fecha-ingreso="{{ alumno_ano.alumno.fecha_ingreso }}"
+                        data-edit-url="{% url 'alumnos:editar_alumnos' pk=alumno_ano.alumno.id %}"
+                        data-delete-url="{% url 'alumnos:eliminar_alumno' pk=alumno_ano.alumno.id %}"
+                        data-fecha-nacimiento="{{ alumno_ano.alumno.fecha_nacimiento }}"
+                        data-sexo="{{ alumno_ano.alumno.get_sexo_display }}"
+                        data-rut="{{ alumno_ano.alumno.rut }}"
+                        data-estado-civil="{{ alumno_ano.alumno.get_estado_civil_display }}"
+                        data-ultimo-curso="{{ alumno_ano.alumno.ultimo_curso_aprobado|default:'No registrado' }}"
+                        data-curso-repetido="{{ alumno_ano.alumno.curso_repetido }}"
+                        data-programa-pie="{{ alumno_ano.alumno.programa_pie }}"
+                        data-profesional-apoyo="{{ alumno_ano.alumno.get_profesional_apoyo_display|default:'Ninguno' }}"
+                        data-informe-psicosocial="{{ alumno_ano.alumno.informe_psicosocial }}"
+                        data-situacion-laboral="{{ alumno_ano.alumno.get_situacion_laboral_display }}"
+                        data-contacto-emergencia-nombre="{{ alumno_ano.alumno.contacto_emergencia_nombre|default:'No registrado' }}"
+                        data-contacto-emergencia-parentezco="{{ alumno_ano.alumno.contacto_emergencia_parentezco|default:'No registrado' }}"
+                        data-contacto-emergencia-telefono="{{ alumno_ano.alumno.contacto_emergencia_telefono|default:'No registrado' }}"
+                        data-apoderado-id="{{ alumno_ano.alumno.apoderado.id|default:'' }}"
+                        data-apoderado-nombre="{{ alumno_ano.alumno.apoderado.nombre|default:'No registrado' }}"
+                        data-apoderado-parentezco="{{ alumno_ano.alumno.apoderado.parentezco|default:'No registrado' }}"
+                        data-apoderado-telefono="{{ alumno_ano.alumno.apoderado.telefono|default:'No registrado' }}"
+                        data-apoderado-correo="{{ alumno_ano.alumno.apoderado.correo|default:'No registrado' }}"
+                        data-apoderado-direccion="{{ alumno_ano.alumno.apoderado.direccion|default:'No registrado' }}"
+                        data-apoderado-es-institucion="{{ alumno_ano.alumno.apoderado.es_institucion|default:'false' }}"
+                        data-estado="{% if alumno_ano.activo %}activo{% else %}inactivo{% endif %}">
+                        <td class="col-id">{{ alumno_ano.alumno.id }}</td>
+                        <td class="col-nombre">{{ alumno_ano.alumno.nombre_completo }}</td>
+                        <td class="col-edad">{{ alumno_ano.alumno.edad }}</td>
+                        <td class="col-nivel">{{ alumno_ano.nivel }}</td>
+                        <td class="col-jornada">{{ alumno_ano.jornada }}</td>
+                        <td>
+                            {% if alumno_ano.activo %}
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-check-circle"></i> Activo
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-inactive">
+                                    <i class="fas fa-times-circle"></i> Inactivo
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action btn-view ver-alumno-detallado" data-alumno-id="{{ alumno_ano.alumno.id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if permite_edicion %}
+                                    <button class="btn-action btn-edit toggle-estado" 
+                                            data-id="{{ alumno_ano.alumno.id }}"
+                                            data-nombre="{{ alumno_ano.alumno.nombre_completo }}"
+                                            data-estado="{% if alumno_ano.activo %}Activo{% else %}Inactivo{% endif %}"
+                                            onclick="openEstadoModal(this)">
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="btn-action btn-disabled tooltip-locked" 
+                                            disabled 
+                                            data-tooltip="Año bloqueado - Solo lectura">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-user-graduate fa-3x"></i>
+                                <p>No hay alumnos registrados para este año académico.</p>
+                                {% if permite_edicion %}
+                                    <p>Para comenzar, crea un nuevo alumno usando el botón "Nuevo Alumno" en la parte superior.</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr id="no-results-row" style="display: none;">
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-search fa-3x"></i>
+                                <p>No se encontraron resultados que coincidan con los criterios de búsqueda.</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-user-graduate fa-3x"></i>
+        <p>No hay alumnos registrados para el año {{ ano_actual.ano }}. Para comenzar, crea un nuevo alumno usando el botón "Nuevo Alumno".</p>
+    </div>
     {% endif %}
 
-    <!-- Script para coordinar los filtros -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const courseFilter = document.getElementById('courseFilter');
-            const statusFilter = document.getElementById('statusFilter');
-            const filtroForm = document.getElementById('filtro-form');
+    <!-- Agregar después de la tabla, reemplazar el div de paginación existente -->
+<div class="pagination-container" id="pagination-container">
+    <div class="pagination-info">
+        <span class="page-info" id="page-info">Mostrando 1-5 de 0 alumnos</span>
+    </div>
+    <div class="pagination-controls">
+        <button class="pagination-btn" id="prev-btn" onclick="cambiarPagina('prev')" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <div class="pagination-numbers" id="pagination-numbers">
+            <!-- Los números de página se generarán dinámicamente -->
+        </div>
+        <button class="pagination-btn" id="next-btn" onclick="cambiarPagina('next')" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    <div class="pagination-size">
+        <label for="page-size-select">Mostrar:</label>
+        <select id="page-size-select" class="form-select" onchange="cambiarTamanoPagina()">
+            <option value="5">5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="25">25 por página</option>
+            <option value="50">50 por página</option>
+        </select>
+    </div>
+</div>
+
+<!-- Modal personalizado para cambiar estado -->
+<div class="delete-alert-modal" id="estadoModal" style="display: none;">
+    <div class="delete-alert-content">
+        <div class="delete-alert-header">
+            <h5><i class="fas fa-exchange-alt me-2"></i>Cambiar Estado del Alumno</h5>
+            <button type="button" class="delete-alert-close" onclick="closeEstadoModal()">×</button>
+        </div>
+        <div class="delete-alert-body">
+            <p>Seleccione el estado que desea establecer para <strong id="estado-modal-nombre"></strong> en el año <strong id="estado-modal-ano">{{ ano_actual.ano }}</strong>:</p>
             
-            if (courseFilter && statusFilter && filtroForm) {
-                courseFilter.addEventListener('change', function() {
-                    if (this.value !== 'todos' && statusFilter.value !== 'inactivo') {
-                        statusFilter.value = 'activo';
-                    }
-                    filtroForm.submit();
-                });
+            <form id="estadoForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="ano" value="{{ ano_actual.ano }}">
                 
-                statusFilter.addEventListener('change', function() {
-                    filtroForm.submit();
-                });
-            }
-        });
-        
-        // Función para limpiar filtros
-        function clearFilters() {
-            document.getElementById('nombre-busqueda').value = '';
-            document.getElementById('courseFilter').value = 'todos';
-            document.getElementById('statusFilter').value = 'todos';
-            document.getElementById('filtro-form').submit();
-        }
-        
-        // Función para resetear los filtros
-        function resetFilters() {
-            clearFilters();
-        }
-    </script>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nuevo_estado" id="estadoActivo" value="activo">
+                    <label class="form-check-label text-success" for="estadoActivo">
+                        <i class="fas fa-check-circle me-2"></i>Activar Alumno
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="nuevo_estado" id="estadoInactivo" value="inactivo">
+                    <label class="form-check-label text-danger" for="estadoInactivo">
+                        <i class="fas fa-times-circle me-2"></i>Desactivar Alumno
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="delete-alert-footer">
+            <button type="button" class="btn-cancel" onclick="closeEstadoModal()">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+            <button type="submit" form="estadoForm" class="btn-delete-confirm">
+                <i class="fas fa-save me-1"></i>Guardar cambios
+            </button>
+        </div>
+    </div>
+</div>
 
-    <!-- Tabla de alumnos -->
-    <div class="table-responsive">
-        <table class="user-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Edad</th>
-                    <th>Nivel</th>
-                    <th>Jornada</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for alumno in alumnos %}
-                <tr class="alumno-row" data-id="{{ alumno.id }}" data-nombre="{{ alumno.nombre_completo }}"
-                    data-edad="{{ alumno.edad }}" data-nivel="{{ alumno.nivel }}"
-                    data-jornada="{{ alumno.jornada }}" data-direccion="{{ alumno.direccion }}"
-                    data-telefono="{{ alumno.telefono|default:'No registrado' }}"
-                    data-email="{{ alumno.correo_electronico|default:'No registrado' }}"
-                    data-religion="{{ alumno.religion }}" data-fecha-ingreso="{{ alumno.fecha_ingreso }}"
-                    data-edit-url="{% url 'alumnos:editar_alumnos' pk=alumno.id %}"
-                    data-delete-url="{% url 'alumnos:eliminar_alumno' pk=alumno.id %}"
-                    data-fecha-nacimiento="{{ alumno.fecha_nacimiento }}"
-                    data-sexo="{{ alumno.get_sexo_display }}"
-                    data-rut="{{ alumno.rut }}"
-                    data-estado-civil="{{ alumno.get_estado_civil_display }}"
-                    data-ultimo-curso="{{ alumno.ultimo_curso_aprobado|default:'No registrado' }}"
-                    data-curso-repetido="{{ alumno.curso_repetido }}"
-                    data-programa-pie="{{ alumno.programa_pie }}"
-                    data-profesional-apoyo="{{ alumno.get_profesional_apoyo_display|default:'Ninguno' }}"
-                    data-informe-psicosocial="{{ alumno.informe_psicosocial }}"
-                    data-situacion-laboral="{{ alumno.get_situacion_laboral_display }}"
-                    data-contacto-emergencia-nombre="{{ alumno.contacto_emergencia_nombre|default:'No registrado' }}"
-                    data-contacto-emergencia-parentezco="{{ alumno.contacto_emergencia_parentezco|default:'No registrado' }}"
-                    data-contacto-emergencia-telefono="{{ alumno.contacto_emergencia_telefono|default:'No registrado' }}"
-                    data-apoderado-id="{{ alumno.apoderado.id|default:'' }}"
-                    data-apoderado-nombre="{{ alumno.apoderado.nombre|default:'No registrado' }}"
-                    data-apoderado-parentezco="{{ alumno.apoderado.parentezco|default:'No registrado' }}"
-                    data-apoderado-telefono="{{ alumno.apoderado.telefono|default:'No registrado' }}"
-                    data-apoderado-correo="{{ alumno.apoderado.correo|default:'No registrado' }}"
-                    data-apoderado-direccion="{{ alumno.apoderado.direccion|default:'No registrado' }}"
-                    data-apoderado-es-institucion="{{ alumno.apoderado.es_institucion|default:'false' }}"
-                    data-estado="{% if alumno.activo %}activo{% else %}inactivo{% endif %}">
-                    <td>{{ alumno.id }}</td>
-                    <td>{{ alumno.nombre_completo }}</td>
-                    <td>{{ alumno.edad }}</td>
-                    <td>{{ alumno.nivel }}</td>
-                    <td>{{ alumno.jornada }}</td>
-                    <td>
-                        {% if alumno.activo %}
-                            <span class="status-badge status-active">
-                                <i class="fas fa-check-circle"></i> Activo
-                            </span>
-                        {% else %}
-                            <span class="status-badge status-inactive">
-                                <i class="fas fa-times-circle"></i> Inactivo
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn-action btn-view ver-alumno-detallado" data-alumno-id="{{ alumno.id }}">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn-action btn-edit toggle-estado" 
-                                    data-id="{{ alumno.id }}"
-                                    data-nombre="{{ alumno.nombre_completo }}"
-                                    data-estado="{% if alumno.activo %}Activo{% else %}Inactivo{% endif %}"
-                                    onclick="openEstadoModal(this)">
-                                <i class="fas fa-exchange-alt"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7">
-                        <div class="empty-state">
-                            <i class="fas fa-user-graduate fa-3x"></i>
-                            <p>No hay alumnos registrados. Para comenzar, crea un nuevo alumno usando el botón "Nuevo Alumno" en la parte superior.</p>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-                <tr id="no-results-row" style="display: none;">
-                    <td colspan="7">
-                        <div class="empty-state">
-                            <i class="fas fa-search fa-3x"></i>
-                            <p>No se encontraron resultados que coincidan con los criterios de búsqueda.</p>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+<!-- Modal para confirmar activación de año académico -->
+<div class="modal fade" id="activarAnoModal" tabindex="-1" aria-labelledby="activarAnoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="activarAnoModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Activar Año Académico
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>¡Atención!</strong> Esta acción tendrá las siguientes consecuencias:
+                </div>
+                
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-unlock text-success me-2"></i>
+                        El año <strong id="ano-a-activar"></strong> se convertirá en el año académico activo
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-lock text-danger me-2"></i>
+                        El año activo actual se bloqueará y pasará a modo solo lectura
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        Solo podrás realizar modificaciones en el año <strong id="ano-a-activar-2"></strong>
+                    </li>
+                </ul>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Recomendación:</strong> Asegúrate de haber terminado todas las tareas pendientes en el año activo actual antes de proceder.
+                </div>
+                
+                <form id="activarAnoForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="ano-activar-input" name="ano">
+                    
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="confirmarActivacion" required>
+                        <label class="form-check-label" for="confirmarActivacion">
+                            Entiendo las consecuencias y deseo activar este año académico
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <button type="submit" form="activarAnoForm" class="btn btn-warning" id="btn-confirmar-activacion" disabled>
+                    <i class="fas fa-unlock me-1"></i>Activar Año Académico
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear nuevo año académico -->
+<div class="modal fade" id="crearAnoModal" tabindex="-1" aria-labelledby="crearAnoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearAnoModalLabel">
+                    <i class="fas fa-calendar-plus me-2"></i>Crear Nuevo Año Académico
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Al crear un nuevo año académico, todos los alumnos activos del año actual serán transferidos como inactivos al nuevo año.
+                </div>
+                
+                <form id="crearAnoForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nuevo-ano" class="form-label">Año Académico</label>
+                        <input type="number" class="form-control" id="nuevo-ano" name="ano" 
+                               min="2025" max="2050" required 
+                               placeholder="Ej: {{ current_year|add:1 }}">
+                        <div class="form-text">Ingrese el año académico que desea crear</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="crearAnoForm" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Crear Año Académico
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -426,68 +583,19 @@
             <div class="modal-footer">
                 <div class="d-flex justify-content-between w-100">
                     <div>
-                        <button type="button" class="btn btn-danger" id="eliminar-alumno-btn">
-                            <i class="fas fa-trash-alt me-1"></i> Eliminar Alumno
-                        </button>
-                    </div>
-                    <div>
                         <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cerrar</button>
-                        <a href="#" id="editar-alumno-link" class="btn btn-eduvia btn-primary">
-                            <i class="fas fa-edit me-1"></i> Editar Alumno
-                        </a>
+                        {% if permite_edicion %}
+                            <a href="#" id="editar-alumno-link" class="btn btn-eduvia btn-primary">
+                                <i class="fas fa-edit me-1"></i> Editar Alumno
+                            </a>
+                        {% else %}
+                            <span class="text-muted">
+                                <i class="fas fa-lock me-1"></i>Edición bloqueada
+                            </span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal personalizado para cambiar estado -->
-<div class="delete-alert-modal" id="estadoModal" style="display: none;">
-    <div class="delete-alert-content">
-        <div class="delete-alert-header">
-            <h5><i class="fas fa-exchange-alt me-2"></i>Cambiar Estado del Alumno</h5>
-            <button type="button" class="delete-alert-close" onclick="closeEstadoModal()">×</button>
-        </div>
-        <div class="delete-alert-body">
-            <p>Seleccione el estado que desea establecer para <strong id="estado-modal-nombre"></strong>:</p>
-            
-            <form id="estadoForm" method="post">
-                {% csrf_token %}
-                <input type="hidden" id="hidden-estado" name="nuevo_estado">
-                
-                <div class="estado-options">
-                    <div class="estado-option">
-                        <input type="radio" name="nuevo_estado" id="estadoActivo" value="activo">
-                        <label for="estadoActivo" class="estado-label">
-                            <i class="fas fa-check-circle" style="color: #43a047;"></i>
-                            <div>
-                                <div class="fw-bold">Activo</div>
-                                <div class="text-muted small">El alumno estará activo y disponible en el sistema.</div>
-                            </div>
-                        </label>
-                    </div>
-                    
-                    <div class="estado-option">
-                        <input type="radio" name="nuevo_estado" id="estadoInactivo" value="inactivo">
-                        <label for="estadoInactivo" class="estado-label">
-                            <i class="fas fa-times-circle" style="color: #e53935;"></i>
-                            <div>
-                                <div class="fw-bold">Inactivo</div>
-                                <div class="text-muted small">El alumno estará inactivo y no disponible en el sistema.</div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </form>
-        </div>
-        <div class="delete-alert-footer">
-            <button type="button" class="btn-cancel" onclick="closeEstadoModal()">
-                <i class="fas fa-times me-1"></i>Cancelar
-            </button>
-            <button type="submit" form="estadoForm" class="btn-delete-confirm">
-                <i class="fas fa-save me-1"></i>Guardar cambios
-            </button>
         </div>
     </div>
 </div>
@@ -528,307 +636,343 @@
 <form id="delete-form" method="post" style="display: none;">{% csrf_token %}</form>
 <form id="delete-apoderado-form" method="post" style="display: none;">{% csrf_token %}</form>
 
+<script>
+function cambiarAno() {
+    const yearSelect = document.getElementById('year-filter');
+    const url = new URL(window.location);
+    url.searchParams.set('year', yearSelect.value);
+    // Limpiar otros filtros al cambiar año
+    url.searchParams.delete('nombre');
+    url.searchParams.delete('nivel');
+    url.searchParams.delete('estado');
+    window.location.href = url.toString();
+}
+
+// Función para limpiar filtros
+function limpiarFiltros() {
+    const anoActual = document.getElementById('year-filter').value;
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set('year', anoActual); // Mantener solo el año
+    window.location.href = url.toString();
+}
+
+// Función para activar año académico
+function activarAno(ano) {
+    // Obtener el año activo actual para mostrarlo en el mensaje
+    const anoActivoActual = document.querySelector('#year-filter option[selected]')?.textContent || 'año actual';
+    
+    Swal.fire({
+        title: '<i class="fas fa-exclamation-triangle text-warning"></i> Activar Año Académico',
+        html: `
+            <div class="text-start">
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>¡Atención!</strong> Esta acción tendrá las siguientes consecuencias:
+                </div>
+                
+                <ul class="list-unstyled mb-3">
+                    <li class="mb-2">
+                        <i class="fas fa-unlock text-success me-2"></i>
+                        El año <strong>${ano}</strong> se convertirá en el año académico activo
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-lock text-danger me-2"></i>
+                        El año activo actual se bloqueará y pasará a modo solo lectura
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        Solo podrás realizar modificaciones en el año <strong>${ano}</strong>
+                    </li>
+                </ul>
+                
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Recomendación:</strong> Asegúrate de haber terminado todas las tareas pendientes en el año activo actual antes de proceder.
+                </div>
+                
+                <div class="form-check text-start">
+                    <input class="form-check-input" type="checkbox" id="swal-confirmar-activacion">
+                    <label class="form-check-label" for="swal-confirmar-activacion">
+                        Entiendo las consecuencias y deseo activar este año académico
+                    </label>
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-unlock me-1"></i>Activar Año Académico',
+        cancelButtonText: '<i class="fas fa-times me-1"></i>Cancelar',
+        confirmButtonColor: '#ffc107',
+        cancelButtonColor: '#6c757d',
+        width: '600px',
+        preConfirm: () => {
+            const checkbox = document.getElementById('swal-confirmar-activacion');
+            if (!checkbox.checked) {
+                Swal.showValidationMessage('Debes confirmar que entiendes las consecuencias');
+                return false;
+            }
+            return true;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Confirmación final
+            Swal.fire({
+                title: '¿Proceder con la activación?',
+                html: `
+                    <div class="text-center">
+                        <i class="fas fa-exchange-alt fa-3x text-warning mb-3"></i>
+                        <p>El año académico <strong>${ano}</strong> será activado inmediatamente.</p>
+                        <p class="text-muted">Esta acción no se puede deshacer fácilmente.</p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-check me-1"></i>Sí, activar ahora',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d'
+            }).then((confirmResult) => {
+                if (confirmResult.isConfirmed) {
+                    // Crear el formulario y enviarlo
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{% url "alumnos:activar_ano_academico" %}';
+                    
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+                    
+                    const anoInput = document.createElement('input');
+                    anoInput.type = 'hidden';
+                    anoInput.name = 'ano';
+                    anoInput.value = ano;
+                    form.appendChild(anoInput);
+                    
+                    // Mostrar loading
+                    Swal.fire({
+                        title: 'Activando año académico...',
+                        html: `
+                            <div class="text-center">
+                                <i class="fas fa-sync fa-spin fa-2x text-primary mb-3"></i>
+                                <p>Activando el año académico <strong>${ano}</strong>...</p>
+                                <p class="text-muted">Por favor espera, esto puede tomar unos momentos.</p>
+                            </div>
+                        `,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    });
+}
+
+// Manejar envío del formulario de crear año
+document.getElementById('crearAnoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const ano = formData.get('ano');
+    
+    if (confirm(`¿Estás seguro de que deseas crear el año académico ${ano}?`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "alumnos:crear_ano_academico" %}';
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        const anoInput = document.createElement('input');
+        anoInput.type = 'hidden';
+        anoInput.name = 'ano';
+        anoInput.value = ano;
+        form.appendChild(anoInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+});
+
+// Establecer el estado de permisos en el body
+const permiteEdicion = document.querySelector('[data-permite-edicion]');
+if (permiteEdicion) {
+    document.body.dataset.permiteEdicion = permiteEdicion.dataset.permiteEdicion;
+}
+
+// Función para abrir modal de estado
+function openEstadoModal(button) {
+    // Verificar si el año permite edición desde el contenedor
+    const container = document.querySelector('.user-list-container');
+    const permiteEdicion = container ? container.dataset.permiteEdicion === 'true' : false;
+    
+    if (!permiteEdicion) {
+        alert('No se pueden realizar cambios en este año académico. Solo el año activo permite modificaciones.');
+        return;
+    }
+    
+    currentAlumnoId = button.getAttribute('data-id');
+    currentAlumnoNombre = button.getAttribute('data-nombre');
+    currentAlumnoEstado = button.getAttribute('data-estado');
+    
+    // Actualizar el modal con los datos
+    document.getElementById('estado-modal-nombre').textContent = currentAlumnoNombre;
+    
+    // Actualizar el año en el modal
+    const anoFilter = document.getElementById('year-filter').value;
+    document.getElementById('estado-modal-ano').textContent = anoFilter;
+    
+    // Configurar el formulario
+    document.getElementById('estadoForm').action = `/alumnos/${currentAlumnoId}/cambiar-estado/`;
+    
+    // Actualizar el campo oculto del año
+    const anoInput = document.querySelector('#estadoForm input[name="ano"]');
+    if (anoInput) {
+        anoInput.value = anoFilter;
+    }
+    
+    // Seleccionar el radio button correspondiente al estado actual
+    if (currentAlumnoEstado === 'Inactivo') {
+        document.getElementById('estadoInactivo').checked = true;
+    } else {
+        document.getElementById('estadoActivo').checked = true;
+    }
+    
+    // Mostrar el modal
+    document.getElementById('estadoModal').style.display = 'flex';
+}
+
+function crearNuevoAno() {
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+    
+    Swal.fire({
+        title: '<i class="fas fa-calendar-plus"></i> Crear Nuevo Año Académico',
+        html: `
+            <div class="text-start">
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Al crear un nuevo año académico, todos los alumnos activos del año actual serán transferidos como inactivos al nuevo año.
+                </div>
+                
+                <div class="mb-3">
+                    <label for="swal-nuevo-ano" class="form-label fw-bold">Año Académico</label>
+                    <input type="number" class="form-control" id="swal-nuevo-ano" 
+                           min="2025" max="2050" value="${nextYear}" 
+                           placeholder="Ej: ${nextYear}">
+                    <div class="form-text">Ingrese el año académico que desea crear</div>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-plus me-1"></i>Crear Año Académico',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#007bff',
+        cancelButtonColor: '#6c757d',
+        width: '500px',
+        preConfirm: () => {
+            const ano = document.getElementById('swal-nuevo-ano').value;
+            
+            if (!ano) {
+                Swal.showValidationMessage('Por favor ingrese un año válido');
+                return false;
+            }
+            
+            const anoInt = parseInt(ano);
+            if (anoInt < 2025 || anoInt > 2050) {
+                Swal.showValidationMessage('El año debe estar entre 2025 y 2050');
+                return false;
+            }
+            
+            return { ano: anoInt };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar confirmación adicional
+            Swal.fire({
+                title: '¿Estás seguro?',
+                html: `
+                    <div class="text-start">
+                        <p>Se creará el año académico <strong>${result.value.ano}</strong> con las siguientes características:</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-calendar text-primary me-2"></i>
+                                Año académico: <strong>${result.value.ano}</strong>
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-users text-info me-2"></i>
+                                Los alumnos activos actuales serán transferidos como inactivos
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-lock text-warning me-2"></i>
+                                El nuevo año se creará en estado inactivo
+                            </li>
+                        </ul>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-check me-1"></i>Sí, crear año',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d'
+            }).then((confirmResult) => {
+                if (confirmResult.isConfirmed) {
+                    // Crear el formulario y enviarlo
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{% url "alumnos:crear_ano_academico" %}';
+                    
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+                    
+                    const anoInput = document.createElement('input');
+                    anoInput.type = 'hidden';
+                    anoInput.name = 'ano';
+                    anoInput.value = result.value.ano;
+                    form.appendChild(anoInput);
+                    
+                    // Mostrar loading
+                    Swal.fire({
+                        title: 'Creando año académico...',
+                        html: 'Por favor espera mientras se crea el nuevo año académico.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    });
+}
+</script>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Variables globales
-    let currentAlumnoId = null;
-    let currentAlumnoNombre = null;
-    let currentAlumnoEstado = null;
-
-    // Función simple para auto-ocultar alertas en 5 segundos
-    function autoHideAlerts() {
-        const alerts = document.querySelectorAll('.auto-hide-alert');
-        
-        alerts.forEach(alert => {
-            setTimeout(() => {
-                if (alert && alert.parentNode) {
-                    alert.remove();
-                }
-            }, 5000); // 5 segundos
-        });
-    }
-
-    // Función para limpiar filtros
-    function clearFilters() {
-        document.getElementById('nombre-busqueda').value = '';
-        document.getElementById('courseFilter').value = 'todos';
-        document.getElementById('statusFilter').value = 'todos';
-        document.getElementById('filtro-form').submit();
-    }
-
-    // Función para abrir modal de estado
-    function openEstadoModal(button) {
-        currentAlumnoId = button.getAttribute('data-id');
-        currentAlumnoNombre = button.getAttribute('data-nombre');
-        currentAlumnoEstado = button.getAttribute('data-estado');
-        
-        // Actualizar el modal con los datos
-        document.getElementById('estado-modal-nombre').textContent = currentAlumnoNombre;
-        
-        // Configurar el formulario
-        document.getElementById('estadoForm').action = `/alumnos/${currentAlumnoId}/cambiar-estado/`;
-        
-        // Seleccionar el radio button correspondiente al estado actual
-        if (currentAlumnoEstado === 'Inactivo') {
-            document.getElementById('estadoInactivo').checked = true;
-        } else {
-            document.getElementById('estadoActivo').checked = true;
-        }
-        
-        // Mostrar el modal
-        document.getElementById('estadoModal').style.display = 'flex';
-    }
-
-    // Función para cerrar modal de estado
-    function closeEstadoModal() {
-        document.getElementById('estadoModal').style.display = 'none';
-        currentAlumnoId = null;
-        currentAlumnoNombre = null;
-        currentAlumnoEstado = null;
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar auto-ocultamiento de alertas
-        autoHideAlerts();
-        
-        // Coordinar filtros
-        const courseFilter = document.getElementById('courseFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        const filtroForm = document.getElementById('filtro-form');
-        
-        if (courseFilter && statusFilter && filtroForm) {
-            courseFilter.addEventListener('change', function() {
-                if (this.value !== 'todos' && statusFilter.value !== 'inactivo') {
-                    statusFilter.value = 'activo';
-                }
-                filtroForm.submit();
-            });
-            
-            statusFilter.addEventListener('change', function() {
-                filtroForm.submit();
-            });
-        }
-
-        // Modal de detalles del alumno
-        document.querySelectorAll('.ver-alumno-detallado').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const alumnoId = this.closest('tr').dataset.id;
-                cargarDetallesAlumno(alumnoId);
-            });
-        });
-
-        // Botón para eliminar alumno
-        const eliminarAlumnoBtn = document.getElementById('eliminar-alumno-btn');
-        if (eliminarAlumnoBtn) {
-            eliminarAlumnoBtn.addEventListener('click', function() {
-                const alumnoId = document.querySelector('#alumnoDetallesModal').getAttribute('data-alumno-id');
-                const alumnoNombre = document.getElementById('alumno-nombre').textContent;
-                
-                // Configurar el modal de confirmación
-                document.getElementById('alumno-a-eliminar').textContent = alumnoNombre;
-                document.getElementById('form-eliminar-alumno').action = `/alumnos/${alumnoId}/eliminar/`;
-                
-                // Cerrar el modal de detalles
-                const detallesModal = bootstrap.Modal.getInstance(document.getElementById('alumnoDetallesModal'));
-                if (detallesModal) {
-                    detallesModal.hide();
-                }
-                
-                // Mostrar el modal de confirmación
-                const confirmarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarAlumnoModal'));
-                confirmarModal.show();
-            });
-        }
-
-        // Función para cargar los detalles del alumno
-        function cargarDetallesAlumno(alumnoId) {
-            const alumnoModal = document.getElementById('alumnoDetallesModal');
-            alumnoModal.setAttribute('data-alumno-id', alumnoId);
-            const alumnoModalInstance = new bootstrap.Modal(alumnoModal);
-            alumnoModalInstance.show();
-            
-            // Mostrar loading y ocultar contenido y errores
-            document.getElementById('alumno-modal-loading').style.display = 'block';
-            document.getElementById('alumno-modal-content').style.display = 'none';
-            document.getElementById('alumno-modal-error').style.display = 'none';
-            
-            try {
-                // Buscar la fila del alumno
-                const alumnoRow = document.querySelector(`.alumno-row[data-id="${alumnoId}"]`);
-                
-                if (!alumnoRow) {
-                    throw new Error('No se encontró información del alumno');
-                }
-                
-                // Actualizar enlaces
-                document.getElementById('editar-alumno-link').href = alumnoRow.dataset.editUrl;
-                
-                // Mostrar los detalles
-                mostrarDetallesAlumno(alumnoRow);
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarErrorAlumno('Error al cargar los detalles del alumno: ' + error.message);
-            } finally {
-                document.getElementById('alumno-modal-loading').style.display = 'none';
-            }
-        }
-
-        // Función para mostrar los detalles del alumno en el modal
-        function mostrarDetallesAlumno(alumnoRow) {
-            // Función auxiliar para establecer texto de forma segura
-            function setTextSafely(id, text) {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.textContent = (text && text !== 'undefined' && text !== 'null') ? text : 'No disponible';
-                } else {
-                    console.warn(`Elemento con ID '${id}' no encontrado`);
-                }
-            }
-
-            // Función auxiliar para establecer HTML de forma segura
-            function setHtmlSafely(id, html) {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.innerHTML = html;
-                } else {
-                    console.warn(`Elemento con ID '${id}' no encontrado`);
-                }
-            }
-
-            try {
-                // Información personal
-                setTextSafely('alumno-nombre', alumnoRow.dataset.nombre);
-                setTextSafely('alumno-rut', alumnoRow.dataset.rut);
-                setTextSafely('alumno-fecha-nacimiento', alumnoRow.dataset.fechaNacimiento);
-                setTextSafely('alumno-edad', alumnoRow.dataset.edad ? `${alumnoRow.dataset.edad} años` : null);
-                setTextSafely('alumno-sexo', alumnoRow.dataset.sexo);
-                setTextSafely('alumno-estado-civil', alumnoRow.dataset.estadoCivil);
-                
-                // Información académica
-                setTextSafely('alumno-nivel', alumnoRow.dataset.nivel);
-                setTextSafely('alumno-jornada', alumnoRow.dataset.jornada);
-                setTextSafely('alumno-fecha-ingreso', alumnoRow.dataset.fechaIngreso);
-                setTextSafely('alumno-ultimo-curso', alumnoRow.dataset.ultimoCurso);
-                setTextSafely('alumno-curso-repetido', alumnoRow.dataset.cursoRepetido);
-                
-                // Estado del alumno
-                const estadoHtml = alumnoRow.dataset.estado === 'activo' ? 
-                    '<span class="status-badge status-active"><i class="fas fa-check-circle me-1"></i> Activo</span>' : 
-                    '<span class="status-badge status-inactive"><i class="fas fa-times-circle me-1"></i> Inactivo</span>';
-                setHtmlSafely('alumno-estado', estadoHtml);
-                
-                // Información de contacto
-                setTextSafely('alumno-direccion', alumnoRow.dataset.direccion);
-                setTextSafely('alumno-telefono', alumnoRow.dataset.telefono);
-                setTextSafely('alumno-email', alumnoRow.dataset.email);
-                setTextSafely('alumno-religion', alumnoRow.dataset.religion);
-                setTextSafely('alumno-situacion-laboral', alumnoRow.dataset.situacionLaboral);
-                
-                // Información PIE
-                setTextSafely('alumno-programa-pie', alumnoRow.dataset.programaPie);
-                setTextSafely('alumno-profesional-apoyo', alumnoRow.dataset.profesionalApoyo);
-                setTextSafely('alumno-informe-psicosocial', alumnoRow.dataset.informePsicosocial);
-                
-                // Contacto de emergencia
-                setTextSafely('alumno-contacto-emergencia-nombre', alumnoRow.dataset.contactoEmergenciaNombre);
-                setTextSafely('alumno-contacto-emergencia-parentezco', alumnoRow.dataset.contactoEmergenciaParentezco);
-                setTextSafely('alumno-contacto-emergencia-telefono', alumnoRow.dataset.contactoEmergenciaTelefono);
-                
-                // Mostrar el contenido
-                document.getElementById('alumno-modal-content').style.display = 'block';
-                
-                // Actualizar el título del modal
-                const modalTitle = document.getElementById('alumnoDetallesModalLabel');
-                if (modalTitle) {
-                    modalTitle.textContent = `Detalles del Alumno: ${alumnoRow.dataset.nombre}`;
-                }
-            } catch (error) {
-                console.error('Error al mostrar detalles del alumno:', error);
-                mostrarErrorAlumno('Error al mostrar los detalles del alumno: ' + error.message);
-            }
-        }
-
-        // Función para mostrar errores en el modal de alumno
-        function mostrarErrorAlumno(mensaje) {
-            const errorElement = document.getElementById('alumno-modal-error');
-            const errorMessage = document.getElementById('alumno-error-message');
-            if (errorMessage) {
-                errorMessage.textContent = mensaje;
-            }
-            if (errorElement) {
-                errorElement.style.display = 'block';
-            }
-        }
-
-        // Funcionalidad de búsqueda en tiempo real
-        const searchInput = document.querySelector('.search-input');
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                const rows = document.querySelectorAll('.alumno-row');
-                const noResultsRow = document.getElementById('no-results-row');
-                let hasResults = false;
-
-                rows.forEach(row => {
-                    const nombre = row.dataset.nombre.toLowerCase();
-                    const nivel = row.dataset.nivel.toLowerCase();
-                    const jornada = row.dataset.jornada.toLowerCase();
-                    
-                    if (nombre.includes(searchTerm) || nivel.includes(searchTerm) || jornada.includes(searchTerm)) {
-                        row.style.display = '';
-                        hasResults = true;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                if (noResultsRow) {
-                    noResultsRow.style.display = hasResults ? 'none' : '';
-                }
-            });
-        }
-
-        // Cerrar modal al hacer clic fuera de él
-        document.getElementById('estadoModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEstadoModal();
-            }
-        });
-
-        // Manejar envío del formulario de estado
-        document.getElementById('estadoForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const selectedEstado = document.querySelector('input[name="nuevo_estado"]:checked');
-            if (selectedEstado) {
-                // Crear un formulario temporal para enviar
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = this.action;
-                
-                // Agregar CSRF token
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrfmiddlewaretoken';
-                csrfInput.value = csrfToken;
-                form.appendChild(csrfInput);
-                
-                // Agregar el nuevo estado
-                const estadoInput = document.createElement('input');
-                estadoInput.type = 'hidden';
-                estadoInput.name = 'nuevo_estado';
-                estadoInput.value = selectedEstado.value;
-                form.appendChild(estadoInput);
-                
-                // Enviar formulario
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
-    });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/alumnos/lista_alumnos.js' %}"></script>
+<!-- NO uses lista_usuarios.js aquí -->
 {% endblock %}

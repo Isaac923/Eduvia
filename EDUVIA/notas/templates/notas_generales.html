@@ -1,0 +1,825 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Notas - EDUVIA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/notas/notas_generales.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="notas-container">
+    <!-- Encabezado -->
+    <div class="page-header">
+        <h2><i class="fas fa-clipboard-list me-3"></i>Gestión de Notas</h2>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        <div class="messages-container mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show auto-hide-alert" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Selector de Año Académico - Solo para administradores -->
+    {% if usuario.is_superuser %}
+    <div class="year-selector-container">
+        <div class="year-selector-header">
+            <h4 class="year-selector-title">
+                <i class="fas fa-calendar-alt"></i>
+                Año Académico
+            </h4>
+            <div class="year-controls">
+                <select class="year-select" id="ano-academico-filter" name="ano_academico" onchange="cambiarAnoAcademico()">
+                    {% for ano in anos_academicos %}
+                        <option value="{{ ano.id }}" {% if ano.id == ano_academico_actual.id %}selected{% endif %}>
+                            {{ ano.ano }} {% if ano.activo %}(Activo){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn-add-year" onclick="mostrarModalAgregarAnoAcademico()" title="Agregar nuevo año académico">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="year-info">
+            <div class="year-stat">
+                <i class="fas fa-calendar-check"></i>
+                <span>Año Seleccionado: <strong>{{ ano_academico_actual.ano }}</strong></span>
+            </div>
+            <div class="year-stat">
+                <i class="fas fa-users"></i>
+                <span>Total Alumnos: <strong>{{ total_alumnos }}</strong></span>
+            </div>
+            {% if materia_filter %}
+            <div class="year-stat">
+                <i class="fas fa-chart-line"></i>
+                <span>Promedio General: <strong>{{ promedio_general|floatformat:3 }}</strong></span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filtros Horizontales Compactos -->
+    <div class="filters-horizontal-container">
+        <form method="get" id="filtros-form" class="filters-horizontal-form">
+            <!-- CAMPO OCULTO CRÍTICO PARA AÑO ACADÉMICO -->
+            <input type="hidden" name="ano_academico" id="hidden-ano-academico" value="{{ ano_academico_actual.id }}">
+            
+            <div class="filters-horizontal-row">
+                <!-- Búsqueda por alumno -->
+                <div class="filter-item">
+                    <input type="text" 
+                           name="alumno" 
+                           id="buscar-alumno" 
+                           class="form-control-sm" 
+                           placeholder="🔍 Buscar alumno..." 
+                           value="{{ alumno_busqueda }}">
+                </div>
+
+                <!-- Filtro por materia -->
+                <div class="filter-item">
+                    {% if usuario.is_superuser %}
+                        <!-- Administradores pueden seleccionar cualquier materia -->
+                        <select class="form-select-sm" id="materia-filter" name="materia">
+                            <option value="" {% if not materia_filter %}selected{% endif %}>Seleccionar materia</option>
+                            <option value="matematicas" {% if materia_filter == 'matematicas' %}selected{% endif %}>📐 Matemáticas</option>
+                            <option value="lenguaje" {% if materia_filter == 'lenguaje' %}selected{% endif %}>📝 Lenguaje</option>
+                            <option value="ciencias" {% if materia_filter == 'ciencias' %}selected{% endif %}>🔬 Ciencias</option>
+                            <option value="historia" {% if materia_filter == 'historia' %}selected{% endif %}>🏛️ Historia</option>
+                            <option value="ingles" {% if materia_filter == 'ingles' %}selected{% endif %}>🇺🇸 Inglés</option>
+                            <option value="estudios_sociales" {% if materia_filter == 'estudios_sociales' %}selected{% endif %}>🌍 Estudios Sociales</option>
+                            <option value="f_instrumental" {% if materia_filter == 'f_instrumental' %}selected{% endif %}>🎵 F. Instrumental</option>
+                        </select>
+                    {% elif usuario.rol == 'profesor' %}
+                        <!-- Profesores ven su materia fija -->
+                        <input type="hidden" name="materia" id="materia-filter" value="{{ usuario.asignatura }}">
+                        <div class="materia-fija">
+                            <span class="materia-profesor-badge">
+                                {% if usuario.asignatura == 'matematicas' %}📐 Matemáticas
+                                {% elif usuario.asignatura == 'lenguaje' %}📝 Lenguaje
+                                {% elif usuario.asignatura == 'ciencias' %}🔬 Ciencias
+                                {% elif usuario.asignatura == 'historia' %}🏛️ Historia
+                                {% elif usuario.asignatura == 'ingles' %}🇺🇸 Inglés
+                                {% elif usuario.asignatura == 'estudios_sociales' %}🌍 Estudios Sociales
+                                {% elif usuario.asignatura == 'f_instrumental' %}🎵 F. Instrumental
+                                {% else %}📚 {{ usuario.asignatura|title }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Filtro por semestre -->
+                <div class="filter-item">
+                    <select class="form-select-sm" id="semestre-filter" name="semestre">
+                        <option value="1" {% if semestre_filter == '1' %}selected{% endif %}>1° Semestre</option>
+                        <option value="2" {% if semestre_filter == '2' %}selected{% endif %}>2° Semestre</option>
+                    </select>
+                </div>
+
+                <!-- Filtro por nivel -->
+                <div class="filter-item">
+                    <select class="form-select-sm" id="nivel-filter" name="nivel">
+                        <option value="todos" {% if nivel_filter == 'todos' %}selected{% endif %}>Todos los niveles</option>
+                        {% for nivel in niveles %}
+                            <option value="{{ nivel }}" {% if nivel_filter == nivel %}selected{% endif %}>{{ nivel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filtro por estado - Solo para administradores -->
+                {% if usuario.is_superuser %}
+                <div class="filter-item">
+                    <select class="form-select-sm" id="estado-filter" name="estado">
+                        <option value="activo" {% if estado_filter == 'activo' %}selected{% endif %}>Solo Activos</option>
+                        <option value="todos" {% if estado_filter == 'todos' %}selected{% endif %}>Todos</option>
+                    </select>
+                </div>
+                {% else %}
+                <!-- Para profesores y otros usuarios, siempre mostrar solo activos -->
+                <input type="hidden" name="estado" value="activo">
+                {% endif %}
+
+                <!-- Solo botón de limpiar filtros -->
+                <div class="filter-buttons">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="limpiarFiltros()" title="Limpiar todos los filtros">
+                        <i class="fas fa-broom me-1"></i>
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Información de la materia seleccionada -->
+    {% if materia_filter or usuario.rol == 'profesor' %}
+    <div class="materia-info-compact">
+        <div class="materia-header-inline">
+            <h4 class="materia-title">
+                {% if usuario.rol == 'profesor' %}
+                    <!-- Para profesores, mostrar su materia asignada -->
+                    {% if usuario.asignatura == 'matematicas' %}📐 Matemáticas
+                    {% elif usuario.asignatura == 'lenguaje' %}📝 Lenguaje y Comunicación
+                    {% elif usuario.asignatura == 'ciencias' %}🔬 Ciencias Naturales
+                    {% elif usuario.asignatura == 'historia' %}🏛️ Historia y Geografía
+                    {% elif usuario.asignatura == 'ingles' %}🇺🇸 Inglés
+                    {% elif usuario.asignatura == 'estudios_sociales' %}🌍 Estudios Sociales
+                    {% elif usuario.asignatura == 'f_instrumental' %}🎵 F. Instrumental
+                    {% endif %}
+                {% else %}
+                    <!-- Para administradores, mostrar la materia seleccionada -->
+                    {% if materia_filter == 'matematicas' %}📐 Matemáticas
+                    {% elif materia_filter == 'lenguaje' %}📝 Lenguaje y Comunicación
+                    {% elif materia_filter == 'ciencias' %}🔬 Ciencias Naturales
+                    {% elif materia_filter == 'historia' %}🏛️ Historia y Geografía
+                    {% elif materia_filter == 'ingles' %}🇺🇸 Inglés
+                    {% elif materia_filter == 'estudios_sociales' %}🌍 Estudios Sociales
+                    {% elif materia_filter == 'f_instrumental' %}🎵 F. Instrumental
+                    {% endif %}
+                {% endif %}
+                - {{ semestre_filter }}° Semestre
+                <!-- Solo mostrar el año a administradores -->
+                {% if usuario.is_superuser %} - {{ ano_academico_actual.ano }}{% endif %}
+            </h4>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla de notas -->
+    {% if alumnos %}
+    <div class="notas-table-container">
+        <table class="notas-table">
+            <thead>
+                <tr>
+                    <th class="alumno-col">
+                        <i class="fas fa-user-graduate me-2"></i>
+                        Alumno
+                    </th>
+                    <th class="nivel-col">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Nivel
+                    </th>
+                    <th class="nota-col">Nota 1</th>
+                    <th class="nota-col">Nota 2</th>
+                    <th class="nota-col">Nota 3</th>
+                    <th class="nota-col">Nota 4</th>
+                    <th class="nota-col">Nota 5</th>
+                    <th class="nota-col">Nota 6</th>
+                    <th class="promedio-col">
+                        <i class="fas fa-calculator me-2"></i>
+                        Promedio
+                    </th>
+                    <th class="acciones-col">
+                        <i class="fas fa-cogs me-2"></i>
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alumno in alumnos %}
+                <tr class="alumno-row" data-alumno-id="{{ alumno.id }}">
+                    <td class="alumno-info">
+                        <div class="alumno-details">
+                            <strong>{{ alumno.primer_nombre }} {{ alumno.segundo_nombre }}</strong>
+                            <small class="text-muted d-block">{{ alumno.rut }}</small>
+                        </div>
+                    </td>
+                    <td class="nivel-info">
+                        <span class="nivel-badge">{{ alumno.nivel }}</span>
+                    </td>
+                    
+                    <!-- Notas individuales -->
+                    {% for i in "123456" %}
+                    <td class="nota-cell">
+                        <div class="nota-input-container">
+                            <input type="number" 
+                                   class="nota-input" 
+                                   data-alumno-id="{{ alumno.id }}"
+                                   data-materia="{{ materia_filter|default:usuario.asignatura }}"
+                                   data-semestre="{{ semestre_filter }}"
+                                   data-ano-academico-id="{{ ano_academico_actual.id }}"
+                                   data-numero-nota="{{ i }}"
+                                   min="1.0" 
+                                   max="7.0" 
+                                   step="0.1"
+                                   placeholder="--"
+                                   title="{% if ano_academico_actual.activo %}Nota {{ i }} - {{ semestre_filter }}° Semestre - Click para editar{% else %}Año bloqueado para edición{% endif %}"
+                                   {% if not ano_academico_actual.activo %}
+                                       readonly disabled
+                                       style="background-color: #f8f9fa; cursor: not-allowed;"
+                                   {% else %}
+                                       readonly
+                                       style="cursor: pointer;"
+                                       onclick="{% if usuario.is_superuser or usuario.rol == 'profesor' %}abrirModalEditarNota({{ alumno.id }}, '{{ materia_filter|default:usuario.asignatura }}', {{ semestre_filter }}, {{ i }}, this.value, {{ ano_academico_actual.id }}){% endif %}"
+                                   {% endif %}>
+        
+                            <!-- Contenedor de indicadores de estado -->
+                            <div class="nota-indicators">
+                                <!-- Indicador de nota guardada -->
+                                <div class="nota-status">
+                                    <i class="fas fa-save nota-saved" style="display: none;" title="Nota guardada"></i>
+                                    <i class="fas fa-exclamation-triangle nota-error" style="display: none;" title="Error al guardar"></i>
+                                    <i class="fas fa-percentage nota-ponderada" style="display: none;" title="Nota con porcentaje asignado"></i>
+                                </div>
+                                
+                                <!-- Indicador de porcentaje visible -->
+                                <div class="porcentaje-display" style="display: none;" 
+                                     data-alumno-id="{{ alumno.id }}" 
+                                     data-numero-nota="{{ i }}">
+                                    <span class="porcentaje-badge">
+                                        <i class="fas fa-percentage"></i>
+                                        <span class="porcentaje-value">0</span>%
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Mostrar detalles de la nota cuando tiene porcentaje -->
+                            <div class="nota-details" style="display: none;" 
+                                 data-alumno-id="{{ alumno.id }}" 
+                                 data-numero-nota="{{ i }}">
+                                <small class="nota-original">Nota: <span>--</span></small>
+                                <small class="nota-contribucion">Contribuye: <span>--</span></small>
+                            </div>
+                        </div>
+                    </td>
+                    {% endfor %}
+                    
+                    <!-- Promedio -->
+                    <td class="promedio-cell">
+                        <div class="promedio-container" data-alumno-id="{{ alumno.id }}" id="promedio-container-{{ alumno.id }}">
+                            <span class="promedio-value" data-alumno-id="{{ alumno.id }}">
+                                <i class="promedio-icon"></i>
+                                <span class="promedio-numero">--</span>
+                            </span>
+                            <small class="promedio-info text-muted d-block">
+                                <span class="promedio-detalle" data-alumno-id="{{ alumno.id }}"></span>
+                            </small>
+                        </div>
+                    </td>
+                    
+                    <!-- Acciones -->
+                    <td class="acciones-cell">
+                        <div class="action-buttons">
+                            <!-- Mostrar botón de historial tanto para profesores como administradores -->
+                            {% if usuario.is_superuser or usuario.rol == 'profesor' %}
+                            <button class="btn-action btn-view" 
+                                    onclick="verHistorialNotas({{ alumno.id }})"
+                                    title="Ver historial de notas">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!-- PAGINACIÓN DE NOTAS - SIEMPRE VISIBLE -->
+<div class="pagination-container" id="pagination-container" style="display: flex;">
+    <div class="pagination-info">
+        <span class="page-info" id="page-info">Mostrando 1-5 de 6 alumnos</span>
+    </div>
+    <div class="pagination-controls">
+        <button class="pagination-btn" id="prev-btn" onclick="cambiarPaginaNotas('prev')" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <div class="pagination-numbers" id="pagination-numbers">
+            <!-- Los números de página se generarán dinámicamente -->
+        </div>
+        <button class="pagination-btn" id="next-btn" onclick="cambiarPaginaNotas('next')" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    <div class="pagination-size">
+        <label for="page-size-select">Mostrar:</label>
+        <select id="page-size-select" class="form-select" onchange="cambiarTamanoNotas()">
+            <option value="5" selected>5 por página</option>
+            <option value="10">10 por página</option>
+            <option value="15">15 por página</option>
+            <option value="25">25 por página</option>
+        </select>
+    </div>
+</div>
+
+    </div>
+    
+    {% else %}
+    <!-- Estado vacío -->
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-clipboard-list fa-4x"></i>
+        </div>
+        {% if usuario.rol == 'profesor' %}
+            <h3>Visualizando: {{ usuario.asignatura|title }}</h3>
+            <p>Aquí puedes ver y gestionar las notas de todos los alumnos en tu materia asignada.</p>
+            <p>Usa los filtros para encontrar alumnos específicos por nivel o semestre.</p>
+            <button class="btn-eduvia btn-primary" onclick="limpiarFiltros()">
+                <i class="fas fa-refresh me-2"></i>
+                Limpiar Filtros
+            </button>
+        {% elif not materia_filter and usuario.is_superuser %}
+            <h3>Selecciona una materia para comenzar</h3>
+            <p>Por favor, selecciona una materia en los filtros para ver las notas de los alumnos.</p>
+        {% else %}
+            <h3>No hay alumnos para mostrar</h3>
+            <p>No se encontraron alumnos que coincidan con los filtros seleccionados.</p>
+            <button class="btn-eduvia btn-primary" onclick="limpiarFiltros()">
+                <i class="fas fa-refresh me-2"></i>
+                Limpiar Filtros
+            </button>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para agregar nuevo año académico - Solo para administradores -->
+{% if usuario.is_superuser %}
+<div class="modal fade" id="agregarAnoAcademicoModal" tabindex="-1" aria-labelledby="agregarAnoAcademicoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agregarAnoAcademicoModalLabel">
+                    <i class="fas fa-calendar-plus me-2"></i>
+                    Agregar Nuevo Año Académico
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="agregarAnoAcademicoForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nuevo-ano-academico" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>
+                            Año Académico:
+                        </label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="nuevo-ano-academico" 
+                               name="nuevo_ano"
+                               min="2025" 
+                               required
+                               placeholder="Ej: 2025">
+                        <div class="form-text">
+                            Ingresa el año académico que deseas agregar (desde 2025 en adelante)
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="activar-nuevo-ano" name="activar" checked>
+                            <label class="form-check-label" for="activar-nuevo-ano">
+                                Activar este año académico automáticamente
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Información:
+                        </label>
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>Nota:</strong> Al agregar un nuevo año académico, se creará la estructura 
+                                necesaria para registrar notas de todos los alumnos activos en ese año.
+                            </small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="agregarAnoAcademicoForm" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    Agregar Año
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal para editar nota individual con porcentaje -->
+<div class="modal fade" id="editarNotaModal" tabindex="-1" aria-labelledby="editarNotaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarNotaModalLabel">
+                    <i class="fas fa-edit me-2"></i>
+                    Editar Nota
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarNotaForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="modal-alumno-id" name="alumno_id">
+                    <input type="hidden" id="modal-materia" name="materia">
+                    <input type="hidden" id="modal-semestre" name="semestre">
+                    <input type="hidden" id="modal-numero-nota" name="numero_nota">
+                    <input type="hidden" id="modal-ano-academico-id" name="ano_academico_id">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Alumno:</label>
+                            <p id="modal-alumno-nombre" class="fw-bold mb-1"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Materia y Período:</label>
+                            <p id="modal-materia-info" class="fw-bold mb-1"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="modal-calificacion" class="form-label">
+                                <i class="fas fa-star me-1 text-warning"></i>
+                                Calificación (1.0 - 7.0):
+                            </label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="modal-calificacion" 
+                                   name="calificacion"
+                                   min="1.0" 
+                                   max="7.0" 
+                                   step="0.1" 
+                                   required
+                                   onchange="calcularVistaPrevia()">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modal-porcentaje" class="form-label">
+                                <i class="fas fa-percentage me-1 text-info"></i>
+                                Porcentaje (Opcional):
+                            </label>
+                            <div class="input-group">
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="modal-porcentaje" 
+                                       name="porcentaje"
+                                       min="0" 
+                                       max="100" 
+                                       step="1" 
+                                       placeholder="Sin porcentaje"
+                                       onchange="calcularVistaPrevia()">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <small class="form-text text-muted">
+                                Deja vacío si no quieres asignar porcentaje
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Vista previa del cálculo -->
+                    <div class="alert alert-info mb-3" id="vista-previa-calculo" style="display: none;">
+                        <h6><i class="fas fa-calculator me-2"></i>Vista Previa:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small><strong>Nota Original:</strong> <span id="nota-original-preview">--</span></small>
+                            </div>
+                            <div class="col-md-6">
+                                <small><strong>Contribución al Promedio:</strong> <span id="contribucion-preview">--</span></small>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted" id="detalle-calculo">--</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal-fecha" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>
+                            Fecha de Evaluación:
+                        </label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="modal-fecha" 
+                               name="fecha_evaluacion"
+                               required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modal-observaciones" class="form-label">
+                            <i class="fas fa-comment me-1"></i>
+                            Observaciones (Opcional):
+                        </label>
+                        <textarea class="form-control" 
+                                  id="modal-observaciones" 
+                                  name="observaciones" 
+                                  rows="3" 
+                                  placeholder="Comentarios sobre la evaluación..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Cancelar
+                </button>
+                <button type="button" id="btn-eliminar-nota" class="btn btn-danger me-2" style="display: none;">
+                    <i class="fas fa-trash me-1"></i>
+                    Eliminar Nota
+                </button>
+                <button type="submit" form="editarNotaForm" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>
+                    Guardar Nota
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver historial de notas - Disponible para profesores y administradores -->
+{% if usuario.is_superuser or usuario.rol == 'profesor' %}
+<div class="modal fade" id="historialNotasModal" tabindex="-1" aria-labelledby="historialNotasModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historialNotasModalLabel">
+                    <i class="fas fa-history me-2"></i>
+                    Historial de Notas
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="historial-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando historial de notas...</p>
+                </div>
+                
+                <div id="historial-content" style="display: none;">
+                    <!-- Información del alumno -->
+                    <div class="alumno-info-historial mb-4 p-3 bg-light rounded">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6 id="historial-alumno-nombre" class="mb-1"></h6>
+                                <p class="text-muted mb-0" id="historial-alumno-info"></p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="badge bg-primary" id="historial-ano-badge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabs para semestres -->
+                    <ul class="nav nav-tabs" id="semestresTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="semestre1-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#semestre1" type="button" role="tab">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                1° Semestre
+                                <span class="badge bg-secondary ms-2" id="badge-semestre1">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="semestre2-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#semestre2" type="button" role="tab">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                2° Semestre
+                                <span class="badge bg-secondary ms-2" id="badge-semestre2">0</span>
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="semestresTabContent">
+                        <!-- Primer Semestre -->
+                        <div class="tab-pane fade show active" id="semestre1" role="tabpanel">
+                            <div class="table-responsive mt-3">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th width="20%">Materia</th>
+                                            <th width="10%">Nota 1</th>
+                                            <th width="10%">Nota 2</th>
+                                            <th width="10%">Nota 3</th>
+                                            <th width="10%">Nota 4</th>
+                                            <th width="10%">Nota 5</th>
+                                            <th width="10%">Nota 6</th>
+                                            <th width="15%">Promedio</th>
+                                            <th width="5%">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="notas-semestre1">
+                                        <!-- Se llena dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3 p-3 bg-info bg-opacity-10 rounded">
+                                <h6><i class="fas fa-chart-line me-2"></i>Resumen 1° Semestre</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <small><strong>Materias con notas:</strong> <span id="materias-con-notas-s1">0</span></small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small><strong>Total de notas:</strong> <span id="total-notas-s1">0</span></small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small><strong>Promedio general:</strong> <span id="promedio-general-s1" class="fw-bold">--</span></small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small><strong>Estado:</strong> <span id="estado-general-s1" class="badge bg-secondary">Sin datos</span></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Segundo Semestre -->
+                        <div class="tab-pane fade" id="semestre2" role="tabpanel">
+                            <div class="table-responsive mt-3">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th width="20%">Materia</th>
+                                            <th width="10%">Nota 1</th>
+                                            <th width="10%">Nota 2</th>
+                                            <th width="10%">Nota 3</th>
+                                            <th width="10%">Nota 4</th>
+                                            <th width="10%">Nota 5</th>
+                                            <th width="10%">Nota 6</th>
+                                            <th width="15%">Promedio</th>
+                                            <th width="5%">Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="notas-semestre2">
+                                        <!-- Se llena dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-3 p-3 bg-info bg-opacity-10 rounded">
+                                <h6><i class="fas fa-chart-line me-2"></i>Resumen 2° Semestre</h6>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <small><strong>Materias con notas:</strong> <span id="materias-con-notas-s2">0</span></small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small><strong>Total de notas:</strong> <span id="total-notas-s2">0</span></small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small><strong>Promedio general:</strong> <span id="promedio-general-s2" class="fw-bold">--</span></small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small><strong>Estado:</strong> <span id="estado-general-s2" class="badge bg-secondary">Sin datos</span></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="historial-error" class="alert alert-danger" style="display: none;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="historial-error-message">Error al cargar el historial de notas.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Cerrar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="exportarHistorialAlumno()">
+                    <i class="fas fa-download me-1"></i>
+                    Exportar Historial
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/notas/notas_generales.js' %}"></script>
+
+<!-- Script específico para cargar notas automáticamente -->
+{% if usuario.rol == 'profesor' and usuario.asignatura %}
+<script>
+// Script para cargar notas automáticamente para profesores (MEJORADO)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== INICIALIZANDO CARGA PARA PROFESOR ===');
+    
+    // Verificar que tenemos todos los datos necesarios
+    const materia = '{{ usuario.asignatura }}';
+    const semestre = '{{ semestre_filter }}';
+    const anoAcademicoId = '{{ ano_academico_actual.id }}';
+    
+    if (!materia || !semestre || !anoAcademicoId) {
+        console.warn('Faltan datos para cargar las notas');
+        return;
+    }
+    
+    // Obtener alumnos
+    const alumnosRows = document.querySelectorAll('.alumno-row');
+    
+    if (alumnosRows.length === 0) {
+        console.log('No hay alumnos para cargar notas');
+        return;
+    }
+    
+    // Usar la nueva función de carga
+    setTimeout(() => {
+        cargarNotasMultiplesAlumnos(
+            Array.from(alumnosRows), 
+            materia, 
+            semestre, 
+            anoAcademicoId, 
+            true // esProfesor = true
+        );
+    }, 500); // Pequeño delay para que la página termine de cargar
+});
+</script>
+{% endif %}
+
+<!-- Script para administradores que seleccionan materia -->
+{% if usuario.is_superuser and materia_filter %}
+<script>
+// Script para cargar notas automáticamente para administradores (MEJORADO)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== INICIALIZANDO CARGA PARA ADMINISTRADOR ===');
+    
+    // Verificar que tenemos todos los datos necesarios
+    const materia = '{{ materia_filter }}';
+    const semestre = '{{ semestre_filter }}';
+    const anoAcademicoId = '{{ ano_academico_actual.id }}';
+    
+    if (!materia || !semestre || !anoAcademicoId) {
+        console.warn('Faltan datos para cargar las notas');
+        return;
+    }
+    
+    // Obtener alumnos
+    const alumnosRows = document.querySelectorAll('.alumno-row');
+    
+    if (alumnosRows.length === 0) {
+        console.log('No hay alumnos para cargar notas');
+        return;
+    }
+    
+    // Usar la nueva función de carga
+    setTimeout(() => {
+        cargarNotasMultiplesAlumnos(
+            Array.from(alumnosRows), 
+            materia, 
+            semestre, 
+            anoAcademicoId, 
+            false // esProfesor = false
+        );
+    }, 500); // Pequeño delay para que la página termine de cargar
+});
+</script>
+{% endif %}
+{% endblock %}

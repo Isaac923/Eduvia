@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Bienvenido a EDUVIA{% endblock %}
-
+{% load static %}
 {% block content %}
-<link rel="stylesheet" href="/static/css/inicio.css">
+<link rel="stylesheet" href="/static/css/inicio_login_base/inicio.css">
 
 <div class="welcome-fullscreen">
     <div class="welcome-bg"></div>
@@ -36,35 +36,25 @@
                 </div>
                 {% elif request.user.is_staff %}
                 <div class="feature-card">
-                    <div class="feature-icon icon-purple"><i class="fas fa-chalkboard-teacher"></i></div>
-                    <div class="feature-title">Gestión Académica</div>
-                    <div class="feature-text">Administra cursos y programas</div>
+                    <div class="feature-icon icon-green"><i class="fas fa-calendar-check"></i></div>
+                    <div class="feature-title">Gestión de Asistencia</div>
+                    <div class="feature-text">Registra y controla la asistencia de tus estudiantes</div>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon icon-blue"><i class="fas fa-user-graduate"></i></div>
-                    <div class="feature-title">Estudiantes</div>
-                    <div class="feature-text">Seguimiento académico completo</div>
+                    <div class="feature-icon icon-blue"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="feature-title">Gestión de Notas</div>
+                    <div class="feature-text">Administra calificaciones y evaluaciones académicas</div>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon icon-green"><i class="fas fa-calendar-alt"></i></div>
-                    <div class="feature-title">Planificación</div>
-                    <div class="feature-text">Organiza el calendario académico</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon icon-orange"><i class="fas fa-clipboard-list"></i></div>
-                    <div class="feature-title">Evaluación</div>
-                    <div class="feature-text">Gestiona calificaciones y reportes</div>
+                    <div class="feature-icon icon-purple"><i class="fas fa-chart-bar"></i></div>
+                    <div class="feature-title">Reportes Académicos</div>
+                    <div class="feature-text">Visualiza el progreso y rendimiento estudiantil</div>
                 </div>
                 {% else %}
                 <div class="feature-card">
                     <div class="feature-icon icon-purple"><i class="fas fa-book"></i></div>
                     <div class="feature-title">Información</div>
                     <div class="feature-text">Accede a tus datos académicos</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon icon-blue"><i class="fas fa-comments"></i></div>
-                    <div class="feature-title">Comunicación</div>
-                    <div class="feature-text">Conecta con profesores y compañeros</div>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon icon-green"><i class="fas fa-tasks"></i></div>
@@ -97,4 +87,14 @@
         "Facilitando la gestión educativa para que puedas enfocarte en lo que realmente importa: la calidad educativa"
     </div>
 </div>
+
+<!-- Consumir mensajes sin mostrarlos -->
+{% if messages %}
+    {% for message in messages %}
+        <!-- Los mensajes se consumen aquí pero no se muestran -->
+    {% endfor %}
+{% endif %}
+
+<script src="{% static 'js/inicio_login_base/inicio.js' %}"></script>
+
 {% endblock %}

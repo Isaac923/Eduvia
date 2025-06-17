@@ -26,6 +26,7 @@ urlpatterns = [
     path('alumnos/', include('alumnos.urls')),  # URLs de la app alumnos
     path('cursos/', include('cursos.urls')),  # URLs de la app cursos
     path('asistencias/', include('asistencia.urls')), # URLs de la app asistencias
+    path('notas/', include('notas.urls')),
 ]
 
 # Add this if you're using media files

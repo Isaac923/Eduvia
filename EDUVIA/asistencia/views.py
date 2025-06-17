@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from .models import Asistencia, Asignatura, AsignaturaCurso
-from alumnos.models import Alumno
+from alumnos.models import Alumno, AnoAcademico  # Agregué AnoAcademico aquí
 from cursos.models import Curso
 from usuarios.models import Usuario
 from datetime import date
@@ -76,13 +76,18 @@ def seleccionar_asignatura(request):
         todas_asignaturas_curso = asignaturas_disponibles
         profesores = None
     
+    # ÚNICO CAMBIO: Obtener año académico activo
+    ano_academico_activo = AnoAcademico.get_ano_activo()
+    
     context = {
         'titulo': 'Registrar Asistencia - Seleccionar Asignatura y Curso',
         'asignaturas': todas_asignaturas_curso,
         'profesores': profesores,
         'es_superusuario': request.user.is_superuser,
+        'ano_academico_activo': ano_academico_activo,  # ÚNICO CAMBIO: Agregar año activo
     }
     return render(request, 'asistencia/seleccionar_asignatura.html', context)
+
 @login_required
 def gestionar_profesores(request):
     """Vista para asignar profesores a asignaturas (solo superusuarios)"""
@@ -136,33 +141,68 @@ def tomar_asistencia(request, asignatura_curso_id):
             messages.error(request, 'Usuario no encontrado.')
             return redirect('asistencia:seleccionar_asignatura')
     
-    # Obtener alumnos del curso - CORREGIDO: usar los nombres de campos correctos
-    alumnos = asignatura_curso.curso.alumnos.filter(activo=True).order_by('apellido_paterno', 'apellido_materno', 'primer_nombre')
+    # CAMBIO: Obtener alumnos por nivel en lugar de usar la relación ManyToMany
+    nivel_curso = f"{asignatura_curso.curso.nivel}{asignatura_curso.curso.letra.upper()}"
+    
+    # NUEVO: Obtener año académico activo
+    from alumnos.models import AnoAcademico, AlumnoAno
+    ano_academico = AnoAcademico.get_ano_activo()
+    if not ano_academico:
+        messages.error(request, 'No hay un año académico activo configurado.')
+        return redirect('asistencia:seleccionar_asignatura')
+    
+    # CAMBIO: Obtener alumnos del año académico activo con el nivel correspondiente
+    alumnos_ano = AlumnoAno.objects.filter(
+        ano_academico=ano_academico,
+        nivel=nivel_curso,
+        activo=True
+    ).select_related('alumno').order_by('alumno__apellido_paterno', 'alumno__apellido_materno', 'alumno__primer_nombre')
+    
+    # Extraer los objetos Alumno
+    alumnos = [alumno_ano.alumno for alumno_ano in alumnos_ano]
+    
+    # DEBUG: Imprimir información
+    print(f"DEBUG: Nivel curso buscado: {nivel_curso}")
+    print(f"DEBUG: Año académico: {ano_academico}")
+    print(f"DEBUG: Alumnos encontrados: {len(alumnos)}")
+    for alumno in alumnos:
+        print(f"  - {alumno.nombre_completo}")
+    
     fecha_hoy = timezone.now().date()
     
-    # Verificar si ya existe asistencia para hoy
-    asistencia_existente = Asistencia.objects.filter(
-        asignatura_curso=asignatura_curso,
-        fecha=fecha_hoy
-    ).exists()
-    
-    # Obtener asistencias actuales si existen
+    # Verificar si ya existe asistencia para hoy de forma más segura
+    asistencia_existente = False
     asistencias_actuales = {}
-    if asistencia_existente:
+    
+    try:
+        # Verificar asistencias existentes con año académico explícito
         asistencias_hoy = Asistencia.objects.filter(
             asignatura_curso=asignatura_curso,
             fecha=fecha_hoy
-        )
-        asistencias_actuales = {a.alumno.id: a for a in asistencias_hoy}
+        ).select_related('alumno')
+        
+        if asistencias_hoy.exists():
+            asistencia_existente = True
+            asistencias_actuales = {a.alumno.id: a for a in asistencias_hoy}
+            
+    except Exception as e:
+        print(f"Error al obtener asistencias: {e}")
+        messages.error(request, f'Error al cargar asistencias existentes: {str(e)}')
+        return redirect('asistencia:seleccionar_asignatura')
     
     if request.method == 'POST':
+        print("DEBUG: Procesando POST")
+        print(f"DEBUG: POST data: {dict(request.POST)}")
+        
         try:
             with transaction.atomic():
                 # Obtener usuario que registra
                 registrado_por = None
                 try:
                     registrado_por = Usuario.objects.get(rut=request.user.username)
+                    print(f"DEBUG: Usuario registrador: {registrado_por}")
                 except Usuario.DoesNotExist:
+                    print("DEBUG: Usuario registrador no encontrado")
                     pass
                 
                 # Procesar cada alumno
@@ -171,11 +211,14 @@ def tomar_asistencia(request, asignatura_curso_id):
                     estado = request.POST.get(f'alumno_{alumno.id}', 'ausente')
                     observaciones = request.POST.get(f'observaciones_{alumno.id}', '').strip()
                     
+                    print(f"DEBUG: Procesando {alumno.nombre_completo} - Estado: {estado}")
+                    
                     # Actualizar o crear asistencia
                     asistencia, created = Asistencia.objects.update_or_create(
                         alumno=alumno,
                         asignatura_curso=asignatura_curso,
                         fecha=fecha_hoy,
+                        ano_academico=ano_academico,
                         defaults={
                             'estado': estado,
                             'observaciones': observaciones or None,
@@ -183,26 +226,33 @@ def tomar_asistencia(request, asignatura_curso_id):
                         }
                     )
                     registros_procesados += 1
+                    print(f"DEBUG: {'Creado' if created else 'Actualizado'} registro para {alumno.nombre_completo}")
                 
-                # Mensaje de éxito personalizado con SweetAlert2
+                print(f"DEBUG: Total registros procesados: {registros_procesados}")
+                
+                # Mensaje de éxito personalizado
                 if asistencia_existente:
                     messages.success(
                         request, 
-                        f'✅ Asistencia actualizada exitosamente para {registros_procesados} estudiantes del curso {asignatura_curso.curso} en {asignatura_curso.asignatura}.'
+                        f'Asistencia actualizada exitosamente para {registros_procesados} estudiantes del curso {asignatura_curso.curso} en {asignatura_curso.asignatura}.'
                     )
                 else:
                     messages.success(
                         request, 
-                        f'✅ Asistencia registrada exitosamente para {registros_procesados} estudiantes del curso {asignatura_curso.curso} en {asignatura_curso.asignatura}.'
+                        f'Asistencia registrada exitosamente para {registros_procesados} estudiantes del curso {asignatura_curso.curso} en {asignatura_curso.asignatura}.'
                     )
                 
                 # Redirigir a ver asistencias con filtros del día y asignatura
                 url = reverse('asistencia:ver_asistencias')
                 url += f'?asignatura_curso={asignatura_curso.id}&fecha_inicio={fecha_hoy}&fecha_fin={fecha_hoy}'
+                print(f"DEBUG: Redirigiendo a: {url}")
                 return redirect(url)
                 
         except Exception as e:
-            messages.error(request, f'❌ Error al guardar la asistencia: {str(e)}')
+            print(f"DEBUG: Error en POST: {e}")
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f'Error al guardar la asistencia: {str(e)}')
     
     context = {
         'titulo': f'Tomar Asistencia - {asignatura_curso}',
@@ -219,7 +269,7 @@ def tomar_asistencia(request, asignatura_curso_id):
 def modificar_asistencia(request, asignatura_curso_id, fecha):
     """Vista para modificar asistencia de una fecha específica"""
     asignatura_curso = get_object_or_404(AsignaturaCurso, id=asignatura_curso_id)
-    
+
     # Verificar permisos
     if not request.user.is_superuser:
         try:
@@ -230,30 +280,34 @@ def modificar_asistencia(request, asignatura_curso_id, fecha):
         except Usuario.DoesNotExist:
             messages.error(request, 'Usuario no encontrado.')
             return redirect('asistencia:seleccionar_asignatura')
-    
+
     # Convertir fecha string a objeto date
     try:
         fecha_obj = timezone.datetime.strptime(fecha, '%Y-%m-%d').date()
     except ValueError:
         messages.error(request, 'Fecha inválida.')
         return redirect('asistencia:ver_asistencias')
-    
-    # Obtener asistencias existentes para esa fecha
+
+    # Obtener el año académico activo o correspondiente
+    from alumnos.models import AnoAcademico
+    ano_academico_actual = AnoAcademico.get_ano_activo()
+    if not ano_academico_actual:
+        messages.error(request, 'No hay un año académico activo configurado.')
+        return redirect('asistencia:seleccionar_asignatura')
+
+    # Obtener asistencias existentes para esa fecha y año académico
     asistencias_existentes = Asistencia.objects.filter(
         asignatura_curso=asignatura_curso,
-        fecha=fecha_obj
+        fecha=fecha_obj,
+        ano_academico=ano_academico_actual
     ).select_related('alumno')
-    
-    if not asistencias_existentes.exists():
-        messages.error(request, 'No se encontraron registros de asistencia para esta fecha.')
-        return redirect('asistencia:ver_asistencias')
-    
+
     # Crear diccionario de asistencias por alumno
     asistencias_por_alumno = {a.alumno.id: a for a in asistencias_existentes}
-    
+
     # Obtener todos los alumnos del curso (por si se agregaron después)
     alumnos = asignatura_curso.curso.alumnos.filter(activo=True).order_by('apellido_paterno', 'apellido_materno', 'primer_nombre')
-    
+
     if request.method == 'POST':
         try:
             with transaction.atomic():
@@ -263,18 +317,19 @@ def modificar_asistencia(request, asignatura_curso_id, fecha):
                     registrado_por = Usuario.objects.get(rut=request.user.username)
                 except Usuario.DoesNotExist:
                     pass
-                
+
                 # Procesar cada alumno
                 registros_procesados = 0
                 for alumno in alumnos:
                     estado = request.POST.get(f'alumno_{alumno.id}', 'ausente')
                     observaciones = request.POST.get(f'observaciones_{alumno.id}', '').strip()
-                    
-                    # Actualizar o crear asistencia
+
+                    # Actualizar o crear asistencia (ahora filtrando por año académico)
                     asistencia, created = Asistencia.objects.update_or_create(
                         alumno=alumno,
                         asignatura_curso=asignatura_curso,
                         fecha=fecha_obj,
+                        ano_academico=ano_academico_actual,
                         defaults={
                             'estado': estado,
                             'observaciones': observaciones or None,
@@ -282,20 +337,20 @@ def modificar_asistencia(request, asignatura_curso_id, fecha):
                         }
                     )
                     registros_procesados += 1
-                
+
                 messages.success(
                     request, 
-                    f'✅ Asistencia del {fecha_obj.strftime("%d/%m/%Y")} modificada exitosamente para {registros_procesados} estudiantes.'
+                    f'Asistencia del {fecha_obj.strftime("%d/%m/%Y")} modificada exitosamente para {registros_procesados} estudiantes.'
                 )
-                
+
                 # Redirigir a ver asistencias con filtros
                 url = reverse('asistencia:ver_asistencias')
                 url += f'?asignatura_curso={asignatura_curso.id}&fecha_inicio={fecha_obj}&fecha_fin={fecha_obj}'
                 return redirect(url)
-                
+
         except Exception as e:
-            messages.error(request, f'❌ Error al modificar la asistencia: {str(e)}')
-    
+            messages.error(request, f'Error al modificar la asistencia: {str(e)}')
+
     context = {
         'titulo': f'Modificar Asistencia - {asignatura_curso} - {fecha_obj.strftime("%d/%m/%Y")}',
         'asignatura_curso': asignatura_curso,
@@ -304,18 +359,52 @@ def modificar_asistencia(request, asignatura_curso_id, fecha):
         'asistencias_actuales': asistencias_por_alumno,
         'es_modificacion': True,
     }
-    
+
     return render(request, 'asistencia/tomar_asistencia.html', context)
 
 @login_required
 def ver_asistencias(request):
     """Vista para ver asistencias registradas"""
+    from alumnos.models import AnoAcademico
+    
     asignaturas_disponibles = get_user_asignaturas(request.user)
+    
+    # Obtener todos los años académicos disponibles
+    anos_academicos = AnoAcademico.objects.all().order_by('-ano')
+    ano_academico_activo = AnoAcademico.get_ano_activo()
+    
+    # Obtener año académico seleccionado (por defecto el activo)
+    ano_academico_id = request.GET.get('ano_academico')
+    if ano_academico_id:
+        try:
+            ano_academico_actual = AnoAcademico.objects.get(id=ano_academico_id)
+        except AnoAcademico.DoesNotExist:
+            ano_academico_actual = ano_academico_activo
+    else:
+        ano_academico_actual = ano_academico_activo
+    
+    if not ano_academico_actual:
+        messages.error(request, 'No hay años académicos configurados.')
+        context = {
+            'titulo': 'Ver Asistencias Registradas',
+            'asignaturas': asignaturas_disponibles,
+            'asistencias_por_fecha': [],
+            'anos_academicos': anos_academicos,
+            'ano_academico_activo': ano_academico_activo,
+            'ano_academico_actual': None,
+            'estados_choices': Asistencia.ESTADO_CHOICES,
+            'meses_opciones': [
+                (1, 'Enero'), (2, 'Febrero'), (3, 'Marzo'), (4, 'Abril'),
+                (5, 'Mayo'), (6, 'Junio'), (7, 'Julio'), (8, 'Agosto'),
+                (9, 'Septiembre'), (10, 'Octubre'), (11, 'Noviembre'), (12, 'Diciembre')
+            ],
+            'total_registros': 0,
+        }
+        return render(request, 'asistencia/ver_asistencias.html', context)
     
     # Filtros
     asignatura_curso_id = request.GET.get('asignatura_curso')
-    fecha_inicio = request.GET.get('fecha_inicio')
-    fecha_fin = request.GET.get('fecha_fin')
+    mes_filtro = request.GET.get('mes')
     estado_filtro = request.GET.get('estado')
     
     asistencias_por_fecha = OrderedDict()
@@ -326,13 +415,21 @@ def ver_asistencias(request):
         try:
             asignatura_curso_seleccionada = AsignaturaCurso.objects.get(id=asignatura_curso_id)
             if asignatura_curso_seleccionada in asignaturas_disponibles:
-                asistencias = Asistencia.objects.filter(asignatura_curso=asignatura_curso_seleccionada)
+                
+                # Filtrar por año académico seleccionado
+                asistencias = Asistencia.objects.filter(
+                    asignatura_curso=asignatura_curso_seleccionada,
+                    ano_academico=ano_academico_actual
+                )
                 
                 # Aplicar filtros adicionales
-                if fecha_inicio:
-                    asistencias = asistencias.filter(fecha__gte=fecha_inicio)
-                if fecha_fin:
-                    asistencias = asistencias.filter(fecha__lte=fecha_fin)
+                if mes_filtro:
+                    try:
+                        mes_int = int(mes_filtro)
+                        asistencias = asistencias.filter(fecha__month=mes_int)
+                    except (ValueError, TypeError):
+                        pass
+                
                 if estado_filtro:
                     asistencias = asistencias.filter(estado=estado_filtro)
                 
@@ -367,16 +464,26 @@ def ver_asistencias(request):
         except AsignaturaCurso.DoesNotExist:
             messages.error(request, 'Asignatura no encontrada.')
     
+    # Definir opciones de meses
+    meses_opciones = [
+        (1, 'Enero'), (2, 'Febrero'), (3, 'Marzo'), (4, 'Abril'),
+        (5, 'Mayo'), (6, 'Junio'), (7, 'Julio'), (8, 'Agosto'),
+        (9, 'Septiembre'), (10, 'Octubre'), (11, 'Noviembre'), (12, 'Diciembre')
+    ]
+    
     context = {
         'titulo': 'Ver Asistencias Registradas',
         'asignaturas': asignaturas_disponibles,
         'asistencias_por_fecha': asistencias_por_fecha.items(),
         'asignatura_curso_seleccionada': asignatura_curso_seleccionada,
-        'fecha_inicio': fecha_inicio,
-        'fecha_fin': fecha_fin,
+        'mes_filtro': mes_filtro,
         'estado_filtro': estado_filtro,
         'estados_choices': Asistencia.ESTADO_CHOICES,
+        'meses_opciones': meses_opciones,
         'total_registros': total_registros,
+        'anos_academicos': anos_academicos,
+        'ano_academico_activo': ano_academico_activo,
+        'ano_academico_actual': ano_academico_actual,
     }
     
     return render(request, 'asistencia/ver_asistencias.html', context)

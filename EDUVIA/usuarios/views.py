@@ -147,7 +147,7 @@ def nuevo_usuario(request):
             correo = request.POST.get('correo', '').strip()
             rol = request.POST.get('rol', '').strip()
             estado = request.POST.get('estado', 'active')
-            funcion = request.POST.get('funcion', '').strip()
+            asignatura = request.POST.get('asignatura', '').strip()  # CAMBIADO: funcion -> asignatura
             
             # Validar campos básicos requeridos
             if not all([rut, password, nombres, apellidos, correo, rol]):
@@ -200,7 +200,7 @@ def nuevo_usuario(request):
                 correo=correo,
                 rol=rol,
                 estado=estado,
-                funcion=funcion
+                asignatura=asignatura  # CAMBIADO: funcion -> asignatura
             )
             usuario.save()
             
@@ -244,7 +244,7 @@ def editar_usuario(request, usuario_id):
             correo = request.POST.get('correo', '').strip()
             rol = request.POST.get('rol', '').strip()
             estado = request.POST.get('estado', '').strip()
-            funcion = request.POST.get('funcion', '').strip()
+            asignatura = request.POST.get('asignatura', '').strip()  # CAMBIADO: funcion -> asignatura
             
             if not all([rut, nombres, apellidos, correo, rol, estado]):
                 error_data = {
@@ -289,7 +289,7 @@ def editar_usuario(request, usuario_id):
             usuario.correo = correo
             usuario.rol = rol
             usuario.estado = estado
-            usuario.funcion = funcion
+            usuario.asignatura = asignatura  # CAMBIADO: funcion -> asignatura
             usuario.save()
             
             success_data = {

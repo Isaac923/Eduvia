@@ -1,0 +1,1403 @@
+/* =================================
+   VARIABLES CSS EDUVIA
+   ================================= */
+:root {
+    /* Colores principales Eduvia */
+    --eduvia-primary: #4361ee;
+    --eduvia-primary-dark: #3f37c9;
+    --eduvia-primary-light: #4895ef;
+    --eduvia-secondary: #3f37c9;
+    --eduvia-accent: #4895ef;
+    
+    /* Colores de estado */
+    --eduvia-success: #28a745;
+    --eduvia-success-dark: #1e7e34;
+    --eduvia-warning: #ffc107;
+    --eduvia-warning-dark: #e0a800;
+    --eduvia-danger: #dc3545;
+    --eduvia-danger-dark: #c82333;
+    --eduvia-info: #17a2b8;
+    --eduvia-info-dark: #138496;
+    
+    /* Colores de texto */
+    --eduvia-text: #333;
+    --eduvia-text-light: #6c757d;
+    --eduvia-text-muted: #868e96;
+    
+    /* Fondos */
+    --eduvia-bg-light: #f8f9fa;
+    --eduvia-bg-dark: #212529;
+    --eduvia-bg-gradient-start: #f5f7fa;
+    --eduvia-bg-gradient-end: #eef2f7;
+    
+    /* Bordes y sombras */
+    --eduvia-border: #dee2e6;
+    --eduvia-border-light: #e9ecef;
+    --eduvia-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --eduvia-shadow-hover: 0 4px 15px rgba(0, 0, 0, 0.15);
+    --eduvia-shadow-focus: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    
+    /* Medidas */
+    --eduvia-radius: 12px;
+    --eduvia-radius-small: 8px;
+    --eduvia-radius-large: 15px;
+    --eduvia-transition: all 0.3s ease;
+    --eduvia-transition-fast: all 0.2s ease;
+}
+
+/* =================================
+   RESET Y BASE STYLES
+   ================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--eduvia-text);
+    background: linear-gradient(0deg, #f5f7fa 0%, #c3cfe2 100%);
+    background-attachment: fixed;
+    line-height: 1.6;
+}
+
+/* =================================
+   CONTENEDOR PRINCIPAL
+   ================================= */
+.notas-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+/* =================================
+   ENCABEZADO DE PÁGINA EDUVIA
+   ================================= */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 20px 25px;
+    background: linear-gradient(135deg, var(--eduvia-bg-light), var(--eduvia-border-light));
+    border-radius: var(--eduvia-radius);
+    border-left: 5px solid var(--eduvia-primary);
+    box-shadow: var(--eduvia-shadow);
+    transition: var(--eduvia-transition);
+}
+
+.page-header:hover {
+    box-shadow: var(--eduvia-shadow-hover);
+    transform: translateY(-1px);
+}
+
+.page-header h2 {
+    margin: 0;
+    color: var(--eduvia-text);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+}
+
+.page-header h2 i {
+    color: var(--eduvia-primary);
+    font-size: 1.3rem;
+}
+
+/* =================================
+   SISTEMA DE ALERTAS EDUVIA
+   ================================= */
+.messages-container {
+    margin-bottom: 20px;
+}
+
+.custom-alert, .auto-hide-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border-radius: var(--eduvia-radius-small);
+    border-left: 4px solid;
+    background: white;
+    box-shadow: var(--eduvia-shadow);
+    animation: slideInDown 0.4s ease;
+    transition: var(--eduvia-transition);
+}
+
+.custom-alert.fade-out, .auto-hide-alert.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.alert-message {
+    font-weight: 500;
+    color: var(--eduvia-text);
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--eduvia-text-light);
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 50%;
+    transition: var(--eduvia-transition-fast);
+    flex-shrink: 0;
+}
+
+.alert-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--eduvia-text);
+    transform: rotate(90deg);
+}
+
+/* Variantes de alertas */
+.alert-success {
+    border-left-color: var(--eduvia-success);
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+}
+
+.alert-success .alert-icon {
+    color: var(--eduvia-success);
+}
+
+.alert-danger {
+    border-left-color: var(--eduvia-danger);
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+}
+
+.alert-danger .alert-icon {
+    color: var(--eduvia-danger);
+}
+
+.alert-info {
+    border-left-color: var(--eduvia-info);
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+}
+
+.alert-info .alert-icon {
+    color: var(--eduvia-info);
+}
+
+.alert-warning {
+    border-left-color: var(--eduvia-warning);
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+}
+
+.alert-warning .alert-icon {
+    color: var(--eduvia-warning-dark);
+}
+
+/* =================================
+   FILTROS HORIZONTALES EDUVIA
+   ================================= */
+.filters-horizontal {
+    background: white;
+    padding: 20px 25px;
+    border-radius: var(--eduvia-radius);
+    box-shadow: var(--eduvia-shadow);
+    margin-bottom: 20px;
+    border: 1px solid var(--eduvia-border);
+    transition: var(--eduvia-transition);
+}
+
+.filters-horizontal:hover {
+    box-shadow: var(--eduvia-shadow-hover);
+}
+
+.filters-form-horizontal {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto auto auto auto auto;
+    gap: 15px;
+    align-items: end;
+}
+
+.search-group-horizontal {
+    position: relative;
+}
+
+.search-group-horizontal i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--eduvia-text-light);
+    z-index: 2;
+    font-size: 16px;
+}
+
+.form-control-compact {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border-radius: 25px;
+    border: 2px solid var(--eduvia-border-light);
+    transition: var(--eduvia-transition);
+    font-size: 14px;
+    background: white;
+    color: var(--eduvia-text);
+}
+
+.form-control-compact:focus {
+    border-color: var(--eduvia-primary);
+    box-shadow: var(--eduvia-shadow-focus);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.form-control-compact:hover:not(:focus) {
+    border-color: var(--eduvia-primary-light);
+}
+
+.form-control-compact::placeholder {
+    color: var(--eduvia-text-light);
+}
+
+.form-select-compact {
+    min-width: 160px;
+    padding: 12px 15px;
+    border-radius: var(--eduvia-radius-small);
+    border: 2px solid var(--eduvia-border-light);
+    transition: var(--eduvia-transition);
+    background: white;
+    font-size: 14px;
+    color: var(--eduvia-text);
+    cursor: pointer;
+}
+
+.form-select-compact:focus {
+    border-color: var(--eduvia-primary);
+    box-shadow: var(--eduvia-shadow-focus);
+    outline: none;
+}
+
+.form-select-compact:hover:not(:focus) {
+    border-color: var(--eduvia-primary-light);
+}
+
+/* Botones de filtro */
+.btn-search-compact, .btn-clear-compact {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: var(--eduvia-radius-small);
+    cursor: pointer;
+    transition: var(--eduvia-transition);
+    font-size: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-search-compact {
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+    color: white;
+}
+
+.btn-search-compact:hover {
+    background: linear-gradient(135deg, var(--eduvia-primary-dark), var(--eduvia-secondary));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
+}
+
+.btn-clear-compact {
+    background: linear-gradient(135deg, var(--eduvia-text-light), #545b62);
+    color: white;
+}
+
+.btn-clear-compact:hover {
+    background: linear-gradient(135deg, #545b62, #495057);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+}
+
+/* Efecto ripple en botones */
+.btn-search-compact::before,
+.btn-clear-compact::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-search-compact:hover::before,
+.btn-clear-compact:hover::before {
+    left: 100%;
+}
+
+/* =================================
+   ESTADÍSTICAS HORIZONTALES EDUVIA
+   ================================= */
+.stats-horizontal {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card-compact {
+    background: white;
+    border-radius: var(--eduvia-radius);
+    padding: 20px;
+    box-shadow: var(--eduvia-shadow);
+    border: 1px solid var(--eduvia-border);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: var(--eduvia-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card-compact::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--eduvia-primary), var(--eduvia-accent));
+}
+
+.stat-card-compact:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--eduvia-shadow-hover);
+}
+
+.stat-icon-compact {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--eduvia-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-icon-compact::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+    border-radius: var(--eduvia-radius);
+}
+
+.stat-icon-compact.bg-primary {
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+}
+
+.stat-icon-compact.bg-info {
+    background: linear-gradient(135deg, var(--eduvia-info), var(--eduvia-info-dark));
+}
+
+.stat-icon-compact.bg-success {
+    background: linear-gradient(135deg, var(--eduvia-success), var(--eduvia-success-dark));
+}
+
+.stat-icon-compact.bg-warning {
+    background: linear-gradient(135deg, var(--eduvia-warning), var(--eduvia-warning-dark));
+}
+
+.stat-info-compact {
+    flex: 1;
+}
+
+.stat-number {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--eduvia-text);
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 14px;
+    color: var(--eduvia-text-light);
+    font-weight: 500;
+}
+
+/* =================================
+   INDICADOR DE MATERIA EDUVIA
+   ================================= */
+.materia-indicator {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.materia-badge {
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 3px 10px rgba(67, 97, 238, 0.3);
+    transition: var(--eduvia-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.materia-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s ease;
+}
+
+.materia-badge:hover::before {
+    left: 100%;
+}
+
+.materia-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+}
+
+.materia-badge i {
+    font-size: 18px;
+}
+
+/* =================================
+   TABLA HORIZONTAL OPTIMIZADA EDUVIA
+   ================================= */
+.table-container-horizontal {
+    background: white;
+    border-radius: var(--eduvia-radius);
+    overflow: hidden;
+    box-shadow: var(--eduvia-shadow);
+    border: 1px solid var(--eduvia-border);
+    margin-bottom: 20px;
+    transition: var(--eduvia-transition);
+}
+
+.table-container-horizontal:hover {
+    box-shadow: var(--eduvia-shadow-hover);
+}
+
+.notas-table-horizontal {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 13px;
+}
+
+.notas-table-horizontal thead th {
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    padding: 15px 10px;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.notas-table-horizontal tbody td {
+    padding: 12px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--eduvia-border);
+    vertical-align: middle;
+    font-size: 12px;
+    transition: var(--eduvia-transition-fast);
+}
+
+.notas-table-horizontal tbody tr {
+    transition: var(--eduvia-transition);
+}
+
+.notas-table-horizontal tbody tr:hover {
+    background: rgba(67, 97, 238, 0.05);
+    transform: scale(1.002);
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.1);
+}
+
+.notas-table-horizontal tbody tr:nth-child(even) {
+    background: rgba(248, 249, 250, 0.5);
+}
+
+.notas-table-horizontal tbody tr:nth-child(even):hover {
+    background: rgba(67, 97, 238, 0.05);
+}
+
+/* Columnas específicas */
+.th-alumno, .td-alumno { width: 18%; }
+.th-nivel, .td-nivel { width: 8%; }
+.th-jornada, .td-jornada { width: 8%; }
+.th-notas, .td-notas { width: 25%; }
+.th-notas-todas-horizontales, .td-notas-todas-horizontales { width: 35%; }
+.th-promedio, .td-promedio { width: 15%; }
+.th-promedio-todas-horizontales, .td-promedio-todas-horizontales { width: 18%; }
+.th-estado, .td-estado { width: 10%; }
+.th-acciones, .td-situacion { width: 12%; }
+
+/* =================================
+   INFORMACIÓN DEL ALUMNO EDUVIA
+   ================================= */
+.alumno-info-compact {
+    text-align: left;
+    padding: 5px;
+}
+
+.alumno-info-compact strong {
+    display: block;
+    color: var(--eduvia-text);
+    font-weight: 600;
+    margin-bottom: 3px;
+    font-size: 13px;
+}
+
+.alumno-info-compact small {
+    color: var(--eduvia-text-light);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.alumno-info-compact small i {
+    font-size: 10px;
+    color: var(--eduvia-primary);
+}
+
+/* =================================
+   BADGES Y ETIQUETAS EDUVIA
+   ================================= */
+.badge-nivel, .badge-jornada {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+    transition: var(--eduvia-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.badge-nivel {
+    background: linear-gradient(135deg, var(--eduvia-info), var(--eduvia-info-dark));
+    color: white;
+}
+
+.badge-jornada {
+    background: linear-gradient(135deg, var(--eduvia-success), var(--eduvia-success-dark));
+    color: white;
+}
+
+.badge-nivel:hover, .badge-jornada:hover {
+    transform: scale(1.05);
+}
+
+.status-active, .status-inactive {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: var(--eduvia-transition);
+}
+
+.status-active {
+    background: linear-gradient(135deg, var(--eduvia-success), var(--eduvia-success-dark));
+    color: white;
+}
+
+.status-inactive {
+    background: linear-gradient(135deg, var(--eduvia-danger), var(--eduvia-danger-dark));
+    color: white;
+}
+
+.status-active:hover, .status-inactive:hover {
+    transform: scale(1.05);
+}
+
+/* =================================
+   SISTEMA DE NOTAS EDUVIA
+   ================================= */
+.notas-horizontal-container, .todas-materias-horizontal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.semestre-compact, .materia-horizontal-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    border-radius: 6px;
+    background: var(--eduvia-bg-light);
+    transition: var(--eduvia-transition-fast);
+}
+
+.semestre-compact:hover, .materia-horizontal-row:hover {
+    background: rgba(67, 97, 238, 0.1);
+}
+
+.sem-label {
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--eduvia-text);
+    min-width: 20px;
+}
+
+.materia-label-horizontal {
+    font-weight: 600;
+    font-size: 10px;
+    color: var(--eduvia-text);
+    min-width: 45px;
+    text-align: center;
+}
+
+.materia-label-horizontal.materia-no-disponible {
+    color: var(--eduvia-text-light);
+    opacity: 0.6;
+}
+
+.semestres-horizontales {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.semestre-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sem-label-horizontal {
+    font-weight: 600;
+    font-size: 10px;
+    color: var(--eduvia-text);
+    min-width: 15px;
+}
+
+.separador-semestres {
+    color: var(--eduvia-text-light);
+    font-weight: bold;
+}
+
+.notas-mini-grid, .notas-mini-grid-horizontal {
+    display: flex;
+    gap: 3px;
+}
+
+.nota-mini, .nota-mini-horizontal {
+    width: 25px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--eduvia-transition);
+    border: 1px solid var(--eduvia-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.nota-vacia {
+    background: var(--eduvia-bg-light);
+    color: var(--eduvia-text-light);
+    border-style: dashed;
+}
+
+.nota-vacia:hover {
+    background: var(--eduvia-primary);
+    color: white;
+    border-color: var(--eduvia-primary);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+}
+
+.nota-asignada {
+    border-style: solid;
+}
+
+.nota-excelente {
+    background: linear-gradient(135deg, var(--eduvia-success), var(--eduvia-success-dark));
+    color: white;
+    border-color: var(--eduvia-success);
+}
+
+.nota-buena {
+    background: linear-gradient(135deg, var(--eduvia-info), var(--eduvia-info-dark));
+    color: white;
+    border-color: var(--eduvia-info);
+}
+
+.nota-suficiente {
+    background: linear-gradient(135deg, var(--eduvia-warning), var(--eduvia-warning-dark));
+    color: white;
+    border-color: var(--eduvia-warning);
+}
+
+.nota-insuficiente {
+    background: linear-gradient(135deg, var(--eduvia-danger), var(--eduvia-danger-dark));
+    color: white;
+    border-color: var(--eduvia-danger);
+}
+
+.nota-mini:hover:not(.nota-vacia), .nota-mini-horizontal:hover:not(.nota-vacia) {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* =================================
+   MATERIAS NO ASIGNADAS EDUVIA
+   ================================= */
+.materia-no-asignada {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+}
+
+.materia-no-asignada-texto {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.texto-no-asignada {
+    font-size: 10px;
+    color: var(--eduvia-text-light);
+    font-style: italic;
+}
+
+/* =================================
+   SISTEMA DE PROMEDIOS EDUVIA
+   ================================= */
+.promedios-compact, .promedios-todas-materias-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.prom-item, .prom-materia-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: var(--eduvia-bg-light);
+    transition: var(--eduvia-transition-fast);
+}
+
+.prom-item:hover, .prom-materia-horizontal:hover {
+    background: rgba(67, 97, 238, 0.1);
+}
+
+.prom-label-horizontal {
+    font-weight: 600;
+    font-size: 10px;
+    min-width: 45px;
+    color: var(--eduvia-text);
+}
+
+.prom-val, .prom-val-horizontal {
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    min-width: 35px;
+    text-align: center;
+    color: white;
+}
+
+.prom-anual {
+    background: var(--eduvia-border-light);
+    font-weight: 600;
+}
+
+.prom-val-anual, .prom-val-general-horizontal {
+    font-weight: 700;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    min-width: 40px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+    color: white;
+}
+
+.prom-general-horizontal {
+    background: var(--eduvia-border-light);
+    border-top: 1px solid var(--eduvia-border);
+    padding-top: 6px;
+    margin-top: 4px;
+}
+
+.prom-label-horizontal-general {
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--eduvia-text);
+}
+
+.prom-no-asignada {
+    opacity: 0.6;
+}
+
+.prom-val-no-asignada {
+    color: var(--eduvia-text-light);
+    font-style: italic;
+    font-size: 10px;
+    background: transparent;
+}
+
+/* Colores de promedios según valor */
+.prom-val-excelente, .prom-val-horizontal.excelente {
+    background: linear-gradient(135deg, var(--eduvia-success), var(--eduvia-success-dark));
+}
+
+.prom-val-bueno, .prom-val-horizontal.bueno {
+    background: linear-gradient(135deg, var(--eduvia-info), var(--eduvia-info-dark));
+}
+
+.prom-val-suficiente, .prom-val-horizontal.suficiente {
+    background: linear-gradient(135deg, var(--eduvia-warning), var(--eduvia-warning-dark));
+}
+
+.prom-val-insuficiente, .prom-val-horizontal.insuficiente {
+    background: linear-gradient(135deg, var(--eduvia-danger), var(--eduvia-danger-dark));
+}
+
+/* =================================
+   SITUACIÓN ACADÉMICA EDUVIA
+   ================================= */
+.situacion-badge {
+    padding: 8px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: var(--eduvia-transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.situacion-sin-notas {
+    background: linear-gradient(135deg, var(--eduvia-text-light), #545b62);
+    color: white;
+}
+
+.situacion-aprobado {
+    background: linear-gradient(135deg, var(--eduvia-success), var(--eduvia-success-dark));
+    color: white;
+}
+
+.situacion-peligro {
+    background: linear-gradient(135deg, var(--eduvia-warning), var(--eduvia-warning-dark));
+    color: white;
+}
+
+.situacion-reprobado {
+    background: linear-gradient(135deg, var(--eduvia-danger), var(--eduvia-danger-dark));
+    color: white;
+}
+
+.situacion-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.situacion-texto {
+    font-size: 10px;
+}
+
+.situacion-badge i {
+    font-size: 12px;
+}
+
+/* =================================
+   PAGINACIÓN HORIZONTAL EDUVIA
+   ================================= */
+.pagination-horizontal {
+    background: white;
+    padding: 15px 20px;
+    border-radius: var(--eduvia-radius);
+    box-shadow: var(--eduvia-shadow);
+    border: 1px solid var(--eduvia-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    transition: var(--eduvia-transition);
+}
+
+.pagination-horizontal:hover {
+    box-shadow: var(--eduvia-shadow-hover);
+}
+
+.pagination-info {
+    color: var(--eduvia-text-light);
+    font-weight: 500;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pagination-info i {
+    color: var(--eduvia-primary);
+}
+
+.pagination-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pagination-compact li {
+    display: flex;
+}
+
+.pagination-compact a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border: 2px solid var(--eduvia-border);
+    border-radius: 6px;
+    color: var(--eduvia-text-light);
+    text-decoration: none;
+    transition: var(--eduvia-transition);
+    font-weight: 500;
+    min-width: 35px;
+    height: 35px;
+    position: relative;
+    overflow: hidden;
+}
+
+.pagination-compact a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(67, 97, 238, 0.1), transparent);
+    transition: left 0.3s ease;
+}
+
+.pagination-compact a:hover::before {
+    left: 100%;
+}
+
+.pagination-compact a:hover {
+    background: var(--eduvia-primary);
+    color: white;
+    border-color: var(--eduvia-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(67, 97, 238, 0.3);
+}
+
+.pagination-compact .current {
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+    color: white;
+    border: 2px solid var(--eduvia-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    min-width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+}
+
+/* =================================
+   MODAL ASIGNAR NOTA EDUVIA
+   ================================= */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-dialog {
+    background: white;
+    border-radius: var(--eduvia-radius-large);
+    max-width: 600px;
+    width: 95%;
+    max-height: 90vh;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    will-change: transform;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: none;
+    border-radius: var(--eduvia-radius-large);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+    color: white;
+    padding: 20px 25px;
+    border-radius: var(--eduvia-radius-large) var(--eduvia-radius-large) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.modal.show .modal-header::before {
+    transform: translateX(100%);
+}
+
+.modal-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-title i {
+    font-size: 1.1rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: var(--eduvia-transition);
+    position: relative;
+    z-index: 1;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 25px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: white;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar personalizado para modal */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--eduvia-primary);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--eduvia-primary-dark);
+}
+
+.modal-body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--eduvia-primary) #f1f1f1;
+}
+
+.modal-footer {
+    padding: 20px 25px;
+    background: var(--eduvia-bg-light);
+    border-radius: 0 0 var(--eduvia-radius-large) var(--eduvia-radius-large);
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    border-top: 1px solid var(--eduvia-border);
+    flex-shrink: 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* =================================
+   FORMULARIO OPTIMIZADO EDUVIA
+   ================================= */
+.nota-form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--eduvia-text);
+    font-size: 14px;
+    margin: 0;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.form-label i {
+    color: var(--eduvia-primary);
+    font-size: 12px;
+}
+
+.form-control,
+.form-select {
+    padding: 12px 15px;
+    border: 2px solid var(--eduvia-border-light);
+    border-radius: var(--eduvia-radius-small);
+    font-size: 14px;
+    transition: var(--eduvia-transition);
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+    color: var(--eduvia-text);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--eduvia-primary);
+    box-shadow: var(--eduvia-shadow-focus);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.form-control:hover:not(:focus),
+.form-select:hover:not(:focus) {
+    border-color: var(--eduvia-primary-light);
+}
+
+.form-control::placeholder {
+    color: var(--eduvia-text-light);
+}
+
+/* Estados de validación */
+.form-control.is-valid {
+    border-color: var(--eduvia-success);
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.form-control.is-invalid {
+    border-color: var(--eduvia-danger);
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+/* =================================
+   BOTONES OPTIMIZADOS EDUVIA
+   ================================= */
+.btn-modal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--eduvia-radius-small);
+    cursor: pointer;
+    transition: var(--eduvia-transition);
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    min-width: 120px;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    will-change: transform, box-shadow;
+}
+
+.btn-modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-modal:hover::before {
+    left: 100%;
+}
+
+.btn-modal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+}
+
+.btn-modal:active {
+    transform: translateY(0);
+    transition: transform 0.1s ease;
+}
+
+.btn-modal.btn-primary {
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+    color: white;
+}
+
+.btn-modal.btn-primary:hover {
+    background: linear-gradient(135deg, var(--eduvia-primary-dark), var(--eduvia-secondary));
+    color: white;
+    box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+}
+
+.btn-modal.btn-secondary {
+    background: linear-gradient(135deg, var(--eduvia-text-light), #545b62);
+    color: white;
+}
+
+.btn-modal.btn-secondary:hover {
+    background: linear-gradient(135deg, #545b62, #495057);
+    color: white;
+    box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+}
+
+.btn-modal.btn-success {
+    background: linear-gradient(135deg, var(--eduvia-success), var(--eduvia-success-dark));
+    color: white;
+}
+
+.btn-modal.btn-success:hover {
+    background: linear-gradient(135deg, var(--eduvia-success-dark), #1e7e34);
+    color: white;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+.btn-modal.btn-danger {
+    background: linear-gradient(135deg, var(--eduvia-danger), var(--eduvia-danger-dark));
+    color: white;
+}
+
+.btn-modal.btn-danger:hover {
+    background: linear-gradient(135deg, var(--eduvia-danger-dark), #a71e2a);
+    color: white;
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+}
+
+/* Estado de carga */
+.btn-modal:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-modal:disabled::before {

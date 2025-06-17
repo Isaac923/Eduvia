@@ -8,137 +8,166 @@ document.addEventListener('DOMContentLoaded', function() {
     const appContainer = document.querySelector('.app-container');
     const sidebar = document.querySelector('.sidebar');
     const mainContent = document.querySelector('.main-content');
-    const sidebarTrigger = document.createElement('div');
     
-    // Crear área de activación para mostrar el sidebar
-    sidebarTrigger.className = 'sidebar-trigger';
-    appContainer.appendChild(sidebarTrigger);
-    
-    // Función para ocultar el sidebar
-    function hideSidebar() {
-        sidebar.classList.add('hidden');
-        mainContent.classList.add('full-width');
-        sidebarTrigger.classList.add('active');
-    }
-    
-    // Función para mostrar el sidebar
-    function showSidebar() {
-        sidebar.classList.remove('hidden');
-        mainContent.classList.remove('full-width');
-        sidebarTrigger.classList.remove('active');
-    }
-    
-    // Ocultar sidebar inicialmente
-    hideSidebar();
-    
-    // Mostrar sidebar al pasar el cursor por el área de activación
-    sidebarTrigger.addEventListener('mouseenter', function() {
-        showSidebar();
-    });
-    
-    // Mostrar sidebar al pasar el cursor por el sidebar
-    sidebar.addEventListener('mouseenter', function() {
-        showSidebar();
-    });
-    
-    // Ocultar sidebar al salir del sidebar
-    sidebar.addEventListener('mouseleave', function() {
+    if (appContainer && sidebar && mainContent) {
+        const sidebarTrigger = document.createElement('div');
+        
+        // Crear área de activación para mostrar el sidebar
+        sidebarTrigger.className = 'sidebar-trigger';
+        appContainer.appendChild(sidebarTrigger);
+        
+        // Función para ocultar el sidebar
+        function hideSidebar() {
+            sidebar.classList.add('hidden');
+            mainContent.classList.add('full-width');
+            sidebarTrigger.classList.add('active');
+        }
+        
+        // Función para mostrar el sidebar
+        function showSidebar() {
+            sidebar.classList.remove('hidden');
+            mainContent.classList.remove('full-width');
+            sidebarTrigger.classList.remove('active');
+        }
+        
+        // Ocultar sidebar inicialmente
         hideSidebar();
+        
+        // Event listeners para el sidebar
+        sidebarTrigger.addEventListener('mouseenter', showSidebar);
+        sidebar.addEventListener('mouseenter', showSidebar);
+        sidebar.addEventListener('mouseleave', hideSidebar);
+    }
+    
+    // Inicializar cierre de alertas
+    initializeAlertClosing();
+});
+
+/**
+ * Función para inicializar el cierre de alertas
+ * Maneja tanto alertas existentes como dinámicas
+ */
+function initializeAlertClosing() {
+    // Delegación de eventos para botones de cerrar alertas
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('.alert-close, .btn-close, .close')) {
+            const alert = e.target.closest('.alert');
+            if (alert) {
+                closeAlert(alert);
+            }
+        }
     });
     
-    // Cerrar alertas - MEJORADO para no interferir con modales
-    const closeAlerts = document.querySelectorAll('.close-alert');
-    closeAlerts.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-            // Verificar que no esté dentro de un modal
-            if (!this.closest('.modal')) {
-                const alert = this.closest('.alert');
-                if (alert) {
-                    alert.classList.add('fade-out');
-                    setTimeout(function() {
-                        alert.remove();
-                    }, 300);
+    // Auto-cerrar alertas después de 5 segundos (opcional)
+    autoCloseAlerts();
+    
+    // Observar nuevas alertas dinámicas
+    observeNewAlerts();
+}
+
+/**
+ * Función para cerrar una alerta específica
+ */
+function closeAlert(alertElement) {
+    if (alertElement) {
+        alertElement.style.transition = 'opacity 0.3s ease';
+        alertElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            alertElement.remove();
+        }, 300);
+    }
+}
+
+/**
+ * Auto-cerrar alertas de éxito después de 5 segundos
+ */
+function autoCloseAlerts() {
+    const successAlerts = document.querySelectorAll('.alert-success');
+    
+    successAlerts.forEach(alert => {
+        // Solo auto-cerrar si no tiene la clase 'persistent'
+        if (!alert.classList.contains('persistent')) {
+            setTimeout(() => {
+                if (alert.parentNode) { // Verificar que aún existe
+                    closeAlert(alert);
                 }
-            }
-        });
+            }, 5000);
+        }
     });
-    
-    // Ajustar para dispositivos móviles
-    function handleMobileView() {
-        if (window.innerWidth < 992) {
-            // En móviles, usar un botón para mostrar/ocultar
-            let mobileToggle = document.querySelector('.mobile-sidebar-toggle');
-            if (!mobileToggle) {
-                mobileToggle = document.createElement('button');
-                mobileToggle.className = 'mobile-sidebar-toggle';
-                mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
-                document.body.appendChild(mobileToggle);
-                
-                mobileToggle.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Evitar conflictos con otros event listeners
-                    if (sidebar.classList.contains('hidden')) {
-                        showSidebar();
-                        sidebar.classList.add('mobile-visible');
-                    } else {
-                        hideSidebar();
-                        sidebar.classList.remove('mobile-visible');
-                    }
-                });
-            }
-            
-            // En móviles, iniciar con el sidebar oculto
-            hideSidebar();
-            
-            // Cerrar al hacer clic fuera - MEJORADO
-            document.addEventListener('click', function(e) {
-                // Solo cerrar si no es un click en modal o sidebar
-                if (!sidebar.contains(e.target) && 
-                    !mobileToggle.contains(e.target) && 
-                    !e.target.closest('.modal') &&
-                    sidebar.classList.contains('mobile-visible')) {
-                    hideSidebar();
-                    sidebar.classList.remove('mobile-visible');
+}
+
+/**
+ * Observar nuevas alertas que se agreguen dinámicamente
+ */
+function observeNewAlerts() {
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) { // Element node
+                    // Buscar alertas en el nodo agregado
+                    const alerts = node.matches && node.matches('.alert') ? 
+                        [node] : 
+                        node.querySelectorAll ? node.querySelectorAll('.alert') : [];
+                    
+                    alerts.forEach(alert => {
+                        // Auto-cerrar alertas de éxito después de 5 segundos
+                        if (alert.classList.contains('alert-success') && 
+                            !alert.classList.contains('persistent')) {
+                            setTimeout(() => {
+                                if (alert.parentNode) {
+                                    closeAlert(alert);
+                                }
+                            }, 5000);
+                        }
+                    });
                 }
             });
-        }
-    }
-    
-    // Verificar si es móvil al cargar
-    handleMobileView();
-    
-    // Configuración del indicador de sidebar
-    const sidebarHint = document.getElementById('sidebarHint');
-    if (sidebarHint) {
-        // Ocultar el indicador después de un tiempo
-        setTimeout(function() {
-            sidebarHint.style.opacity = '0';
-            setTimeout(function() {
-                sidebarHint.style.display = 'none';
-            }, 500);
-        }, 3000);
-        
-        // Mostrar sidebar al hacer clic en el indicador
-        sidebarHint.addEventListener('click', function() {
-            showSidebar();
-            this.style.display = 'none';
         });
-    }
-    
-    // Verificar cambios de tamaño de ventana
-    window.addEventListener('resize', function() {
-        handleMobileView();
     });
     
-    // Función global para evitar conflictos con modales
-    window.preventSidebarConflicts = function() {
-        // Deshabilitar temporalmente los event listeners del sidebar
-        sidebar.style.pointerEvents = 'none';
-        sidebarTrigger.style.pointerEvents = 'none';
-        
-        // Rehabilitar después de un tiempo
-        setTimeout(function() {
-            sidebar.style.pointerEvents = '';
-            sidebarTrigger.style.pointerEvents = '';
-        }, 500);
-    };
-});
+    // Observar cambios en el body
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+/**
+ * Función para mostrar alertas dinámicamente
+ * Úsala cuando necesites mostrar alertas via JavaScript
+ */
+function showAlert(message, type = 'info', persistent = false) {
+    const alertContainer = document.getElementById('alert-container') || document.body;
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show ${persistent ? 'persistent' : ''}`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close alert-close" aria-label="Cerrar"></button>
+    `;
+    
+    // Insertar la alerta al principio del contenedor
+    alertContainer.insertBefore(alertDiv, alertContainer.firstChild);
+    
+    // Auto-cerrar si no es persistente
+    if (!persistent && type === 'success') {
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                closeAlert(alertDiv);
+            }
+        }, 5000);
+    }
+    
+    return alertDiv;
+}
+
+/**
+ * Función para remover todas las alertas
+ */
+function clearAllAlerts() {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        closeAlert(alert);
+    });
+}

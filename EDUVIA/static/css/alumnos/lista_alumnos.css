@@ -1,0 +1,2006 @@
+/* Estados hover mejorados para filtros */
+.search-input:hover {
+  border-color: rgba(38, 166, 154, 0.5);
+}
+
+.filter-dropdown:hover {
+  border-color: rgba(92, 107, 192, 0.5);
+}
+
+/* Indicadores visuales para filtros activos */
+.filter-dropdown:not([value=""]):not([value="todos"]) {
+  border-color: var(--secondary);
+  background-color: rgba(92, 107, 192, 0.05);
+  font-weight: 600;
+}
+
+.search-input:not(:placeholder-shown) {
+  border-color: var(--primary);
+  background-color: rgba(38, 166, 154, 0.05);
+}
+
+/* Botones de filtro */
+.filter-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.btn-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-search {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.btn-search:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-clear {
+  background: var(--bg-light);
+  color: var(--text-medium);
+  border: 2px solid var(--border-color);
+}
+
+.btn-clear:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn-filter i {
+  font-size: 0.875rem;
+}
+
+/* Animación sutil para los botones */
+.btn-search:active,
+.btn-clear:active {
+  transform: translateY(1px);
+}
+
+/* Mejora visual para el contenedor de filtros */
+.search-filter-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+}
+
+/* =========================================
+   LISTA DE ALUMNOS - EDUVIA
+   ========================================= */
+
+/* Variables */
+:root {
+  --primary: #4361ee;
+  --primary-dark: #3a0ca3;
+  --primary-light: #4895ef;
+  --secondary: #3a86ff;
+  --accent: #4cc9f0;
+  --danger: #e63946;
+  --danger-dark: #d00000;
+  --success: #0f5132;
+  --success-bg: #d1e7dd;
+  --warning: #856404;
+  --warning-bg: #fff3cd;
+  --danger-bg: #f8d7da;
+  --text-dark: #333333;
+  --text-medium: #495057;
+  --text-light: #6c757d;
+  --border-color: #dee2e6;
+  --border-light: #eaeaea;
+  --bg-light: #f8f9fa;
+  --white: #ffffff;
+  --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 20px;
+  --transition: all 0.3s ease;
+  --transition-fast: all 0.15s ease;
+}
+
+/* =========================================
+   1. CONTENEDOR PRINCIPAL
+   ========================================= */
+.user-list-container {
+  background-color: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-list-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+}
+
+/* =========================================
+   2. ENCABEZADO DE PÁGINA
+   ========================================= */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+}
+
+.page-header h2::before {
+  content: '\f501';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-right: 0.75rem;
+  color: var(--primary);
+  font-size: 1.25rem;
+}
+
+/* =========================================
+   3. BOTONES
+   ========================================= */
+.btn-eduvia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.5px;
+}
+
+.btn-eduvia::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  transition: all 0.8s ease;
+}
+
+.btn-eduvia:hover::before {
+  left: 100%;
+}
+
+.btn-eduvia i {
+  margin-right: 8px;
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.btn-eduvia:hover i {
+  transform: translateX(-3px) scale(1.1);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--white);
+  border: 1px solid transparent;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+}
+
+.btn-secondary {
+  background-color: var(--bg-light);
+  color: var(--text-medium);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: #e9ecef;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  color: var(--primary);
+}
+
+/* Botones de acción */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.btn-action {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-action i {
+  font-size: 1rem;
+}
+
+.btn-view {
+  background: var(--secondary);
+}
+
+.btn-edit {
+  background: var(--accent);
+}
+
+.btn-delete {
+  background: var(--danger);
+}
+
+.btn-action:hover {
+  opacity: 0.9;
+  box-shadow: var(--shadow-md);
+}
+
+/* =========================================
+   4. BÚSQUEDA Y FILTROS MEJORADOS
+   ========================================= */
+.search-filter-container {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-light);
+  position: relative;
+}
+
+.filters-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Fila de búsqueda */
+.search-row {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+}
+
+.search-group {
+  flex: 1;
+  max-width: 500px;
+}
+
+.search-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.search-label i {
+  margin-right: 0.5rem;
+  color: var(--primary);
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  transition: var(--transition-fast);
+  background-color: var(--white);
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.search-input:hover {
+  border-color: rgba(67, 97, 238, 0.5);
+}
+
+.search-input:not(:placeholder-shown) {
+  border-color: var(--primary);
+  background-color: rgba(67, 97, 238, 0.05);
+}
+
+.btn-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.btn-search:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-search i {
+  font-size: 0.9rem;
+}
+
+/* Fila de filtros */
+.filters-row {
+  display: flex;
+  align-items: end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.filter-label i {
+  margin-right: 0.5rem;
+  color: var(--secondary);
+}
+
+.filter-dropdown {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  background-color: var(--white);
+  transition: var(--transition-fast);
+}
+
+.filter-dropdown:focus {
+  border-color: var(--secondary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.1);
+}
+
+.filter-dropdown:hover {
+  border-color: rgba(58, 134, 255, 0.5);
+}
+
+.filter-dropdown:not([value=""]):not([value="todos"]) {
+  border-color: var(--secondary);
+  background-color: rgba(58, 134, 255, 0.05);
+  font-weight: 600;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  height: fit-content;
+}
+
+.btn-clear {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-light);
+  color: var(--text-medium);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-clear:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn-clear i {
+  font-size: 0.9rem;
+}
+
+/* Separador visual */
+.search-filter-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+/* =========================================
+   5. TABLA DE USUARIOS
+   ========================================= */
+.table-responsive {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: var(--white);
+}
+
+.user-table th {
+  background-color: var(--bg-light);
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-medium);
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+  position: relative;
+}
+
+.user-table th:first-child {
+  border-top-left-radius: var(--radius-md);
+}
+
+.user-table th:last-child {
+  border-top-right-radius: var(--radius-md);
+}
+
+.user-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+  color: var(--text-dark);
+}
+
+.user-table tr:hover {
+  background-color: rgba(67, 97, 238, 0.03);
+}
+
+.user-table tr:last-child td:first-child {
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.user-table tr:last-child td:last-child {
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.user-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================
+   6. BOTONES DE ACCIÓN
+   ========================================= */
+.action-buttons {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-start;
+}
+
+.btn-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: var(--white);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.btn-action i {
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.btn-action::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.btn-action:hover::after {
+  opacity: 1;
+}
+
+.btn-action:hover i {
+  transform: scale(1.2);
+}
+
+.btn-view {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, var(--secondary), var(--primary-light));
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+}
+
+.btn-action:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-view:hover {
+  box-shadow: 0 6px 15px rgba(67, 97, 238, 0.3);
+}
+
+.btn-edit:hover {
+  box-shadow: 0 6px 15px rgba(58, 134, 255, 0.3);
+}
+
+.btn-delete:hover {
+  box-shadow: 0 6px 15px rgba(230, 57, 70, 0.3);
+}
+
+/* =========================================
+   7. BADGES Y ETIQUETAS
+   ========================================= */
+.status-badge {
+  padding: 5px 12px;
+  border-radius: var(--radius-xl);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-block;
+  text-align: center;
+  min-width: 90px;
+  transition: var(--transition);
+}
+
+.status-active {
+  background-color: var(--success-bg);
+  color: var(--success);
+}
+
+.status-inactive {
+  background-color: var(--danger-bg);
+  color: var(--danger);
+}
+
+.status-pending {
+  background-color: var(--warning-bg);
+  color: var(--warning);
+}
+
+/* =========================================
+   8. ESTADO VACÍO
+   ========================================= */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 3.5rem;
+  color: #d1d9e6;
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+  max-width: 400px;
+}
+
+.empty-state .btn-eduvia {
+  margin-top: 0.5rem;
+}
+
+/* =========================================
+   9. MODAL DE ALERTA PARA CAMBIO DE ESTADO
+   ========================================= */
+.delete-alert-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-alert-content {
+    background-color: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delete-alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--primary);
+    color: white;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.delete-alert-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.delete-alert-body {
+    padding: 20px;
+}
+
+.estado-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.estado-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.estado-option:hover {
+    border-color: var(--primary);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.estado-option input[type="radio"] {
+    margin-right: 10px;
+}
+
+.estado-option input[type="radio"]:checked + .estado-label {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.estado-label {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+}
+
+.estado-label i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+.delete-alert-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px;
+    gap: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-cancel {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-cancel:hover {
+    background-color: #5a6268;
+}
+
+.btn-delete-confirm {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-delete-confirm:hover {
+    background-color: var(--primary-dark);
+}
+
+.btn-delete-confirm.btn-success {
+    background-color: var(--success);
+}
+
+.btn-delete-confirm.btn-success:hover {
+    background-color: #0a4622;
+}
+
+.btn-delete-confirm.btn-danger {
+    background-color: var(--danger);
+}
+
+.btn-delete-confirm.btn-danger:hover {
+    background-color: var(--danger-dark);
+}
+
+/* =========================================
+   10. MODALES BOOTSTRAP
+   ========================================= */
+.modal-content {
+  border-radius: var(--radius-lg);
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--border-light);
+  padding: 1.25rem 1.5rem;
+  background-color: var(--bg-light);
+}
+
+.modal-title {
+  font-weight: 600;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--border-light);
+  padding: 1.25rem 1.5rem;
+  background-color: var(--bg-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Cards dentro del modal */
+.card {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--white);
+  border-bottom: none;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.card-header h6 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.card-body {
+  padding: 1.5rem;
+  background-color: var(--white);
+}
+
+.card-body .mb-3:last-child {
+  margin-bottom: 0 !important;
+}
+
+.fw-bold.text-muted {
+  color: var(--text-medium) !important;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.card-body p {
+  color: var(--text-dark);
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.card-body .mb-3:last-child p {
+  border-bottom: none;
+}
+
+/* =========================================
+   11. VALIDACIÓN DE FORMULARIOS - CAMPOS INDIVIDUALES
+   ========================================= */
+
+/* Estilos para campos válidos con check más grande y visible */
+.form-control.valid, 
+.form-select.valid {
+    border: 2px solid #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2328a745' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M4 8.5l2.5 2.5L12 5'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px 20px;
+    padding-right: 50px !important;
+}
+
+.form-control.valid:focus, 
+.form-select.valid:focus {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.35rem rgba(40, 167, 69, 0.35) !important;
+}
+
+/* Estilos para campos inválidos */
+.form-control.invalid, 
+.form-select.invalid {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dc3545' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M4 4l8 8M12 4l-8 8'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px 20px;
+    padding-right: 50px !important;
+}
+
+.form-control.invalid:focus, 
+.form-select.invalid:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.35rem rgba(220, 53, 69, 0.35) !important;
+}
+
+/* Estilos especiales para selects válidos */
+.form-select.valid {
+    padding-right: 60px !important;
+    background-position: right 12px center, center right 32px;
+    background-size: 20px 20px, 16px 12px;
+}
+
+/* Estilos especiales para selects inválidos */
+.form-select.invalid {
+    padding-right: 60px !important;
+    background-position: right 12px center, center right 32px;
+    background-size: 20px 20px, 16px 12px;
+}
+
+/* Estilos para checkboxes y radios */
+.form-check-input.valid {
+    border: 2px solid #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.form-check-input.valid:checked {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.form-check-input.invalid {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Animaciones suaves para validación */
+.form-control, 
+.form-select, 
+.form-check-input {
+    transition: all 0.3s ease;
+}
+
+/* Indicadores de campo requerido */
+label.required::after {
+    content: ' *';
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Efectos hover para campos */
+.form-control:hover:not(:focus):not(.valid):not(.invalid) {
+    border-color: rgba(67, 97, 238, 0.5);
+    box-shadow: 0 0 0 0.1rem rgba(67, 97, 238, 0.1);
+}
+
+.form-select:hover:not(:focus):not(.valid):not(.invalid) {
+    border-color: rgba(67, 97, 238, 0.5);
+    box-shadow: 0 0 0 0.1rem rgba(67, 97, 238, 0.1);
+}
+
+/* Estilos para campos de teléfono */
+input[name="telefono"], 
+input[name="contacto_emergencia_telefono"] {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+/* Estilos de validación */
+.form-control.valid {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.form-control.invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Placeholder styling */
+input[name="telefono"]::placeholder,
+input[name="contacto_emergencia_telefono"]::placeholder {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Ocultar mensajes de error cuando el campo tiene contenido válido */
+.form-group input:not(:invalid):not(.invalid) + .text-danger,
+.form-group select:not(:invalid):not(.invalid) + .text-danger,
+.form-group textarea:not(:invalid):not(.invalid) + .text-danger {
+    display: none !important;
+}
+
+/* Mostrar errores solo cuando el campo está marcado como inválido */
+.form-group .invalid + .text-danger {
+    display: block !important;
+}
+
+/* =========================================
+   12. RESPONSIVE
+   ========================================= */
+@media (max-width: 992px) {
+  .user-list-container {
+    padding: 1.5rem;
+  }
+  
+  .page-header h2 {
+    font-size: 1.4rem;
+  }
+  
+  .search-filter-container {
+    padding: 1rem;
+  }
+  
+  .filters-row {
+    gap: 1rem;
+  }
+  
+  .filter-group {
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .search-filter-container {
+    padding: 1rem;
+  }
+  
+  .filters-form {
+    gap: 1rem;
+  }
+  
+  .search-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .search-group {
+    max-width: 100%;
+  }
+  
+  .btn-search {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .filter-group {
+    min-width: 100%;
+  }
+  
+  .filter-actions {
+    width: 100%;
+  }
+  
+  .btn-clear {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .user-table th, .user-table td {
+    padding: 12px;
+  }
+  
+  .action-buttons {
+    flex-wrap: wrap;
+  }
+  
+  .modal-body {
+    padding: 1.5rem 1rem;
+  }
+  
+  /* Ajustes responsive para validación */
+  .form-control.valid, 
+  .form-select.valid,
+  .form-control.invalid, 
+  .form-select.invalid {
+    background-size: 18px 18px;
+    padding-right: 45px !important;
+  }
+  
+  .form-select.valid,
+  .form-select.invalid {
+    padding-right: 55px !important;
+    background-size: 18px 18px, 14px 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .user-list-container {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .page-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+  }
+  
+  .page-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .btn-eduvia {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .search-filter-container {
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .search-label,
+  .filter-label {
+    font-size: 0.9rem;
+  }
+  
+  .search-input,
+  .filter-dropdown {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.95rem;
+  }
+  
+  .btn-search,
+  .btn-clear {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .user-table th, .user-table td {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .status-badge {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+  }
+  
+  .btn-action {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+  }
+  
+  .empty-state p {
+    font-size: 1rem;
+  }
+  
+  .delete-alert-content {
+    width: 95%;
+    max-width: 400px;
+  }
+  
+  .estado-options {
+    gap: 8px;
+  }
+  
+  .estado-option {
+    padding: 10px;
+  }
+  
+  /* Ajustes móviles para validación */
+  .form-control.valid, 
+  .form-select.valid,
+  .form-control.invalid, 
+  .form-select.invalid {
+    background-size: 16px 16px;
+    padding-right: 40px !important;
+  }
+  
+  .form-select.valid,
+  .form-select.invalid {
+    padding-right: 50px !important;
+    background-size: 16px 16px, 12px 8px;
+  }
+}
+
+/* =========================================
+   13. UTILIDADES
+   ========================================= */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--text-light);
+}
+
+.py-4 {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.me-1 {
+  margin-right: 0.25rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.fw-bold {
+  font-weight: 600 !important;
+}
+
+/* Tooltip personalizado */
+[data-tooltip] {
+  position: relative;
+  cursor: pointer;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Estilos para el scrollbar */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* =========================================
+   VALIDACIÓN EN TIEMPO REAL
+   ========================================= */
+
+/* Mensaje de error personalizado */
+.error-message-custom {
+    color: #dc3545 !important;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Animación para mensajes de error */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ocultar mensajes de error de Django cuando el campo es válido */
+.form-control.is-valid + .text-danger,
+.form-select.is-valid + .text-danger {
+    display: none !important;
+}
+
+/* Estilos mejorados para campos válidos */
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: #28a745 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2328a745' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 8.5l2.5 2.5L12 5'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 16px 16px !important;
+    padding-right: 40px !important;
+}
+
+/* Estilos mejorados para campos inválidos */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dc3545' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 4l8 8M12 4l-8 8'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 16px 16px !important;
+    padding-right: 40px !important;
+}
+
+/* Ajustes para selects */
+.form-select.is-valid {
+    padding-right: 50px !important;
+    background-position: right 12px center, center right 32px !important;
+    background-size: 16px 16px, 16px 12px !important;
+}
+
+.form-select.is-invalid {
+    padding-right: 50px !important;
+    background-position: right 12px center, center right 32px !important;
+    background-size: 16px 16px, 16px 12px !important;
+}
+
+/* Transición suave para cambios de estado */
+.form-control,
+.form-select {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, background-image 0.15s ease-in-out !important;
+}
+
+/* Ocultar mensajes de error de Django inicialmente */
+.text-danger {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Responsive para validación en tiempo real */
+@media (max-width: 576px) {
+    .form-control.is-valid,
+    .form-select.is-valid,
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+        background-size: 14px 14px !important;
+        padding-right: 35px !important;
+    }
+    
+    .form-select.is-valid,
+    .form-select.is-invalid {
+        padding-right: 45px !important;
+        background-size: 14px 14px, 14px 10px !important;
+    }
+}
+
+/* =========================================
+   14. PAGINACIÓN
+   ========================================= */
+
+.pagination-container {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  margin-top: 1.5rem;
+  border-top: 2px solid var(--border-light);
+  background: linear-gradient(135deg, rgba(67, 97, 238, 0.02), rgba(58, 134, 255, 0.02));
+  border-radius: var(--radius-md);
+}
+
+.pagination-info {
+  flex: 1;
+}
+
+.page-info {
+  font-size: 0.95rem;
+  color: var(--text-medium);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.page-info::before {
+  content: '\f02d';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-right: 0.5rem;
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.pagination-controls {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.pagination-list {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border-color);
+  background-color: var(--white);
+  color: var(--text-medium);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.pagination-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(67, 97, 238, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.pagination-btn:hover::before {
+  left: 100%;
+}
+
+.pagination-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+}
+
+.pagination-btn:active {
+  transform: translateY(0);
+}
+
+.pagination-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--white);
+  border-color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.pagination-btn.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(67, 97, 238, 0.4);
+}
+
+.pagination-btn.disabled {
+  background-color: var(--bg-light);
+  color: var(--text-light);
+  border-color: var(--border-light);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-btn.disabled:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-light);
+  color: var(--text-light);
+}
+
+.pagination-btn.disabled::before {
+  display: none;
+}
+
+/* Estilos especiales para botones de navegación */
+.pagination-prev,
+.pagination-next {
+  min-width: 80px;
+  font-weight: 600;
+}
+
+.pagination-prev::before {
+  content: '\f104';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-right: 0.5rem;
+}
+
+.pagination-next::after {
+  content: '\f105';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-left: 0.5rem;
+}
+
+/* Animación para cambio de página */
+.user-table {
+  transition: opacity 0.3s ease;
+}
+
+.user-table.changing-page {
+  opacity: 0.7;
+}
+
+/* Indicador de carga para cambio de página */
+.pagination-container.loading .pagination-btn {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.pagination-container.loading .pagination-btn:not(.active) {
+  background-color: var(--bg-light);
+}
+
+/* =========================================
+   15. RESPONSIVE PARA PAGINACIÓN
+   ========================================= */
+
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+  
+  .pagination-info {
+    text-align: center;
+    order: 2;
+  }
+  
+  .pagination-controls {
+    order: 1;
+    width: 100%;
+  }
+  
+  .pagination-list {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+  
+  .pagination-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .pagination-prev,
+  .pagination-next {
+    min-width: 70px;
+  }
+  
+  .page-info {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .pagination-container {
+    padding: 0.75rem 0;
+    margin-top: 1rem;
+  }
+  
+  .pagination-list {
+    gap: 0.25rem;
+  }
+  
+  .pagination-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0.25rem 0.375rem;
+    font-size: 0.8rem;
+  }
+  
+  .pagination-prev,
+  .pagination-next {
+    min-width: 60px;
+    font-size: 0.75rem;
+  }
+  
+  .page-info {
+    font-size: 0.8rem;
+  }
+  
+  /* En móvil, ocultar algunos números de página si hay muchos */
+  .pagination-list .pagination-btn:not(.active):not(.pagination-prev):not(.pagination-next) {
+    display: none;
+  }
+  
+  .pagination-list .pagination-btn.active,
+  .pagination-list .pagination-btn.pagination-prev,
+  .pagination-list .pagination-btn.pagination-next {
+    display: inline-flex;
+  }
+  
+  /* Mostrar algunos botones cercanos al activo */
+  .pagination-list .pagination-btn.active + .pagination-btn,
+  .pagination-list .pagination-btn.active - .pagination-btn {
+    display: inline-flex;
+  }
+}
+
+/* =========================================
+   16. ESTADOS ESPECIALES DE PAGINACIÓN
+   ========================================= */
+
+/* Efecto de destello para página activa */
+@keyframes pageBlink {
+  0%, 100% { 
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3); 
+  }
+  50% { 
+    box-shadow: 0 4px 20px rgba(67, 97, 238, 0.5); 
+  }
+}
+
+.pagination-btn.active.page-changed {
+  animation: pageBlink 0.6s ease-out;
+}
+
+/* Indicador visual cuando se está cargando nueva página */
+.pagination-container.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  animation: loadingBar 1s ease-in-out infinite;
+}
+
+@keyframes loadingBar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Mejorar la experiencia visual */
+.table-responsive {
+  position: relative;
+}
+
+.table-responsive.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(1px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Transición suave para cambios de contenido */
+.user-table tbody {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.user-table tbody.fade-out {
+  opacity: 0.3;
+}
+
+/* =========================================
+   17. ACCESIBILIDAD PARA PAGINACIÓN
+   ========================================= */
+
+.pagination-btn:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.pagination-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Indicador de loading accesible */
+.pagination-container[aria-busy="true"] {
+  position: relative;
+}
+
+.pagination-container[aria-busy="true"]::before {
+  content: 'Cargando...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--white);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: 0.875rem;
+  color: var(--text-medium);
+  z-index: 20;
+}
+
+/* Mejorar el contraste para mejor accesibilidad */
+@media (prefers-contrast: high) {
+  .pagination-btn {
+    border-width: 2px;
+    font-weight: 600;
+  }
+  
+  .pagination-btn.active {
+    background: var(--text-dark);
+    border-color: var(--text-dark);
+  }
+}
+
+/* Respeto por preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  .pagination-btn,
+  .pagination-btn::before,
+  .user-table,
+  .user-table tbody {
+    transition: none;
+  }
+  
+  .pagination-btn.active.page-changed {
+    animation: none;
+  }
+  
+  @keyframes loadingBar {
+    0%, 100% { transform: translateX(0); }
+  }
+}
+
+/* Estilos para la paginación */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding: 15px 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+}
+
+.pagination-info {
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #495057;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+    color: #212529;
+}
+
+.pagination-btn:disabled {
+    background: #f8f9fa;
+    color: #adb5bd;
+    cursor: not-allowed;
+    border-color: #e9ecef;
+}
+
+.pagination-numbers {
+    display: flex;
+    gap: 5px;
+}
+
+.pagination-number {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    background: white;
+    color: #495057;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-width: 40px;
+    text-align: center;
+}
+
+.pagination-number:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+    color: #212529;
+}
+
+.pagination-number.active {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.pagination-number.active:hover {
+    background: #0056b3;
+    border-color: #0056b3;
+}
+
+.pagination-ellipsis {
+    padding: 8px 4px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.pagination-size {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.pagination-size label {
+    font-weight: 500;
+    margin: 0;
+}
+
+.pagination-size .form-select {
+    width: auto;
+    min-width: 120px;
+    font-size: 14px;
+    padding: 6px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .pagination-container {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .pagination-controls {
+        justify-content: center;
+    }
+    
+    .pagination-info,
+    .pagination-size {
+        text-align: center;
+    }
+    
+    .pagination-btn {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+    
+    .pagination-number {
+        font-size: 13px;
+        padding: 6px 10px;
+        min-width: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination-numbers {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .pagination-btn {
+        flex: 1;
+        justify-content: center;
+        max-width: 120px;
+    }
+}
+
+/* Animaciones */
+.pagination-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estados de carga */
+.pagination-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.pagination-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
