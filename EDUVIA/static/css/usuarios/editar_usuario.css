@@ -1,0 +1,583 @@
+/* =================================
+   VARIABLES CSS EDUVIA
+   ================================= */
+:root {
+    --eduvia-primary: #4f46e5;
+    --eduvia-primary-dark: #4338ca;
+    --eduvia-primary-light: #6366f1;
+    --eduvia-secondary: #6b7280;
+    --eduvia-success: #10b981;
+    --eduvia-success-dark: #059669;
+    --eduvia-danger: #ef4444;
+    --eduvia-danger-dark: #dc2626;
+    --eduvia-warning: #f59e0b;
+    --eduvia-warning-dark: #d97706;
+    --eduvia-info: #06b6d4;
+    --eduvia-info-dark: #0891b2;
+    --eduvia-light: #f8fafc;
+    --eduvia-white: #ffffff;
+    --eduvia-dark: #111827;
+    --eduvia-text-primary: #111827;
+    --eduvia-text-secondary: #6b7280;
+    --eduvia-text-muted: #9ca3af;
+    --eduvia-border: #e5e7eb;
+    --eduvia-border-light: #f3f4f6;
+    --eduvia-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --eduvia-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --eduvia-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --eduvia-radius: 8px;
+    --eduvia-radius-lg: 12px;
+    --eduvia-radius-xl: 16px;
+    --eduvia-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =================================
+   CONTENEDOR PRINCIPAL
+   ================================= */
+.content-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--eduvia-light) 0%, #e0e7ff 100%);
+    padding: 2rem 1rem;
+}
+
+.edit-user-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--eduvia-white);
+    border-radius: var(--eduvia-radius-xl);
+    box-shadow: var(--eduvia-shadow-lg);
+    overflow: hidden;
+    position: relative;
+}
+
+.edit-user-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--eduvia-primary), var(--eduvia-info), var(--eduvia-success));
+}
+
+/* =================================
+   ENCABEZADO
+   ================================= */
+.page-header {
+    background: linear-gradient(135deg, #4e73df, #3d5fd8);
+    color: var(--eduvia-white);
+    padding: 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.page-header .user-info {
+    margin-top: 1rem;
+    opacity: 0.9;
+    font-size: 1.1rem;
+    font-weight: 500;
+    position: relative;
+    z-index: 2;
+}
+
+/* =================================
+   BREADCRUMB
+   ================================= */
+.breadcrumb-container {
+    background: var(--eduvia-light);
+    padding: 1rem 2.5rem;
+    border-bottom: 1px solid var(--eduvia-border);
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9rem;
+    color: var(--eduvia-text-secondary);
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+    content: '→';
+    color: var(--eduvia-text-muted);
+    margin-left: 0.5rem;
+}
+
+.breadcrumb-link {
+    color: var(--eduvia-primary);
+    text-decoration: none;
+    transition: var(--eduvia-transition);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.breadcrumb-link:hover {
+    color: var(--eduvia-primary-dark);
+    text-decoration: none;
+}
+
+.breadcrumb-current {
+    color: var(--eduvia-text-primary);
+    font-weight: 600;
+}
+
+/* =================================
+   ALERTAS
+   ================================= */
+.alerts-container {
+    padding: 1.5rem 2.5rem 0;
+}
+
+.custom-alert {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: var(--eduvia-radius-lg);
+    border-left: 4px solid;
+    background: var(--eduvia-white);
+    box-shadow: var(--eduvia-shadow);
+    animation: slideInDown 0.5s ease-out;
+    transition: var(--eduvia-transition);
+}
+
+.custom-alert.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.alert-success {
+    border-left-color: var(--eduvia-success);
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    color: #065f46;
+}
+
+.alert-error {
+    border-left-color: var(--eduvia-danger);
+    background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%);
+    color: #991b1b;
+}
+
+.alert-warning {
+    border-left-color: var(--eduvia-warning);
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.alert-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.alert-message {
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50%;
+    transition: var(--eduvia-transition);
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+.alert-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* =================================
+   FORMULARIO PRINCIPAL
+   ================================= */
+.form-container {
+ 
+    padding: 2.5rem;
+}
+
+.edit-form {
+    display: grid;
+    gap: 2rem;
+}
+
+.form-section {
+    background: linear-gradient(135deg, var(--eduvia-light) 0%, rgba(248, 250, 252, 0.5) 100%);
+    border-radius: var(--eduvia-radius-lg);
+    padding: 2rem;
+    border: 1px solid var(--eduvia-border-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.form-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--eduvia-primary), var(--eduvia-info));
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem 0;
+    color: var(--eduvia-text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--eduvia-border);
+}
+
+.section-title i {
+    color: var(--eduvia-primary);
+    font-size: 1.1rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--eduvia-text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.form-label i {
+    color: var(--eduvia-primary);
+    font-size: 0.9rem;
+}
+
+.form-label.required::after {
+    content: '*';
+    color: var(--eduvia-danger);
+    margin-left: 0.25rem;
+}
+
+.form-control {
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--eduvia-border);
+    border-radius: var(--eduvia-radius);
+    font-size: 1rem;
+    transition: var(--eduvia-transition);
+    background: var(--eduvia-white);
+    color: var(--eduvia-text-primary);
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--eduvia-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-control:hover {
+    border-color: var(--eduvia-primary-light);
+}
+
+.form-control::placeholder {
+    color: var(--eduvia-text-muted);
+}
+
+.form-select {
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--eduvia-border);
+    border-radius: var(--eduvia-radius);
+    font-size: 1rem;
+    transition: var(--eduvia-transition);
+    background: var(--eduvia-white);
+    color: var(--eduvia-text-primary);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5rem 1.5rem;
+    padding-right: 2.5rem;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--eduvia-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-select:hover {
+    border-color: var(--eduvia-primary-light);
+}
+
+/* =================================
+   VALIDACIÓN Y ERRORES
+   ================================= */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: var(--eduvia-danger);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: var(--eduvia-success);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.error-message {
+    color: var(--eduvia-danger);
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.error-message i {
+    font-size: 0.75rem;
+}
+
+.success-message {
+    color: var(--eduvia-success);
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.success-message i {
+    font-size: 0.75rem;
+}
+
+/* =================================
+   BOTONES DE ACCIÓN
+   ================================= */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--eduvia-border);
+    background: linear-gradient(135deg, var(--eduvia-light) 0%, rgba(248, 250, 252, 0.5) 100%);
+    border-radius: var(--eduvia-radius-lg);
+    padding: 2rem;
+}
+
+.btn-eduvia {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: var(--eduvia-radius);
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--eduvia-transition);
+    cursor: pointer;
+    font-size: 1rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-width: 180px;
+    box-shadow: var(--eduvia-shadow);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-eduvia::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: var(--eduvia-transition);
+}
+
+.btn-eduvia:hover::before {
+    left: 100%;
+}
+
+/* Botón Primario - Guardar */
+.btn-primary {
+    background: linear-gradient(135deg, var(--eduvia-primary), var(--eduvia-primary-dark));
+    color: var(--eduvia-white);
+    border: 2px solid var(--eduvia-primary);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--eduvia-primary-dark), var(--eduvia-primary));
+    transform: translateY(-3px);
+    box-shadow: var(--eduvia-shadow-lg);
+    border-color: var(--eduvia-primary-dark);
+}
+
+.btn-primary:active {
+    transform: translateY(-1px);
+    box-shadow: var(--eduvia-shadow);
+}
+
+.btn-primary i {
+    font-size: 1.1rem;
+    transition: var(--eduvia-transition);
+}
+
+.btn-primary:hover i {
+    transform: scale(1.1);
+}
+
+/* Botón Secundario - Volver */
+.btn-secondary {
+    background: linear-gradient(135deg, var(--eduvia-secondary), #4b5563);
+    color: var(--eduvia-white);
+    border: 2px solid var(--eduvia-secondary);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #4b5563, var(--eduvia-secondary));
+    transform: translateY(-3px);
+    box-shadow: var(--eduvia-shadow-lg);
+    border-color: #4b5563;
+    text-decoration: none;
+    color: var(--eduvia-white);
+}
+
+.btn-secondary:active {
+    transform: translateY(-1px);
+    box-shadow: var(--eduvia-shadow);
+}
+
+.btn-secondary i {
+    font-size: 1.1rem;
+    transition: var(--eduvia-transition);
+}
+
+.btn-secondary:hover i {
+    transform: translateX(-3px);
+}
+
+/* Estados de carga y disabled */
+.btn-eduvia:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-eduvia.loading {
+    pointer-events: none;
+}
+
+.btn-eduvia.loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Efectos adicionales */
+.btn-eduvia:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.btn-eduvia:focus-visible {
+    outline: 2px solid var(--eduvia-primary);
+    outline-offset: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn-eduvia {
+        width: 100%;
+        min-width: unset;
+        padding: 1.25rem 2rem;
+        font-size: 1.1rem;
+    }
+}
+
+/* Animación de entrada */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-actions {
+    animation: slideInUp 0.6s ease-out;
+}

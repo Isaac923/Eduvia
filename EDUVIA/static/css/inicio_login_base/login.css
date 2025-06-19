@@ -1,0 +1,329 @@
+body {
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/static/images/CECH.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}
+.main-row {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.login-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(15px);
+    animation: fadeInUp 0.8s ease-out;
+    transform-origin: center;
+    height: 100%;
+}
+
+/* Info Card Styles */
+.info-card {
+    background: linear-gradient(135deg, rgba(42, 82, 152, 0.9) 0%, rgba(30, 60, 114, 0.9) 100%);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    color: white;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease-out;
+    backdrop-filter: blur(10px);
+}
+
+.info-card::before {
+    content: '';
+    position: absolute;
+    bottom: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background-image: url('../images/logoCompleto.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.15;
+    transform: rotate(-15deg);
+}
+
+.info-card h2 {
+    font-weight: 700;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.info-card p {
+    font-weight: 300;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.info-feature {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.info-feature i {
+    font-size: 1.5rem;
+    margin-right: 15px;
+    background: rgba(255, 255, 255, 0.25);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.info-feature-text {
+    font-size: 1rem;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.toggle-container {
+    display: flex;
+    background-color: rgba(248, 249, 250, 0.95);
+    border-radius: 50px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+.toggle-option {
+    flex: 1;
+    text-align: center;
+    padding: 15px 0;
+    cursor: pointer;
+    font-weight: 600;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+    color: #666;
+}
+
+.toggle-option i {
+    margin-right: 8px;
+    font-size: 1.1em;
+}
+
+.toggle-option.active {
+    color: white;
+    transform: scale(1.05);
+}
+
+.toggle-slider {
+    position: absolute;
+    height: 100%;
+    width: 50%;
+    background: linear-gradient(45deg, #2196F3, #1976D2);
+    border-radius: 50px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    top: 0;
+    left: 0;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    padding: 12px;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.form-control:focus {
+    border-color: #2196F3;
+    box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+    transform: translateY(-2px);
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.form-floating label {
+    padding-left: 15px;
+}
+
+.logo-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.btn-login {
+    padding: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(45deg, #2196F3, #1976D2);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+}
+
+.btn-chaminade {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    background: linear-gradient(45deg, #ff6b6b, #ee5253);
+    color: white;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(238, 82, 83, 0.4);
+    transition: all 0.3s ease;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.btn-chaminade:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(238, 82, 83, 0.6);
+    color: white;
+}
+
+.login-header h2 {
+    color: #1e3c72;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.login-header p {
+    color: #666;
+    font-size: 1.1em;
+}
+
+.card-logo {
+    margin-top: auto;
+}
+
+.equal-height {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-wrapper {
+    height: 100%;
+}
+
+/* Animación 3D para el título de Eduvia */
+.eduvia-3d-title {
+    display: inline-block;
+    position: relative;
+    perspective: 500px;
+}
+
+.eduvia-3d-title i {
+    display: inline-block;
+    color: #1976D2;
+    animation: icon-3d-rotate 3s ease-in-out infinite;
+}
+
+.eduvia-3d-title .letter {
+    display: inline-block;
+    color: #1976D2;
+    animation: letter-3d-rotate 3s ease-in-out infinite;
+    transform-style: preserve-3d;
+    transition: transform 0.3s;
+}
+
+.eduvia-3d-title:hover .letter {
+    animation-play-state: paused;
+}
+
+.eduvia-3d-title .letter:nth-child(2) { animation-delay: 0.1s; }
+.eduvia-3d-title .letter:nth-child(3) { animation-delay: 0.2s; }
+.eduvia-3d-title .letter:nth-child(4) { animation-delay: 0.3s; }
+.eduvia-3d-title .letter:nth-child(5) { animation-delay: 0.4s; }
+.eduvia-3d-title .letter:nth-child(6) { animation-delay: 0.5s; }
+.eduvia-3d-title .letter:nth-child(7) { animation-delay: 0.6s; }
+
+@keyframes letter-3d-rotate {
+    0%, 100% {
+        transform: rotateY(0deg) translateY(0);
+        text-shadow: 0 0 0 rgba(0,0,0,0.1);
+    }
+    25% {
+        transform: rotateY(10deg) translateY(-5px);
+        text-shadow: -5px 5px 0 rgba(0,0,0,0.1);
+    }
+    75% {
+        transform: rotateY(-10deg) translateY(5px);
+        text-shadow: 5px 5px 0 rgba(0,0,0,0.1);
+    }
+}
+
+@keyframes icon-3d-rotate {
+    0%, 100% {
+        transform: rotateZ(0deg);
+    }
+    50% {
+        transform: rotateZ(15deg);
+    }
+}
+
+/* Responsive adjustments for background */
+@media (max-width: 768px) {
+    body {
+        background-attachment: scroll;
+    }
+    
+    .login-container {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+    }
+    
+    .info-card {
+        background: linear-gradient(135deg, rgba(42, 82, 152, 0.95) 0%, rgba(30, 60, 114, 0.95) 100%);
+    }
+}

@@ -1,0 +1,795 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Cursos{% endblock %}
+
+{% block content %}
+<div class="container mt-4" 
+     data-detalles-url="{% url 'cursos:api_detalles_curso' id=0 %}"
+     data-alumnos-detalles-url="{% url 'alumnos:api_detalles_alumno' id=0 %}"
+     data-eliminar-curso-url="{% url 'cursos:eliminar_curso' id=0 %}"
+     data-editar-alumno-url="/alumnos/"
+     data-eliminar-alumno-url="/alumnos/">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2 style="color: #303f9f;">Gestión de Cursos</h2>
+            {% if ano_activo %}
+                <p class="text-muted">Año académico activo: <strong>{{ ano_activo.ano }}</strong></p>
+                
+                <!-- Alerta mejorada de asignación automática -->
+                <div class="alert alert-gradient shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px;">
+                    <div class="d-flex align-items-center">
+                        <div class="alert-icon me-3">
+                            <div class="icon-circle" style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-magic fa-lg" style="color: #fff;"></i>
+                            </div>
+                        </div>
+                        <div class="alert-content flex-grow-1">
+                            <h6 class="alert-heading mb-2" style="color: #fff; font-weight: 600;">
+                                <i class="fas fa-sparkles me-2"></i>Asignación Automática Activa
+                            </h6>
+                            <p class="mb-2" style="color: rgba(255,255,255,0.9); font-size: 0.95rem;">
+                                Los alumnos se asignan automáticamente a los cursos según su <strong>nivel</strong> y <strong>jornada</strong> en el año académico activo.
+                            </p>
+                            <div class="d-flex align-items-center mt-2">
+                                <span class="badge bg-light text-dark me-2" style="font-size: 0.8rem;">
+                                    <i class="fas fa-calendar-alt me-1"></i>Año {{ ano_activo.ano }}
+                                </span>
+                                <span class="badge bg-success me-2" style="font-size: 0.8rem;">
+                                    <i class="fas fa-sync-alt me-1"></i>Sincronizado
+                                </span>
+                                <small style="color: rgba(255,255,255,0.8);">
+                                    <i class="fas fa-clock me-1"></i>Actualización en tiempo real
+                                </small>
+                            </div>
+                        </div>
+                        <div class="alert-animation">
+                            <div class="pulse-dot" style="width: 12px; height: 12px; background: #4CAF50; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+            {% else %}
+                <!-- Alerta de advertencia mejorada -->
+                <div class="alert alert-warning-gradient shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%); color: white; border-radius: 15px;">
+                    <div class="d-flex align-items-center">
+                        <div class="alert-icon me-3">
+                            <div class="icon-circle" style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-exclamation-triangle fa-lg" style="color: #fff;"></i>
+                            </div>
+                        </div>
+                        <div class="alert-content">
+                            <h6 class="alert-heading mb-2" style="color: #fff; font-weight: 600;">
+                                <i class="fas fa-calendar-times me-2"></i>Sin Año Académico Activo
+                            </h6>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.9);">
+                                No hay año académico activo configurado. Los cursos pueden aparecer vacíos hasta que se active un año académico.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-end">
+            <form method="post" action="{% url 'cursos:sincronizar_cursos' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sync shadow-sm" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-weight: 500;" title="Sincronizar alumnos con cursos">
+                    <i class="fas fa-sync me-2"></i>Sincronizar Cursos
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert" style="border-radius: 10px; border: none;">
+                <i class="fas fa-check-circle me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Filtros de búsqueda mejorados -->
+    <div class="card shadow-sm mb-4" style="border-radius: 15px; border: none;">
+        <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 15px 15px 0 0; border: none;">
+            <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h6>
+        </div>
+        <div class="card-body" style="background: #f8f9ff;">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <label class="input-group-text" for="nivelFilter" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border: none; font-weight: 500;">
+                            <i class="fas fa-layer-group me-2"></i>Nivel
+                        </label>
+                        <select class="form-select" id="nivelFilter" name="nivel" onchange="this.form.submit()" style="border: 2px solid #e3f2fd; border-radius: 0 10px 10px 0;">
+                            <option value="todos" {% if nivel_filter == 'todos' %}selected{% endif %}>Todos los niveles</option>
+                            <option value="1" {% if nivel_filter == '1' %}selected{% endif %}>Nivel 1</option>
+                            <option value="2" {% if nivel_filter == '2' %}selected{% endif %}>Nivel 2</option>
+                            <option value="3" {% if nivel_filter == '3' %}selected{% endif %}>Nivel 3</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <label class="input-group-text" for="jornadaFilter" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border: none; font-weight: 500;">
+                            <i class="fas fa-sun me-2"></i>Jornada
+                        </label>
+                        <select class="form-select" id="jornadaFilter" name="jornada" onchange="this.form.submit()" style="border: 2px solid #e3f2fd; border-radius: 0 10px 10px 0;">
+                            <option value="todos" {% if jornada_filter == 'todos' %}selected{% endif %}>Todas las jornadas</option>
+                            <option value="a" {% if jornada_filter == 'a' %}selected{% endif %}>Diurna (A)</option>
+                            <option value="b" {% if jornada_filter == 'b' %}selected{% endif %}>Vespertina (B)</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cards de cursos mejoradas -->
+    <div class="row mb-5">
+        {% for curso in cursos %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm curso-card" data-curso-id="{{ curso.id }}" style="border-radius: 15px; border: none; transition: all 0.3s ease;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 15px 15px 0 0; border: none;">
+                    <h5 class="mb-0 nivel-curso">
+                        <i class="fas fa-graduation-cap me-2"></i>{{ curso.nivel }}° <span class="letra-curso">{{ curso.letra|upper }}</span>
+                    </h5>
+                    <span class="badge {% if curso.letra == 'a' %}bg-warning{% else %}bg-info{% endif %} jornada-curso" style="font-size: 0.8rem; padding: 5px 10px; border-radius: 20px;">
+                        <i class="fas {% if curso.letra == 'a' %}fa-sun{% else %}fa-moon{% endif %} me-1"></i>
+                        {% if curso.letra == 'a' %}Diurno{% else %}Vespertino{% endif %}
+                    </span>
+                </div>
+                <div class="card-body" style="background: linear-gradient(135deg, #f8f9ff 0%, #e8eaf6 100%);">
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-muted">
+                            <i class="fas fa-user-graduate me-2" style="color: #5c6bc0;"></i>Alumnos Asignados:
+                        </h6>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-primary me-2" style="font-size: 1rem; padding: 8px 12px; border-radius: 20px;">
+                                {{ curso.alumnos.count }}
+                            </span>
+                            <span class="text-muted">alumnos activos</span>
+                        </div>
+                        {% if ano_activo %}
+                            <small class="text-muted d-flex align-items-center mt-2">
+                                <i class="fas fa-sync me-1" style="color: #4CAF50;"></i>
+                                Sincronizado con año {{ ano_activo.ano }}
+                            </small>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Indicador de asignación automática mejorado -->
+                    <div class="alert alert-light py-2 mb-2" style="background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%); border: 1px solid #c8e6c9; border-radius: 10px;">
+                        <small class="text-success d-flex align-items-center">
+                            <i class="fas fa-magic me-2" style="color: #4CAF50;"></i>
+                            <span style="font-weight: 500;">Asignación automática activa</span>
+                        </small>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent" style="border: none; padding: 20px;">
+                    <div class="d-flex justify-content-center">
+                        <button type="button" class="btn btn-sm ver-detalles-btn shadow-sm" 
+                                style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border: none; border-radius: 25px; padding: 10px 25px; font-weight: 500; transition: all 0.3s ease;" 
+                                data-bs-toggle="modal" data-bs-target="#cursoDetallesModal" data-curso-id="{{ curso.id }}">
+                            <i class="fas fa-eye me-2"></i>Ver Detalles
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card shadow-sm" style="border-radius: 15px; border: none;">
+                <div class="card-body text-center py-5" style="background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);">
+                    <i class="fas fa-school fa-4x mb-3" style="color: #78909c;"></i>
+                    <h4 style="color: #78909c;">No hay cursos registrados</h4>
+                    <p class="text-muted">Los cursos se crean automáticamente según los niveles y jornadas disponibles.</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="mb-5"></div>
+</div>
+
+<!-- Modal para ver detalles del curso -->
+<div class="modal fade" id="cursoDetallesModal" tabindex="-1" aria-labelledby="cursoDetallesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #5c6bc0; color: white;">
+                <h5 class="modal-title" id="cursoDetallesModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Detalles del Curso
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background: #f8f9ff;">
+                <div id="modal-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando detalles del curso...</p>
+                </div>
+                <div id="modal-content" style="display: none;">
+                    <!-- Información de asignación automática mejorada -->
+                    <div class="alert alert-gradient shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%); color: white; border-radius: 12px;">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-magic fa-2x" style="color: rgba(255,255,255,0.9);"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1" style="color: #fff; font-weight: 600;">
+                                    Asignación Automática Activa
+                                </h6>
+                                <p class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">
+                                    Los alumnos se asignan automáticamente según su nivel y jornada en el año académico activo.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card h-100 shadow-sm" style="border-radius: 12px; border: none;">
+                                <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 12px 12px 0 0;">
+                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Curso</h6>
+                                </div>
+                                <div class="card-body" style="background: linear-gradient(135deg, #f8f9ff 0%, #e8eaf6 100%);">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">
+                                                    <i class="fas fa-layer-group me-2" style="color: #5c6bc0;"></i>Nivel:
+                                                </h6>
+                                                <p id="modal-nivel" class="mb-0" style="font-size: 1.1rem; font-weight: 500;"></p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">
+                                                    <i class="fas fa-sun me-2" style="color: #ff9800;"></i>Jornada:
+                                                </h6>
+                                                <p class="mb-0">
+                                                    <span id="modal-jornada" style="font-size: 1.1rem; font-weight: 500;"></span>
+                                                    <span id="modal-jornada-badge" class="badge ms-2"></span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">
+                                                    <i class="fas fa-calendar-alt me-2" style="color: #4CAF50;"></i>Año Académico:
+                                                </h6>
+                                                <p id="modal-ano-academico" class="mb-0" style="font-size: 1.1rem; font-weight: 500;">{{ ano_activo.ano|default:"No definido" }}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">
+                                                    <i class="fas fa-cogs me-2" style="color: #9c27b0;"></i>Tipo de Asignación:
+                                                </h6>
+                                                <p class="mb-0">
+                                                    <span class="badge bg-success" style="font-size: 0.9rem; padding: 6px 12px; border-radius: 20px;">
+                                                        <i class="fas fa-magic me-1"></i>Automática
+                                                    </span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-3 shadow-sm" style="border-radius: 12px; border: none;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 12px 12px 0 0;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Alumnos Asignados</h6>
+                                <span class="badge bg-light text-dark" id="modal-total-alumnos" style="font-size: 0.9rem; padding: 6px 12px; border-radius: 20px;">0 alumnos</span>
+                            </div>
+                        </div>
+                        <div class="card-body" style="background: #f8f9ff;">
+                            <div id="alumnos-table-container">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" style="border-radius: 8px; overflow: hidden;">
+                                        <thead style="background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);">
+                                            <tr>
+                                                <th style="border: none; font-weight: 600; color: #3f51b5;">
+                                                    <i class="fas fa-user me-2"></i>Nombre
+                                                </th>
+                                                <th style="border: none; font-weight: 600; color: #3f51b5;">
+                                                    <i class="fas fa-birthday-cake me-2"></i>Edad
+                                                </th>
+                                                <th style="border: none; font-weight: 600; color: #3f51b5;">
+                                                    <i class="fas fa-check-circle me-2"></i>Estado
+                                                </th>
+                                                <th style="border: none; font-weight: 600; color: #3f51b5;">
+                                                    <i class="fas fa-cog me-2"></i>Acciones
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="modal-alumnos-lista">
+                                            <!-- Aquí se cargarán los alumnos dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="no-alumnos-message" style="display: none;">
+                                <div class="alert alert-info" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 1px solid #2196f3; border-radius: 10px; color: #1976d2;">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No hay alumnos activos asignados a este curso en el año académico activo.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="modal-error" class="alert alert-danger" style="display: none; border-radius: 10px; border: none;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="error-message">Error al cargar los detalles del curso.</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9ff; border: none; border-radius: 0 0 15px 15px;">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal" style="border-radius: 25px; padding: 8px 20px;">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar curso -->
+<div class="modal fade" id="confirmarEliminarModal" tabindex="-1" aria-labelledby="confirmarEliminarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px; border: none;">
+            <div class="modal-header bg-danger text-white" style="border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title" id="confirmarEliminarModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background: #f8f9ff;">
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                    <h5>¿Estás seguro de que deseas eliminar este curso?</h5>
+                    <p class="text-danger">Esta acción no se puede deshacer y eliminará toda la información asociada al curso.</p>
+                </div>
+                <div class="alert alert-warning" style="border-radius: 10px;">
+                    <strong>Curso a eliminar:</strong> <span id="curso-a-eliminar"></span>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9ff; border: none;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 25px;">Cancelar</button>
+                <form id="form-eliminar-curso" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" style="border-radius: 25px;">
+                        <i class="fas fa-trash-alt me-1"></i> Eliminar Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para detalles del alumno -->
+<div class="modal fade" id="alumnoDetallesModal" tabindex="-1" aria-labelledby="alumnoDetallesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 15px; border: none;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title" id="alumnoDetallesModalLabel">
+                    <i class="fas fa-user-graduate me-2"></i>Detalles del Alumno
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background: #f8f9ff;">
+                <div id="alumno-modal-loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando detalles del alumno...</p>
+                </div>
+                
+                <div id="alumno-modal-content" style="display: none;">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 shadow-sm" style="border-radius: 12px; border: none;">
+                                <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 12px 12px 0 0;">
+                                    <h6 class="mb-0"><i class="fas fa-user-graduate me-2"></i>Información Personal</h6>
+                                </div>
+                                <div class="card-body" style="background: linear-gradient(135deg, #f8f9ff 0%, #e8eaf6 100%);">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Nombre Completo:</h6>
+                                        <p id="alumno-nombre"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">RUT:</h6>
+                                        <p id="alumno-rut"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Fecha de Nacimiento:</h6>
+                                        <p id="alumno-fecha-nacimiento"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Edad:</h6>
+                                        <p id="alumno-edad"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Sexo:</h6>
+                                        <p id="alumno-sexo"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Estado Civil:</h6>
+                                        <p id="alumno-estado-civil"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card h-100 shadow-sm" style="border-radius: 12px; border: none;">
+                                <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 12px 12px 0 0;">
+                                    <h6 class="mb-0"><i class="fas fa-school me-2"></i>Información Académica</h6>
+                                </div>
+                                <div class="card-body" style="background: linear-gradient(135deg, #f8f9ff 0%, #e8eaf6 100%);">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Nivel:</h6>
+                                        <p id="alumno-nivel"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Jornada:</h6>
+                                        <p id="alumno-jornada"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Fecha de Ingreso:</h6>
+                                        <p id="alumno-fecha-ingreso"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Último Curso Aprobado:</h6>
+                                        <p id="alumno-ultimo-curso"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Curso Repetido:</h6>
+                                        <p id="alumno-curso-repetido"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Estado:</h6>
+                                        <p id="alumno-estado"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 shadow-sm" style="border-radius: 12px; border: none;">
+                                <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 12px 12px 0 0;">
+                                    <h6 class="mb-0"><i class="fas fa-home me-2"></i>Información de Contacto</h6>
+                                </div>
+                                <div class="card-body" style="background: linear-gradient(135deg, #f8f9ff 0%, #e8eaf6 100%);">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Dirección:</h6>
+                                        <p id="alumno-direccion"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Teléfono:</h6>
+                                        <p id="alumno-telefono"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Correo Electrónico:</h6>
+                                        <p id="alumno-email"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Religión:</h6>
+                                        <p id="alumno-religion"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Situación Laboral:</h6>
+                                        <p id="alumno-situacion-laboral"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card h-100 shadow-sm" style="border-radius: 12px; border: none;">
+                                <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 12px 12px 0 0;">
+                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información Adicional</h6>
+                                </div>
+                                <div class="card-body" style="background: linear-gradient(135deg, #f8f9ff 0%, #e8eaf6 100%);">
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Programa PIE:</h6>
+                                        <p id="alumno-programa-pie"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Profesional de Apoyo:</h6>
+                                        <p id="alumno-profesional-apoyo"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold text-muted">Informe Psicosocial:</h6>
+                                        <p id="alumno-informe-psicosocial"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card h-100 shadow-sm" style="border-radius: 12px; border: none;">
+                                <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0 0%, #3f51b5 100%); color: white; border-radius: 12px 12px 0 0;">
+                                    <h6 class="mb-0"><i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia</h6>
+                                </div>
+                                <div class="card-body" style="background: linear-gradient(135deg, #f8f9ff 0%, #e8eaf6 100%);">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">Nombre:</h6>
+                                                <p id="alumno-contacto-emergencia-nombre"></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">Parentezco:</h6>
+                                                <p id="alumno-contacto-emergencia-parentezco"></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-muted">Teléfono:</h6>
+                                                <p id="alumno-contacto-emergencia-telefono"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="alumno-modal-error" class="alert alert-danger" style="display: none; border-radius: 10px; border: none;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="alumno-error-message">Error al cargar los detalles del alumno.</span>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9ff; border: none; border-radius: 0 0 15px 15px;">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <button type="button" class="btn btn-danger shadow-sm" id="eliminar-alumno-btn" style="border-radius: 25px; padding: 8px 20px;">
+                            <i class="fas fa-trash-alt me-1"></i> Eliminar Alumno
+                        </button>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary me-2 shadow-sm" data-bs-dismiss="modal" style="border-radius: 25px; padding: 8px 20px;">Cerrar</button>
+                        <a href="#" id="editar-alumno-link" class="btn shadow-sm" style="background: linear-gradient(135deg, #26a69a 0%, #00897b 100%); color: white; border-radius: 25px; padding: 8px 20px; text-decoration: none;">
+                            <i class="fas fa-edit me-1"></i> Editar Alumno
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar alumno -->
+<div class="modal fade" id="confirmarEliminarAlumnoModal" tabindex="-1" aria-labelledby="confirmarEliminarAlumnoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 15px; border: none;">
+            <div class="modal-header bg-danger text-white" style="border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title" id="confirmarEliminarAlumnoModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background: #f8f9ff;">
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                    <h5>¿Estás seguro de que deseas eliminar este alumno?</h5>
+                    <p class="text-danger">Esta acción no se puede deshacer y eliminará toda la información asociada al alumno.</p>
+                </div>
+                <div class="alert alert-warning" style="border-radius: 10px;">
+                    <strong>Alumno a eliminar:</strong> <span id="alumno-a-eliminar"></span>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9ff; border: none;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 25px;">Cancelar</button>
+                <form id="form-eliminar-alumno" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" style="border-radius: 25px;">
+                        <i class="fas fa-trash-alt me-1"></i> Eliminar Definitivamente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/base.css' %}">
+<style>
+    /* Animaciones y estilos adicionales */
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    .pulse-dot {
+        animation: pulse 2s infinite;
+    }
+    
+    .curso-card {
+        transition: all 0.3s ease;
+    }
+    
+    .curso-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .btn-sync:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 152, 0, 0.3);
+    }
+    
+    .btn-help:hover {
+        box-shadow: 0 8px 25px rgba(63, 81, 181, 0.4);
+    }
+    
+    .ver-detalles-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(92, 107, 192, 0.3);
+    }
+    
+    .alert-gradient {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .alert-gradient::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(92, 107, 192, 0.1);
+        transform: scale(1.02);
+        transition: all 0.2s ease;
+    }
+    
+    .badge {
+        transition: all 0.2s ease;
+    }
+    
+    .badge:hover {
+        transform: scale(1.05);
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .modal-content {
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    
+    .form-select:focus,
+    .form-control:focus {
+        border-color: #5c6bc0;
+        box-shadow: 0 0 0 0.2rem rgba(92, 107, 192, 0.25);
+    }
+    
+    /* Efectos de hover para botones */
+    .btn {
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+    
+    /* Mejoras para dispositivos móviles */
+    @media (max-width: 768px) {
+        .alert-gradient .d-flex {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .alert-icon {
+            margin-bottom: 15px;
+        }
+        
+        .curso-card {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/cursos/gestion_cursos.js' %}"></script>
+<script>
+    // Efectos adicionales de JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animación de entrada para las cards
+        const cards = document.querySelectorAll('.curso-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+        
+        // Efecto de ripple para botones
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.classList.add('ripple');
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+    });
+</script>
+<style>
+    /* Efecto ripple */
+    .btn {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        transform: scale(0);
+        animation: ripple-animation 0.6s linear;
+        pointer-events: none;
+    }
+    
+    @keyframes ripple-animation {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+</style>
+{% endblock %}

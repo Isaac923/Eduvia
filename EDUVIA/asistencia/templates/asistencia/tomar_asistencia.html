@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load asistencia_extras %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/asistencia/tomar_asistencia.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header {% if es_modificacion %}bg-warning text-dark{% else %}bg-success text-white{% endif %}">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if es_modificacion %}edit{% else %}clipboard-check{% endif %} me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                    <small>
+                        Fecha: {% if es_modificacion %}{{ fecha_modificar|date:"d/m/Y" }}{% else %}{{ fecha_hoy|date:"d/m/Y" }}{% endif %} - Curso: {{ asignatura_curso.curso }}
+                    </small>
+                </div>
+                <div class="card-body">
+                    {% if es_modificacion %}
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-edit me-2"></i>
+                            <strong>Modo Modificación:</strong> Está editando la asistencia del {{ fecha_modificar|date:"d/m/Y" }}. Los cambios sobrescribirán los registros existentes.
+                        </div>
+                    {% elif asistencia_existente %}
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Ya existe un registro de asistencia para hoy. Al guardar, se actualizará la información.
+                        </div>
+                    {% endif %}
+
+                    <form method="post" id="asistenciaForm">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-success" onclick="marcarTodos('presente')">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Marcar Todos Presentes
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-outline-danger" onclick="marcarTodos('ausente')">
+                                    <i class="fas fa-times-circle me-2"></i>
+                                    Marcar Todos Ausentes
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Estudiante</th>
+                                        <th>Estado</th>
+                                        <th>Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for alumno in alumnos %}
+                                        {% with asistencia_actual=asistencias_actuales|get_item:alumno.id %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                        {{ alumno.primer_nombre.0 }}{{ alumno.apellido_paterno.0 }}
+                                                    </div>
+                                                    <div>
+                                                        <strong>{{ alumno.apellido_paterno }} {{ alumno.apellido_materno }}, {{ alumno.primer_nombre }}</strong><br>
+                                                        <small class="text-muted">{{ alumno.rut }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <input type="radio" class="btn-check" name="alumno_{{ alumno.id }}" 
+                                                           id="presente_{{ alumno.id }}" value="presente" 
+                                                           {% if asistencia_actual.estado == 'presente' %}checked{% endif %}>
+                                                    <label class="btn btn-outline-success btn-sm" for="presente_{{ alumno.id }}">
+                                                        <i class="fas fa-check"></i> Presente
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="alumno_{{ alumno.id }}" 
+                                                           id="ausente_{{ alumno.id }}" value="ausente"
+                                                           {% if asistencia_actual.estado == 'ausente' or not asistencia_actual %}checked{% endif %}>
+                                                    <label class="btn btn-outline-danger btn-sm" for="ausente_{{ alumno.id }}">
+                                                        <i class="fas fa-times"></i> Ausente
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="alumno_{{ alumno.id }}" 
+                                                           id="tardanza_{{ alumno.id }}" value="tardanza"
+                                                           {% if asistencia_actual.estado == 'tardanza' %}checked{% endif %}>
+                                                    <label class="btn btn-outline-warning btn-sm" for="tardanza_{{ alumno.id }}">
+                                                        <i class="fas fa-clock"></i> Tardanza
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="alumno_{{ alumno.id }}" 
+                                                           id="justificado_{{ alumno.id }}" value="justificado"
+                                                           {% if asistencia_actual.estado == 'justificado' %}checked{% endif %}>
+                                                    <label class="btn btn-outline-info btn-sm" for="justificado_{{ alumno.id }}">
+                                                        <i class="fas fa-file-medical"></i> Justificado
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm" 
+                                                       name="observaciones_{{ alumno.id }}" 
+                                                       placeholder="Observaciones..."
+                                                       value="{{ asistencia_actual.observaciones|default:'' }}">
+                                            </td>
+                                        </tr>
+                                        {% endwith %}
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center">
+                                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                                No hay estudiantes registrados en este curso.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <div class="d-flex gap-2">
+                                {% if es_modificacion %}
+                                    <a href="{% url 'asistencia:ver_asistencias' %}?asignatura_curso={{ asignatura_curso.id }}&fecha_inicio={{ fecha_modificar|date:'Y-m-d' }}&fecha_fin={{ fecha_modificar|date:'Y-m-d' }}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Volver a Asistencias
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>
+                                        Volver
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'asistencia:ver_asistencias' %}" class="btn btn-outline-info">
+                                    <i class="fas fa-eye me-2"></i>
+                                    Ver Asistencias
+                                </a>
+                            </div>
+                            <button type="submit" class="btn {% if es_modificacion %}btn-warning{% else %}btn-success{% endif %} btn-lg">
+                                <i class="fas fa-{% if es_modificacion %}edit{% else %}save{% endif %} me-2"></i>
+                                {% if es_modificacion %}Actualizar Asistencia{% else %}Guardar Asistencia{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function marcarTodos(estado) {
+    const radios = document.querySelectorAll(`input[type="radio"][value="${estado}"]`);
+    radios.forEach(radio => {
+        radio.checked = true;
+    });
+}
+
+// Confirmación antes de enviar con SweetAlert2 mejorado
+document.getElementById('asistenciaForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const esModificacion = {{ es_modificacion|yesno:"true,false" }};
+    const fecha = esModificacion ? '{{ fecha_modificar|date:"d/m/Y" }}' : '{{ fecha_hoy|date:"d/m/Y" }}';
+    const asignatura = '{{ asignatura_curso.asignatura }}';
+    const curso = '{{ asignatura_curso.curso }}';
+    
+    // Contar estados
+    const presentes = document.querySelectorAll('input[value="presente"]:checked').length;
+    const ausentes = document.querySelectorAll('input[value="ausente"]:checked').length;
+    const tardanzas = document.querySelectorAll('input[value="tardanza"]:checked').length;
+    const justificados = document.querySelectorAll('input[value="justificado"]:checked').length;
+    const total = presentes + ausentes + tardanzas + justificados;
+    
+    // Contar observaciones
+    const observaciones = Array.from(document.querySelectorAll('input[name^="observaciones_"]'))
+        .filter(input => input.value.trim() !== '').length;
+    
+    const titulo = esModificacion ? '¿Actualizar Asistencia?' : '¿Guardar Asistencia?';
+    const textoBoton = esModificacion ? 'Sí, actualizar' : 'Sí, guardar';
+    const colorBoton = esModificacion ? '#ffc107' : '#28a745';
+    const iconoBoton = esModificacion ? 'edit' : 'save';
+    
+    Swal.fire({
+        title: titulo,
+        html: `
+            <div class="text-start">
+                <div class="mb-3 text-center">
+                    <i class="fas fa-${esModificacion ? 'edit' : 'clipboard-check'} fa-3x text-${esModificacion ? 'warning' : 'success'} mb-3"></i>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <p><strong><i class="fas fa-calendar me-2"></i>Fecha:</strong></p>
+                        <p><strong><i class="fas fa-book me-2"></i>Asignatura:</strong></p>
+                        <p><strong><i class="fas fa-users me-2"></i>Curso:</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <p>${fecha}</p>
+                        <p>${asignatura}</p>
+                        <p>${curso}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center mb-3">
+                    <div class="col-3">
+                        <div class="text-success">
+                            <i class="fas fa-check-circle"></i>
+                            <div class="fw-bold">${presentes}</div>
+                            <small>Presentes</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="text-danger">
+                            <i class="fas fa-times-circle"></i>
+                            <div class="fw-bold">${ausentes}</div>
+                            <small>Ausentes</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="text-warning">
+                            <i class="fas fa-clock"></i>
+                            <div class="fw-bold">${tardanzas}</div>
+                            <small>Tardanzas</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="text-info">
+                            <i class="fas fa-file-medical"></i>
+                            <div class="fw-bold">${justificados}</div>
+                            <small>Justificados</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info py-2">
+                    <small>
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Total estudiantes:</strong> ${total}
+                        ${observaciones > 0 ? `<br><i class="fas fa-comment me-2"></i><strong>Con observaciones:</strong> ${observaciones}` : ''}
+                    </small>
+                </div>
+                
+                ${esModificacion ? '<div class="alert alert-warning py-2"><small><i class="fas fa-exclamation-triangle me-2"></i>Esta acción sobrescribirá los registros existentes</small></div>' : ''}
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: colorBoton,
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: `<i class="fas fa-${iconoBoton} me-2"></i>${textoBoton}`,
+        cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+        customClass: {
+            popup: 'swal2-popup-custom',
+            title: 'swal2-title-custom',
+            confirmButton: `btn btn-${esModificacion ? 'warning' : 'success'}`,
+            cancelButton: 'btn btn-secondary'
+        },
+        buttonsStyling: false,
+        focusConfirm: false,
+        allowOutsideClick: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar loading
+            Swal.fire({
+                title: esModificacion ? 'Actualizando...' : 'Guardando...',
+                html: `
+                    <div class="text-center">
+                        <div class="spinner-border text-${esModificacion ? 'warning' : 'success'}" role="status">
+                            <span class="visually-hidden">Procesando...</span>
+                        </div>
+                        <p class="mt-3 mb-0">${esModificacion ? 'Actualizando registros de asistencia' : 'Guardando registros de asistencia'}</p>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Enviar formulario
+            this.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

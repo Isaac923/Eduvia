@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tz %}
+{% load asistencia_extras %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/asistencia/ver_asistencias.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/asistencia/ver_asistencias.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                    <small>Consulte los registros de asistencia por año académico, asignatura, mes y estado</small>
+                </div>
+                <div class="card-body">
+                    {% if not anos_academicos %}
+                        <div class="alert alert-warning">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Años Académicos Requeridos</h5>
+                            <p class="mb-2">No hay años académicos configurados. Es necesario tener años académicos para ver las asistencias.</p>
+                            {% if request.user.is_superuser %}
+                                <p class="mb-0">Como administrador, puede configurar los años académicos en el módulo de gestión de alumnos.</p>
+                            {% else %}
+                                <p class="mb-0">Contacte al administrador para configurar los años académicos.</p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+                        <!-- Selector de Año Académico -->
+                        {% if request.user.is_superuser %}
+                        <div class="year-selector-container mb-4">
+                            <div class="year-selector-header">
+                                <h4 class="year-selector-title">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Año Académico
+                                </h4>
+                                <div class="year-controls">
+                                    <select class="year-select" id="ano-academico-filter" name="ano_academico" onchange="cambiarAnoAcademico()">
+                                        {% for ano in anos_academicos %}
+                                            <option value="{{ ano.id }}" {% if ano.id == ano_academico_actual.id %}selected{% endif %}>
+                                                {{ ano.ano }} {% if ano.activo %}(Activo){% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="year-info">
+                                <div class="year-stat">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>Año Seleccionado: <strong>{{ ano_academico_actual.ano }}</strong></span>
+                                </div>
+                                {% if total_registros > 0 %}
+                                <div class="year-stat">
+                                    <i class="fas fa-clipboard-check"></i>
+                                    <span>Total Registros: <strong>{{ total_registros }}</strong></span>
+                                </div>
+                                <div class="year-stat">
+                                    <i class="fas fa-percentage"></i>
+                                    <span>Asistencia General: <strong>{{ porcentaje_asistencia_general }}%</strong></span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Filtros -->
+                        <div class="filtros-container">
+                            <form method="get" id="filtros-form">
+                                <!-- Campo oculto para año académico -->
+                                <input type="hidden" name="ano_academico" id="hidden-ano-academico" value="{{ ano_academico_actual.id }}">
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="asignatura_curso" class="form-label">
+                                            <i class="fas fa-book me-1"></i>Asignatura y Curso
+                                        </label>
+                                        <select name="asignatura_curso" id="asignatura_curso" class="form-select">
+                                            <option value="">Seleccionar asignatura...</option>
+                                            {% for asignatura in asignaturas %}
+                                                <option value="{{ asignatura.id }}" 
+                                                        {% if asignatura_curso_seleccionada and asignatura.id == asignatura_curso_seleccionada.id %}selected{% endif %}>
+                                                    {{ asignatura.asignatura }} - {{ asignatura.curso }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="mes" class="form-label">
+                                            <i class="fas fa-calendar me-1"></i>Mes
+                                        </label>
+                                        <select name="mes" id="mes" class="form-select">
+                                            <option value="">Todos los meses</option>
+                                            {% for valor, nombre in meses_opciones %}
+                                                <option value="{{ valor }}" {% if mes_filtro == valor|stringformat:"s" %}selected{% endif %}>
+                                                    {{ nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="estado" class="form-label">
+                                            <i class="fas fa-filter me-1"></i>Estado
+                                        </label>
+                                        <select name="estado" id="estado" class="form-select">
+                                            <option value="">Todos los estados</option>
+                                            {% for valor, nombre in estados_choices %}
+                                                <option value="{{ valor }}" {% if estado_filtro == valor %}selected{% endif %}>
+                                                    {{ nombre }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">&nbsp;</label>
+                                        <div class="d-grid">
+                                            <button type="button" class="btn btn-secondary" onclick="limpiarFiltros()" title="Limpiar todos los filtros">
+                                                <i class="fas fa-broom me-1"></i>
+                                                Limpiar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Resultados -->
+                        {% if asistencias_por_fecha %}
+                            <!-- Información de resultados -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <span class="ano-academico-badge">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        Año {{ ano_academico_actual.ano }}
+                                    </span>
+                                    <span class="text-muted ms-2">
+                                        Total de {{ total_registros }} registros encontrados
+                                    </span>
+                                    {% if porcentaje_asistencia_general > 0 %}
+                                        <span class="badge bg-{% if porcentaje_asistencia_general >= 85 %}success{% elif porcentaje_asistencia_general >= 70 %}warning{% else %}danger{% endif %} ms-2">
+                                            {{ porcentaje_asistencia_general }}% Asistencia
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    {% if asignatura_curso_seleccionada %}
+                                        <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-plus me-1"></i>
+                                            Registrar Nueva
+                                        </a>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="expandirTodos()">
+                                        <i class="fas fa-expand-arrows-alt me-1"></i>
+                                        Expandir
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="contraerTodos()">
+                                        <i class="fas fa-compress-arrows-alt me-1"></i>
+                                        Contraer
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="cambiarVista('lista')" id="btn-vista-lista">
+                                        <i class="fas fa-list me-1"></i>
+                                        Lista
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="cambiarVista('calendario')" id="btn-vista-calendario">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        Calendario
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Vista Calendario (inicialmente oculta) -->
+                            <div id="vista-calendario" style="display: none;">
+                                <div class="calendario-container">
+                                    <div class="calendario-header">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cambiarMes(-1)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <h5 id="calendario-titulo" class="mb-0"></h5>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cambiarMes(1)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="calendario-grid" id="calendario-grid">
+                                        <!-- El calendario se generará dinámicamente -->
+                                    </div>
+                                    <div class="calendario-info">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Haga clic en los días con asistencias para ver los detalles
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Vista Lista (por defecto visible) -->
+                            <div id="vista-lista">
+                                <!-- Vista agrupada por fechas (colapsable) -->
+                                {% for fecha, datos in asistencias_por_fecha %}
+                                    <div class="mb-3">
+                                        <div class="card border-0 shadow-sm">
+                                            <!-- Header colapsable -->
+                                            <div class="card-header bg-light cursor-pointer" 
+                                                 data-bs-toggle="collapse" 
+                                                 data-bs-target="#collapse-{{ fecha|date:'Y-m-d' }}" 
+                                                 aria-expanded="false" 
+                                                 aria-controls="collapse-{{ fecha|date:'Y-m-d' }}">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-chevron-right me-2 collapse-icon transition-all"></i>
+                                                        <h6 class="mb-0 text-primary">
+                                                            <i class="fas fa-calendar-day me-2"></i>
+                                                            {{ fecha|date:"l, d \d\e F \d\e Y" }}
+                                                        </h6>
+                                                    </div>
+                                                    
+                                                    <!-- Estadísticas resumidas en el header -->
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <small class="text-muted">
+                                                            Total: <span class="badge bg-primary">{{ datos.stats.total }}</span>
+                                                            P: <span class="badge bg-success">{{ datos.stats.presentes }}</span>
+                                                            A: <span class="badge bg-danger">{{ datos.stats.ausentes }}</span>
+                                                            T: <span class="badge bg-warning">{{ datos.stats.tardanzas }}</span>
+                                                            J: <span class="badge bg-info">{{ datos.stats.justificados }}</span>
+                                                            <span class="badge bg-{% if datos.stats.porcentaje_asistencia >= 85 %}success{% elif datos.stats.porcentaje_asistencia >= 70 %}warning{% else %}danger{% endif %}">
+                                                                {{ datos.stats.porcentaje_asistencia }}%
+                                                            </span>
+                                                        </small>
+                                                        
+                                                        <!-- Botón modificar (evitar propagación del click) -->
+                                                        {% if asignatura_curso_seleccionada %}
+                                                            {% now "Y-m-d" as fecha_hoy %}
+                                                            {% if request.user.is_superuser or fecha|date:"Y-m-d" == fecha_hoy %}
+                                                                <button type="button" 
+                                                                        class="btn btn-outline-warning btn-sm modificar-asistencia-btn" 
+                                                                        data-fecha="{{ fecha|date:'Y-m-d' }}" 
+                                                                        data-fecha-display="{{ fecha|date:'d/m/Y' }}"
+                                                                        data-asignatura="{{ asignatura_curso_seleccionada.asignatura }}"
+                                                                        data-curso="{{ asignatura_curso_seleccionada.curso }}"
+                                                                        data-url="{% url 'asistencia:modificar_asistencia' asignatura_curso_seleccionada.id fecha|date:'Y-m-d' %}"
+                                                                        onclick="event.stopPropagation();">
+                                                                    <i class="fas fa-edit me-1"></i>
+                                                                    Modificar
+                                                                </button>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Contenido colapsable -->
+                                            <div class="collapse" id="collapse-{{ fecha|date:'Y-m-d' }}">
+                                                <div class="card-body">
+                                                    <!-- Estadísticas detalladas -->
+                                                    <div class="row mb-3">
+                                                        <div class="col-12">
+                                                            <div class="card bg-light">
+                                                                <div class="card-body py-2">
+                                                                    <div class="row text-center">
+                                                                        <div class="col-md-2 col-6">
+                                                                            <small class="text-muted">Total</small>
+                                                                            <div class="fw-bold text-primary">{{ datos.stats.total }}</div>
+                                                                        </div>
+                                                                        <div class="col-md-2 col-6">
+                                                                            <small class="text-muted">Presentes</small>
+                                                                            <div class="fw-bold text-success">{{ datos.stats.presentes }}</div>
+                                                                        </div>
+                                                                        <div class="col-md-2 col-6">
+                                                                            <small class="text-muted">Ausentes</small>
+                                                                            <div class="fw-bold text-danger">{{ datos.stats.ausentes }}</div>
+                                                                        </div>
+                                                                        <div class="col-md-2 col-6">
+                                                                            <small class="text-muted">Tardanzas</small>
+                                                                            <div class="fw-bold text-warning">{{ datos.stats.tardanzas }}</div>
+                                                                        </div>
+                                                                        <div class="col-md-2 col-6">
+                                                                            <small class="text-muted">Justificados</small>
+                                                                            <div class="fw-bold text-info">{{ datos.stats.justificados }}</div>
+                                                                        </div>
+                                                                        <div class="col-md-2 col-6">
+                                                                            <small class="text-muted">% Asistencia</small>
+                                                                            <div class="fw-bold text-{% if datos.stats.porcentaje_asistencia >= 85 %}success{% elif datos.stats.porcentaje_asistencia >= 70 %}warning{% else %}danger{% endif %}">
+                                                                                {{ datos.stats.porcentaje_asistencia }}%
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Tabla de asistencias -->
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped table-hover mb-0">
+                                                            <thead class="table-dark">
+                                                                <tr>
+                                                                    <th>Estudiante</th>
+                                                                    <th>Estado</th>
+                                                                    <th>Asistencia General</th>
+                                                                    <th>Observaciones</th>
+                                                                    <th>Registrado por</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for asistencia in datos.asistencias %}
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="d-flex align-items-center">
+                                                                                <div class="avatar-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                                                    {{ asistencia.alumno.primer_nombre.0 }}{{ asistencia.alumno.apellido_paterno.0 }}
+                                                                                </div>
+                                                                                <div>
+                                                                                    <strong>{{ asistencia.alumno.apellido_paterno }} {{ asistencia.alumno.apellido_materno }}, {{ asistencia.alumno.primer_nombre }}</strong><br>
+                                                                                    <small class="text-muted">{{ asistencia.alumno.rut }}</small>
+                                                                                </div>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            {% if asistencia.estado == 'presente' %}
+                                                                                <span class="badge bg-success">
+                                                                                    <i class="fas fa-check me-1"></i>Presente
+                                                                                </span>
+                                                                            {% elif asistencia.estado == 'ausente' %}
+                                                                                <span class="badge bg-danger">
+                                                                                    <i class="fas fa-times me-1"></i>Ausente
+                                                                                </span>
+                                                                            {% elif asistencia.estado == 'tardanza' %}
+                                                                                <span class="badge bg-warning">
+                                                                                    <i class="fas fa-clock me-1"></i>Tardanza
+                                                                                </span>
+                                                                            {% elif asistencia.estado == 'justificado' %}
+                                                                                <span class="badge bg-info">
+                                                                                    <i class="fas fa-file-medical me-1"></i>Justificado
+                                                                                </span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td>
+                                                                            {% with stats=estadisticas_estudiantes|get_item:asistencia.alumno.id %}
+                                                                                {% if stats %}
+                                                                                    <div class="text-center">
+                                                                                        <span class="badge bg-{% if stats.porcentaje_asistencia >= 85 %}success{% elif stats.porcentaje_asistencia >= 70 %}warning{% else %}danger{% endif %} mb-1">
+                                                                                            {{ stats.porcentaje_asistencia }}%
+                                                                                        </span>
+                                                                                        <br>
+                                                                                        <small class="text-muted">
+                                                                                            {{ stats.asistencias_efectivas }}/{{ stats.total_dias }} días
+                                                                                        </small>
+                                                                                    </div>
+                                                                                {% else %}
+                                                                                    <span class="text-muted">-</span>
+                                                                                {% endif %}
+                                                                            {% endwith %}
+                                                                        </td>
+                                                                        <td>
+                                                                            {% if asistencia.observaciones %}
+                                                                                <span class="text-dark">{{ asistencia.observaciones }}</span>
+                                                                            {% else %}
+                                                                                <span class="text-muted">-</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                        <td>
+                                                                            {% if asistencia.registrado_por %}
+                                                                                <strong>{{ asistencia.registrado_por.nombres }} {{ asistencia.registrado_por.apellidos }}</strong><br>
+                                                                                <small class="text-muted">{% timezone "America/Santiago" %}{{ asistencia.fecha_registro|date:"d/m/Y H:i" }}{% endtimezone %}</small>
+                                                                            {% else %}
+                                                                                <span class="text-muted">Sistema</span><br>
+                                                                                <small class="text-muted">{% timezone "America/Santiago" %}{{ asistencia.fecha_registro|date:"d/m/Y H:i" }}{% endtimezone %}</small>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                        {% elif asignatura_curso_seleccionada %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                <h5>No se encontraron registros</h5>
+                                <p class="text-muted">No hay asistencias registradas para los filtros seleccionados en el año {{ ano_academico_activo.ano }}.</p>
+                                <div class="mt-3">
+                                    <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-success">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Registrar Primera Asistencia
+                                    </a>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-filter fa-3x text-muted mb-3"></i>
+                                <h5>Selecciona una asignatura</h5>
+                                <p class="text-muted">
+                                    Elige una asignatura para ver las asistencias registradas del año {{ ano_academico_activo.ano }}.
+                                </p>
+                                <div class="mt-3">
+                                    <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-outline-success">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Registrar Asistencia
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <div class="mt-4 d-flex gap-2 flex-wrap">
+                        <a href="{% url 'asistencia:index' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Volver al Menú Principal
+                        </a>
+                        {% if ano_academico_activo %}
+                            <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-outline-success">
+                                <i class="fas fa-plus me-2"></i>
+                                Registrar Nueva Asistencia
+                            </a>
+                        {% endif %}
+                        {% if request.user.is_superuser %}
+                            <a href="{% url 'asistencia:estadisticas' %}" class="btn btn-outline-warning">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                Ver Estadísticas
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Solo variables necesarias para el template
+let anoAcademico = {% if ano_academico_actual %}{{ ano_academico_actual.ano }}{% else %}new Date().getFullYear(){% endif %};
+
+// SOLUCIÓN DE EMERGENCIA: Función para cerrar SweetAlert2 forzadamente
+function cerrarSweetAlertForzado() {
+    // Método 1: Usar la API de SweetAlert2
+    if (typeof Swal !== 'undefined' && Swal.isVisible()) {
+        Swal.close();
+    }
+    
+    // Método 2: Remover elementos del DOM directamente
+    const swalContainer = document.querySelector('.swal2-container');
+    if (swalContainer) {
+        swalContainer.remove();
+    }
+    
+    // Método 3: Remover backdrop
+    const swalBackdrop = document.querySelector('.swal2-backdrop-show');
+    if (swalBackdrop) {
+        swalBackdrop.classList.remove('swal2-backdrop-show');
+        swalBackdrop.classList.add('swal2-backdrop-hide');
+    }
+    
+    // Método 4: Restaurar scroll del body
+    document.body.classList.remove('swal2-shown', 'swal2-height-auto');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+}
+
+// Agregar listener global para ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        cerrarSweetAlertForzado();
+    }
+});
+
+// Agregar listener para clicks fuera del modal
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('swal2-container')) {
+        cerrarSweetAlertForzado();
+    }
+});
+
+// Función de limpieza que se ejecuta cada 5 segundos
+setInterval(function() {
+    const swalContainers = document.querySelectorAll('.swal2-container');
+    swalContainers.forEach(container => {
+        if (!container.classList.contains('swal2-backdrop-show')) {
+            container.remove();
+        }
+    });
+}, 5000);
+</script>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if curso %}Editar Curso{% else %}Crear Curso{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cursos/crear_curso.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4" data-filtro-url="{% url 'cursos:filtro_alumnos' %}">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2 style="color: #303f9f;">{% if curso %}Editar Curso{% else %}Crear Nuevo Curso{% endif %}</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'cursos:gestion_cursos' %}" class="btn" style="background-color: #5c6bc0; color: white;">
+                <i class="fas fa-arrow-left"></i> Volver a Cursos
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6 offset-md-3">
+                        <h5 class="mb-3" style="color: #5c6bc0;"><i class="fas fa-school me-2"></i>Información del Curso</h5>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.nivel.id_for_label }}" class="form-label">{{ form.nivel.label }}</label>
+                            {{ form.nivel }}
+                            {% if form.nivel.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.nivel.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.letra.id_for_label }}" class="form-label">{{ form.letra.label }}</label>
+                            {{ form.letra }}
+                            {% if form.letra.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.letra.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <span class="badge bg-warning me-1">Diurna (A)</span>
+                                <span class="badge bg-info">Vespertina (B)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5 class="mb-3" style="color: #5c6bc0;"><i class="fas fa-user-graduate me-2"></i>Alumnos</h5>
+                <div class="mb-4">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <label for="{{ form.alumnos.id_for_label }}" class="form-label mb-0">{{ form.alumnos.label }}</label>
+                                </div>
+                                <div class="col-auto">
+                                    <span class="badge bg-primary">{{ form.alumnos.field.queryset.count }} alumnos disponibles</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <input type="text" id="alumnoSearch" class="form-control" placeholder="Buscar alumno...">
+                            </div>
+                            <div class="mb-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" id="selectAllBtn">
+                                    Seleccionar todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary me-1" id="deselectAllBtn">
+                                    Deseleccionar todos
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" id="invertSelectionBtn">
+                                    Invertir selección
+                                </button>
+                            </div>
+                            
+                            <div class="select-container" style="max-height: 300px; overflow-y: auto;">
+                                {{ form.alumnos }}
+                            </div>
+                            {% if form.alumnos.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.alumnos.errors }}
+                                </div>
+                            {% endif %}
+                            
+                        </div>
+                        <div class="mt-4">
+                            <h2 class="text-xl font-bold mb-2">Seleccionados:</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="seleccionados-lista">
+                                <!-- Aquí se agregarán dinámicamente -->
+                                 
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'cursos:gestion_cursos' %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn" style="background-color: #26a69a; color: white;">
+                        <i class="fas fa-save me-1"></i> {% if curso %}Guardar Cambios{% else %}Crear Curso{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/cursos/crear_curso.js' %}"></script>
+{% endblock %}

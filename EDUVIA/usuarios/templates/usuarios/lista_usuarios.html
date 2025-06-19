@@ -1,0 +1,718 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listado de Usuarios - EDUVIA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/usuarios/lista_usuarios.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="user-list-container">
+        <!-- Encabezado de la página -->
+        <div class="page-header">
+            <h2><i class="fas fa-users me-3"></i>Listado de Usuarios</h2>
+            <a href="{% url 'usuarios:nuevo_usuario' %}" class="btn-eduvia btn-primary">
+                <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
+            </a>
+        </div>
+        
+        <!-- Contenedor para alertas dinámicas -->
+        <div id="alertContainer"></div>
+
+        <!-- Alertas de Django Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="custom-alert alert-{{ message.tags }}" id="djangoAlert">
+                    <div class="alert-content">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle alert-icon"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle alert-icon"></i>
+                        {% endif %}
+                        <span class="alert-message">{{ message }}</span>
+                    </div>
+                    <button type="button" class="alert-close" onclick="closeAlert(this)">×</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if usuarios %}
+            <!-- Búsqueda y filtros -->
+            <div class="search-filter-container">
+                <div class="filters-row">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" 
+                               id="searchInput" 
+                               class="form-control search-input" 
+                               placeholder="🔍 Buscar por RUT, nombre o apellido...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="filterRol" class="form-select filter-dropdown filter-rol">
+                            <option value="">🔍 Todos los roles</option>
+                            <option value="administrador">👤 Administrador</option>
+                            <option value="profesor">👨‍🏫 Profesor</option>
+                        </select>
+                        <select id="filterEstado" class="form-select filter-dropdown filter-estado">
+                            <option value="">📋 Todos los estados</option>
+                            <option value="active">✅ Activo</option>
+                            <option value="inactive">❌ Inactivo</option>
+                            <option value="pending">⏳ Pendiente</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contenedor de tabla con scroll interno -->
+            <div class="table-container">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th class="col-rut"><i class="fas fa-id-card me-2"></i>RUT</th>
+                            <th class="col-nombres"><i class="fas fa-user me-2"></i>Nombres</th>
+                            <th class="col-apellidos"><i class="fas fa-user-tag me-2"></i>Apellidos</th>
+                            <th class="col-rol"><i class="fas fa-user-cog me-2"></i>Rol</th>
+                            <th class="col-estado"><i class="fas fa-toggle-on me-2"></i>Estado</th>
+                            <th class="col-acciones"><i class="fas fa-cogs me-2"></i>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        {% for usuario in usuarios %}
+                            <tr class="user-row" 
+                                data-rut="{{ usuario.rut|lower }}"
+                                data-nombre="{{ usuario.nombres|lower }} {{ usuario.apellidos|lower }}"
+                                data-rol="{{ usuario.rol }}"
+                                data-estado="{{ usuario.estado }}">
+                                
+                                <td class="col-rut">{{ usuario.rut }}</td>
+                                <td class="col-nombres">{{ usuario.nombres }}</td>
+                                <td class="col-apellidos">{{ usuario.apellidos }}</td>
+                                
+                                <td class="col-rol" data-rol="{{ usuario.rol }}">
+                                    {% if usuario.rol == 'administrador' %}
+                                        <span class="role-badge role-admin">
+                                            <i class="fas fa-user-shield"></i> Administrador
+                                        </span>
+                                    {% elif usuario.rol == 'profesor' %}
+                                        <span class="role-badge role-teacher">
+                                            <i class="fas fa-chalkboard-teacher"></i> Profesor
+                                        </span>
+                                    {% else %}
+                                        <span class="role-badge role-admin">
+                                            <i class="fas fa-user-shield"></i> Administrador
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="col-estado" data-estado="{{ usuario.estado }}">
+                                    {% if usuario.estado == 'active' %}
+                                        <span class="status-badge status-active">Activo</span>
+                                    {% elif usuario.estado == 'inactive' %}
+                                        <span class="status-badge status-inactive">Inactivo</span>
+                                    {% else %}
+                                        <span class="status-badge status-pending">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="col-acciones">
+                                    <div class="action-buttons">
+                                        <button type="button" 
+                                                class="btn-action btn-view" 
+                                                data-id="{{ usuario.id }}"
+                                                data-rut="{{ usuario.rut|default:'' }}"
+                                                data-nombres="{{ usuario.nombres|default:'' }}"
+                                                data-apellidos="{{ usuario.apellidos|default:'' }}"
+                                                data-correo="{{ usuario.correo|default:'' }}"
+                                                data-telefono="{{ usuario.telefono|default:'' }}"
+                                                data-rol="{{ usuario.rol|default:'administrador' }}"
+                                                data-estado="{{ usuario.estado|default:'inactive' }}"
+                                                data-fecha="{{ usuario.fecha_creacion|date:'d/m/Y H:i'|default:'-' }}"
+                                                data-asignatura="{{ usuario.asignatura|default:'' }}"
+                                                onclick="showDetailModal(this)"
+                                                title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        
+                                        <button type="button" 
+                                                class="btn-action btn-delete" 
+                                                data-id="{{ usuario.id }}" 
+                                                data-nombre="{{ usuario.nombres }} {{ usuario.apellidos }}"
+                                                data-rut="{{ usuario.rut }}"
+                                                onclick="showDeleteModal(this)"
+                                                title="Eliminar usuario">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginador EDUVIA -->
+            <div class="pagination-container" id="paginationContainer">
+                <div class="pagination-info">
+                    <span>
+                        <i class="fas fa-info-circle me-2"></i>Mostrando 
+                        <strong id="showingStart">1</strong> - 
+                        <strong id="showingEnd">4</strong> de 
+                        <strong id="totalItems">{{ usuarios.count }}</strong> usuarios
+                    </span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="pagination-btn" id="firstPage" title="Primera página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="pagination-btn" id="prevPage" title="Página anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <div class="pagination-numbers" id="paginationNumbers"></div>
+                    <button class="pagination-btn" id="nextPage" title="Página siguiente">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="pagination-btn" id="lastPage" title="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            <!-- Mensaje cuando no hay usuarios -->
+            <div class="no-users-container">
+                <div class="empty-state-welcome">
+                    <div class="welcome-icon">
+                        <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                    </div>
+                    <h4 class="text-center"><i class="fas fa-exclamation-triangle me-2"></i>No hay usuarios registrados</h4>
+                    <p class="text-center text-muted">
+                        <i class="fas fa-info-circle me-2"></i>Para comenzar a utilizar EDUVIA, es necesario crear al menos un usuario en el sistema.
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Mensaje cuando no hay resultados de búsqueda -->
+        <div id="empty-results" style="display: none;" class="empty-results">
+            <div class="empty-state">
+                <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+                <p><i class="fas fa-exclamation-circle me-2"></i>No se encontraron usuarios que coincidan con los criterios de búsqueda.</p>
+                <button class="btn btn-outline-primary mt-2" onclick="resetFilters()">
+                    <i class="fas fa-undo me-2"></i>Limpiar filtros
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar usuario -->
+    <div class="delete-alert-modal" id="deleteModal" style="display: none;">
+        <div class="delete-alert-content">
+            <div class="delete-alert-header">
+                <h5><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirmar eliminación</h5>
+                <button type="button" class="delete-alert-close" onclick="closeDeleteModal()">×</button>
+            </div>
+            <div class="delete-alert-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-times fa-3x text-danger mb-3"></i>
+                    <p>¿Está seguro que desea eliminar al usuario?</p>
+                    <p class="fw-bold" id="userName">Nombre del Usuario</p>
+                    <p><strong>RUT:</strong> <span id="userRut"></span></p>
+                </div>
+                <div class="delete-alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span>Esta acción no se puede deshacer. Todos los datos del usuario serán eliminados permanentemente.</span>
+                </div>
+            </div>
+            <div class="delete-alert-footer">
+                <button type="button" class="btn-cancel" onclick="closeDeleteModal()">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <form id="deleteForm" method="POST" action="" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete-confirm">
+                        <i class="fas fa-trash-alt me-1"></i>Eliminar Usuario
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de detalles del usuario - DISEÑO HORIZONTAL -->
+    <div class="detail-modal" id="detailModal" style="display: none;">
+        <div class="detail-modal-content">
+            <div class="detail-modal-header">
+                <h5 id="modalTitle">
+                    <i class="fas fa-address-card me-2"></i>Detalles del Usuario
+                </h5>
+                <button type="button" class="detail-modal-close" onclick="closeDetailModal()">×</button>
+            </div>
+            
+            <div class="detail-modal-body">
+                <!-- Avatar y nombre centrado -->
+                <div class="user-avatar-section">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle fa-4x text-primary"></i>
+                        <h4 id="detailUserName">Nombre del Usuario</h4>
+                        <span id="detailUserRole" class="role-badge">Rol</span>
+                    </div>
+                </div>
+                
+                <!-- Información en formato horizontal -->
+                <div class="detail-sections-horizontal">
+                    <div class="detail-row">
+                        <div class="detail-section">
+                            <h6><i class="fas fa-user me-2"></i>Información Personal</h6>
+                            <div class="detail-grid-horizontal">
+                                <div class="detail-item">
+                                    <label><i class="fas fa-id-card me-1"></i>RUT:</label>
+                                    <span id="detailRut">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label><i class="fas fa-user me-1"></i>Nombres:</label>
+                                    <span id="detailNombres">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label><i class="fas fa-user-tag me-1"></i>Apellidos:</label>
+                                    <span id="detailApellidos">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h6><i class="fas fa-address-book me-2"></i>Información de Contacto</h6>
+                            <div class="detail-grid-horizontal">
+                                <div class="detail-item">
+                                    <label><i class="fas fa-envelope me-1"></i>Correo:</label>
+                                    <span id="detailCorreo">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label><i class="fas fa-phone me-1"></i>Teléfono:</label>
+                                    <span id="detailTelefono">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-section full-width">
+                            <h6><i class="fas fa-cogs me-2"></i>Información del Sistema</h6>
+                            <div class="detail-grid-horizontal">
+                                <div class="detail-item">
+                                    <label><i class="fas fa-toggle-on me-1"></i>Estado:</label>
+                                    <span id="detailEstado" class="status-badge">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label><i class="fas fa-calendar-alt me-1"></i>Fecha de Registro:</label>
+                                    <span id="detailFechaRegistro">-</span>
+                                </div>
+                                <div class="detail-item" id="detailAsignaturaContainer">
+                                    <label><i class="fas fa-book me-1"></i>Asignatura:</label>
+                                    <span id="detailAsignatura" class="asignatura-badge">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="detail-modal-footer">
+                <button type="button" class="btn-modal btn-secondary" onclick="closeDetailModal()">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
+                <button type="button" class="btn-modal btn-primary" id="editBtn" onclick="redirectToEdit()">
+                    <i class="fas fa-edit me-2"></i>Editar Usuario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/usuarios/lista_usuarios.js' %}"></script>
+<script>
+// Variables globales para paginación
+let currentPage = 1;
+let itemsPerPage = 4;
+let allRows = [];
+let visibleRows = [];
+
+// Función para mostrar detalles del usuario
+function showDetailModal(button) {
+    const userId = button.getAttribute('data-id');
+    const rut = button.getAttribute('data-rut') || '-';
+    const nombres = button.getAttribute('data-nombres') || '-';
+    const apellidos = button.getAttribute('data-apellidos') || '-';
+    const correo = button.getAttribute('data-correo') || '-';
+    const telefono = button.getAttribute('data-telefono') || '-';
+    const rol = button.getAttribute('data-rol') || '-';
+    const estado = button.getAttribute('data-estado') || '-';
+    const fecha = button.getAttribute('data-fecha') || '-';
+    const asignatura = button.getAttribute('data-asignatura') || '';
+    
+    console.log("Asignatura del profesor:", asignatura); // Depuración
+    
+    // Determinar el rol simple
+    let rolTexto = '';
+    let roleClass = '';
+    
+    if (rol === 'usuario') {
+        rolTexto = 'Usuario';
+        roleClass = 'role-user';
+    } else if (rol === 'profesor') {
+        rolTexto = 'Profesor';
+        roleClass = 'role-teacher';
+    } else if (rol === 'administrador') {
+        rolTexto = 'Administrador';
+        roleClass = 'role-admin';
+    } else {
+        rolTexto = 'Usuario';
+        roleClass = 'role-user';
+    }
+    
+    // Llenar los datos del modal
+    document.getElementById('detailUserName').textContent = `${nombres} ${apellidos}`;
+    document.getElementById('detailUserRole').textContent = rolTexto;
+    document.getElementById('detailUserRole').className = `role-badge ${roleClass}`;
+    
+    document.getElementById('detailRut').textContent = rut;
+    document.getElementById('detailNombres').textContent = nombres;
+    document.getElementById('detailApellidos').textContent = apellidos;
+    document.getElementById('detailCorreo').textContent = correo;
+    document.getElementById('detailTelefono').textContent = telefono || 'No registrado';
+    document.getElementById('detailFechaRegistro').textContent = fecha;
+    
+    // Estado
+    const estadoElement = document.getElementById('detailEstado');
+    estadoElement.textContent = estado === 'active' ? 'Activo' : estado === 'inactive' ? 'Inactivo' : 'Pendiente';
+    estadoElement.className = `status-badge status-${estado}`;
+    
+    // Mostrar/ocultar y llenar asignatura si es profesor
+    const asignaturaContainer = document.getElementById('detailAsignaturaContainer');
+    const asignaturaElement = document.getElementById('detailAsignatura');
+    
+    if (rol === 'profesor') {
+        // Mapear el valor de asignatura a texto legible
+        const asignaturaMap = {
+            'matematicas': '📐 Matemáticas',
+            'lenguaje': '📝 Lenguaje y Comunicación',
+            'ciencias': '🔬 Ciencias Naturales',
+            'historia': '🏛️ Historia y Geografía',
+            'ingles': '🇺🇸 Inglés',
+            'educacion-fisica': '⚽ Educación Física',
+            'artes': '🎨 Artes Visuales',
+            'musica': '🎵 Música',
+            'tecnologia': '💻 Tecnología',
+            'religion': '⛪ Religión',
+            'filosofia': '🤔 Filosofía',
+            'fisica': '⚛️ Física',
+            'quimica': '🧪 Química',
+            'biologia': '🧬 Biología'
+        };
+        
+        if (asignatura && asignatura !== '') {
+            asignaturaElement.textContent = asignaturaMap[asignatura] || asignatura;
+            asignaturaContainer.style.display = 'block';
+        } else {
+            asignaturaElement.textContent = 'No asignada';
+            asignaturaContainer.style.display = 'block';
+        }
+    } else {
+        asignaturaContainer.style.display = 'none';
+    }
+    
+    // Configurar botón de editar
+    document.getElementById('editBtn').setAttribute('data-user-id', userId);
+    
+    // Mostrar modal
+    const modal = document.getElementById('detailModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+}
+
+// Función para cerrar el modal de detalles
+function closeDetailModal() {
+    const modal = document.getElementById('detailModal');
+    modal.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }, 300);
+}
+
+// Función para mostrar el modal de eliminación
+function showDeleteModal(button) {
+    const userId = button.getAttribute('data-id');
+    const userName = button.getAttribute('data-nombre');
+    const userRut = button.getAttribute('data-rut');
+    
+    document.getElementById('userName').textContent = userName;
+    document.getElementById('userRut').textContent = userRut;
+    
+    const deleteForm = document.getElementById('deleteForm');
+    deleteForm.action = `/usuarios/eliminar/${userId}/`;
+    
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+}
+
+// Función para cerrar el modal de eliminación
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }, 300);
+}
+
+// Función para cerrar alertas
+function closeAlert(button) {
+    const alert = button.closest('.custom-alert');
+    alert.classList.add('fade-out');
+    setTimeout(() => {
+        alert.remove();
+    }, 300);
+}
+
+// Función para redireccionar a editar
+function redirectToEdit() {
+    const userId = document.getElementById('editBtn').getAttribute('data-user-id');
+    if (userId) {
+        window.location.href = `/usuarios/editar/${userId}/`;
+    } else {
+        alert('ID de usuario no encontrado');
+    }
+}
+
+// Función para filtrar la tabla
+function filterTable() {
+    const searchInput = document.querySelector('.search-input');
+    const filterRol = document.querySelector('.filter-rol');
+    const filterEstado = document.querySelector('.filter-estado');
+    const emptyResults = document.getElementById('empty-results');
+    const userTable = document.querySelector('.user-table');
+
+    if (!searchInput || !filterRol || !filterEstado) {
+        return;
+    }
+
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedRol = filterRol.value;
+    const selectedEstado = filterEstado.value;
+
+    // Filtrar todas las filas
+    visibleRows = allRows.filter(row => {
+        if (row.querySelector('.empty-state')) {
+            return false;
+        }
+
+        const rut = row.getAttribute('data-rut') || '';
+        const nombre = row.getAttribute('data-nombre') || '';
+        const rol = row.getAttribute('data-rol') || '';
+        const estado = row.getAttribute('data-estado') || '';
+
+        const matchesSearch = searchTerm === '' || 
+                            rut.includes(searchTerm) || 
+                            nombre.includes(searchTerm);
+        const matchesRol = selectedRol === '' || rol === selectedRol;
+        const matchesEstado = selectedEstado === '' || estado === selectedEstado;
+
+        return matchesSearch && matchesRol && matchesEstado;
+    });
+
+    currentPage = 1;
+    updatePagination();
+
+    if (visibleRows.length === 0 && (searchTerm !== '' || selectedRol !== '' || selectedEstado !== '')) {
+        emptyResults.style.display = 'block';
+        userTable.style.display = 'none';
+        document.getElementById('paginationContainer').style.display = 'none';
+    } else {
+        emptyResults.style.display = 'none';
+        userTable.style.display = 'table';
+        document.getElementById('paginationContainer').style.display = 'flex';
+    }
+}
+
+// Función para resetear filtros
+function resetFilters() {
+    document.querySelector('.search-input').value = '';
+    document.querySelector('.filter-rol').value = '';
+    document.querySelector('.filter-estado').value = '';
+    filterTable();
+}
+
+// Función para actualizar la paginación
+function updatePagination() {
+    const totalItems = visibleRows.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    
+    if (currentPage > totalPages && totalPages > 0) {
+        currentPage = totalPages;
+    } else if (currentPage < 1) {
+        currentPage = 1;
+    }
+    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    const showingStart = totalItems > 0 ? startIndex + 1 : 0;
+    const showingEnd = endIndex;
+    
+    document.getElementById('showingStart').textContent = showingStart;
+    document.getElementById('showingEnd').textContent = showingEnd;
+    document.getElementById('totalItems').textContent = totalItems;
+    
+    allRows.forEach(row => {
+        row.style.display = 'none';
+    });
+    
+    visibleRows.forEach((row, index) => {
+        if (index >= startIndex && index < endIndex) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    updatePaginationButtons(totalPages);
+    generatePageNumbers(totalPages);
+}
+
+// Función para actualizar botones de paginación
+function updatePaginationButtons(totalPages) {
+    const firstPageBtn = document.getElementById('firstPage');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const lastPageBtn = document.getElementById('lastPage');
+    
+    if (firstPageBtn) firstPageBtn.disabled = currentPage === 1;
+    if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
+    if (nextPageBtn) nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+    if (lastPageBtn) lastPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+}
+
+// Función para generar números de página
+function generatePageNumbers(totalPages) {
+    const paginationNumbers = document.getElementById('paginationNumbers');
+    if (!paginationNumbers) return;
+    
+    paginationNumbers.innerHTML = '';
+    
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `pagination-btn page-number ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.addEventListener('click', () => goToPage(i));
+        paginationNumbers.appendChild(pageBtn);
+    }
+}
+
+// Funciones de navegación
+function goToPage(page) {
+    currentPage = page;
+    updatePagination();
+}
+
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        updatePagination();
+    }
+}
+
+function goToNextPage() {
+    const totalPages = Math.ceil(visibleRows.length / itemsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        updatePagination();
+    }
+}
+
+function goToLastPage() {
+    const totalPages = Math.ceil(visibleRows.length / itemsPerPage);
+    if (totalPages > 0) {
+        currentPage = totalPages;
+        updatePagination();
+    }
+}
+
+// Función para inicializar la lista de usuarios
+function initializeUserList() {
+    allRows = Array.from(document.querySelectorAll('.user-table tbody tr'));
+    visibleRows = allRows.filter(row => !row.querySelector('.empty-state'));
+    
+    const searchInput = document.querySelector('.search-input');
+    const filterRol = document.querySelector('.filter-rol');
+    const filterEstado = document.querySelector('.filter-estado');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTable);
+        searchInput.addEventListener('keyup', filterTable);
+    }
+
+    if (filterRol) {
+        filterRol.addEventListener('change', filterTable);
+    }
+
+    if (filterEstado) {
+        filterEstado.addEventListener('change', filterTable);
+    }
+    
+    initializePagination();
+    updatePagination();
+}
+
+// Función para inicializar la paginación
+function initializePagination() {
+    const firstPageBtn = document.getElementById('firstPage');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const lastPageBtn = document.getElementById('lastPage');
+    
+    if (firstPageBtn) firstPageBtn.addEventListener('click', () => goToPage(1));
+    if (prevPageBtn) prevPageBtn.addEventListener('click', goToPreviousPage);
+    if (nextPageBtn) nextPageBtn.addEventListener('click', goToNextPage);
+    if (lastPageBtn) lastPageBtn.addEventListener('click', goToLastPage);
+}
+
+// Auto-cerrar alertas después de 5 segundos
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.custom-alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.classList.add('fade-out');
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }
+        }, 5000);
+    });
+    
+    // Inicializar funcionalidades de la lista de usuarios
+    initializeUserList();
+});
+
+console.log('JavaScript de lista de usuarios cargado');
+</script>
+{% endblock %}

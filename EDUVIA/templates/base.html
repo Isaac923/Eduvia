@@ -1,0 +1,402 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}EDUVIA{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/inicio_login_base/base.css">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-letter">E</span>
+                    <span class="logo-full">DUVIA</span>
+                </div>
+            </div>
+
+            <div class="sidebar-nav">
+                <!-- Módulo de Dashboard -->
+                <div class="nav-section">
+                    <h4>Principal</h4>
+                    <ul>
+                        <li class="{% if request.path == '/' %}active{% endif %}">
+                            <a href="{% url 'usuarios:inicio' %}">
+                                <i class="fas fa-home"></i>
+                                <span>Inicio</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Módulo de Gestión Académica - Solo para administradores -->
+                {% if request.user.is_superuser %}
+                <div class="nav-section">
+                    <h4>Gestión Académica</h4>
+                    <ul>
+                        <li class="{% if request.resolver_match.namespace == 'alumnos' %}active{% endif %}">
+                            <a href="{% url 'alumnos:lista_alumnos' %}">
+                                <i class="fas fa-user-graduate"></i>
+                                <span>Estudiantes</span>
+                            </a>
+                        </li>
+                        <li class="{% if request.resolver_match.url_name == 'gestion_cursos' or request.resolver_match.url_name == 'crear_curso' or request.resolver_match.url_name == 'editar_curso' or request.resolver_match.url_name == 'detalle_curso' or request.resolver_match.url_name == 'eliminar_curso' %}active{% endif %}">
+                            <a href="{% url 'cursos:gestion_cursos' %}">
+                                <i class="fas fa-book"></i>
+                                <span>Cursos</span>
+                            </a>
+                        </li>
+                        <li class="{% if request.resolver_match.namespace == 'asistencia' %}active{% endif %}">
+                            <a href="{% url 'asistencia:index' %}">
+                                <i class="fas fa-clipboard-check"></i>
+                                <span>Asistencia</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% else %}
+                <!-- Módulo para Profesores - Solo Asistencia -->
+                <div class="nav-section">
+                    <h4>Gestión de Clases</h4>
+                    <ul>
+                        <li class="{% if request.resolver_match.namespace == 'asistencia' %}active{% endif %}">
+                            <a href="{% url 'asistencia:index' %}">
+                                <i class="fas fa-clipboard-check"></i>
+                                <span>Asistencia</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Módulo de Evaluación -->
+                <div class="nav-section">
+                    <h4>Evaluación</h4>
+                    <ul>
+                        <li class="{% if 'notas' in request.path or 'calificaciones' in request.path %}active{% endif %}">
+                            <a href="{% url 'notas:notas_generales' %}">
+                                <i class="fas fa-star"></i>
+                                <span>Notas Generales</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Módulo de Administración - Solo para superusuarios -->
+                {% if request.user.is_superuser %}
+                <div class="nav-section">
+                    <h4>Administración</h4>
+                    <ul>
+                        <li class="{% if 'usuarios' in request.path %}active{% endif %}">
+                            <a href="{% url 'usuarios:lista_usuarios' %}">
+                                <i class="fas fa-users"></i>
+                                <span>Usuarios</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Botón de Cerrar Sesión - SIEMPRE VISIBLE -->
+                <div class="logout-section">
+                    <a href="{% url 'usuarios:logout' %}" class="logout-btn" onclick="confirmarCerrarSesion(event)">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Cerrar Sesión</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <div class="content-wrapper">
+                <div class="content">
+                    {% block content %}{% csrf_token %}
+                    <div class="user-list-container">
+                        <!-- Rest of your content -->
+                    </div>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicador de sidebar (movido arriba) -->
+    <div class="sidebar-hint" id="sidebarHint">
+        <i class="fas fa-chevron-right"></i>
+        <span>Menú</span>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap 5 JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/inicio_login_base/base.js' %}"></script>
+    
+    <!-- Script mejorado para cerrar sesión con SweetAlert -->
+    <script>
+        // FUNCIÓN MEJORADA PARA CERRAR SESIÓN CON SWEETALERT2
+        async function confirmarCerrarSesion(event) {
+            event.preventDefault(); // Prevenir la navegación por defecto
+            
+            const logoutUrl = event.currentTarget.href;
+            
+            try {
+                const result = await Swal.fire({
+                    title: '¿Cerrar Sesión?',
+                    text: '¿Estás seguro de que deseas cerrar tu sesión?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-sign-out-alt me-2"></i>Sí, cerrar sesión',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+                    reverseButtons: true,
+                    focusCancel: true,
+                    customClass: {
+                        confirmButton: 'btn-logout-confirm',
+                        cancelButton: 'btn-logout-cancel'
+                    },
+                    background: '#fff',
+                    backdrop: true,
+                    allowOutsideClick: true,
+                    allowEscapeKey: true,
+                    showCloseButton: true,
+                    heightAuto: false,
+                    scrollbarPadding: false
+                });
+                
+                if (result.isConfirmed) {
+                    // Mostrar loading mientras se cierra la sesión
+                    await Swal.fire({
+                        title: 'Cerrando sesión...',
+                        text: 'Por favor espera un momento',
+                        icon: 'info',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        timer: 800,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Redirigir
+                    window.location.href = logoutUrl;
+                } else {
+                    // Forzar cierre si se cancela
+                    Swal.close();
+                }
+            } catch (error) {
+                // En caso de error, forzar cierre
+                console.error('Error en SweetAlert:', error);
+                Swal.close();
+            }
+        }
+        
+        // Función adicional para mejorar la experiencia de usuario
+        function mostrarMensajeDespedida() {
+            Swal.fire({
+                title: '¡Hasta pronto!',
+                text: 'Tu sesión se ha cerrado correctamente',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+                backdrop: true,
+                allowOutsideClick: true,
+                allowEscapeKey: true
+            });
+        }
+        
+        // Verificar si venimos de un logout exitoso (opcional)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'success') {
+            mostrarMensajeDespedida();
+        }
+        
+        // SOLUCIÓN DE EMERGENCIA: Función para cerrar SweetAlert2 forzadamente
+        function cerrarSweetAlertForzado() {
+            // Método 1: Usar la API de SweetAlert2
+            if (typeof Swal !== 'undefined' && Swal.isVisible()) {
+                Swal.close();
+            }
+            
+            // Método 2: Remover elementos del DOM directamente
+            const swalContainer = document.querySelector('.swal2-container');
+            if (swalContainer) {
+                swalContainer.remove();
+            }
+            
+            // Método 3: Remover backdrop
+            const swalBackdrop = document.querySelector('.swal2-backdrop-show');
+            if (swalBackdrop) {
+                swalBackdrop.classList.remove('swal2-backdrop-show');
+                swalBackdrop.classList.add('swal2-backdrop-hide');
+            }
+            
+            // Método 4: Restaurar scroll del body
+            document.body.classList.remove('swal2-shown', 'swal2-height-auto');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }
+
+        // Agregar listener global para ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && Swal.isVisible()) {
+                cerrarSweetAlertForzado();
+            }
+        });
+
+        // Agregar listener para clicks fuera del modal
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('swal2-container')) {
+                cerrarSweetAlertForzado();
+            }
+        });
+
+        // Función de limpieza que se ejecuta cada 5 segundos
+        setInterval(function() {
+            const swalContainers = document.querySelectorAll('.swal2-container');
+            swalContainers.forEach(container => {
+                if (!container.classList.contains('swal2-backdrop-show')) {
+                    container.remove();
+                }
+            });
+        }, 5000);
+    </script>
+    
+    <!-- Estilos mejorados para los botones de SweetAlert -->
+    <style>
+        .btn-logout-confirm {
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+        }
+        
+        .btn-logout-confirm:hover {
+            background-color: #c82333 !important;
+            border-color: #bd2130 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+        
+        .btn-logout-cancel {
+            font-weight: 500;
+        }
+        
+        .btn-logout-cancel:hover {
+            background-color: #5a6268 !important;
+            border-color: #545b62 !important;
+        }
+        
+        /* SOLUCIÓN AGRESIVA PARA SWEETALERT2 */
+        .swal2-container {
+            z-index: 9999 !important;
+        }
+
+        .swal2-popup {
+            z-index: 10000 !important;
+        }
+
+        /* Forzar cierre de backdrop */
+        .swal2-backdrop-show {
+            background-color: rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .swal2-backdrop-hide {
+            background-color: transparent !important;
+        }
+
+        /* Ocultar completamente cuando se cierra */
+        .swal2-container:not(.swal2-backdrop-show) {
+            display: none !important;
+        }
+
+        .swal2-container.swal2-backdrop-hide {
+            display: none !important;
+        }
+
+        .swal2-popup.swal2-hide {
+            display: none !important;
+        }
+
+        /* Estilo para el botón de cerrar (X) */
+        .swal2-close {
+            font-size: 1.5rem !important;
+            color: #6c757d !important;
+            transition: color 0.2s ease;
+            background: none !important;
+            border: none !important;
+            outline: none !important;
+        }
+
+        .swal2-close:hover {
+            color: #dc3545 !important;
+            background: none !important;
+        }
+
+        .swal2-close:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Animación suave para el modal */
+        .swal2-popup {
+            animation: swal2-show 0.3s ease-out;
+        }
+        
+        @keyframes swal2-show {
+            0% {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            45% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+            80% {
+                transform: scale(0.95);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

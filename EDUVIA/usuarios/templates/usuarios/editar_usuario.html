@@ -1,0 +1,903 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Usuario - EDUVIA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/usuarios/editar_usuario.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="edit-user-container">
+        <!-- Encabezado -->
+        <div class="page-header">
+            <h2><i class="fas fa-user-edit"></i> Editar Usuario</h2>
+            <div class="user-info">
+                Modificando datos de&nbsp;<strong>{{ usuario.nombres }} {{ usuario.apellidos }}</strong>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-container">
+            <nav class="breadcrumb">
+                <div class="breadcrumb-item">
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="breadcrumb-link">
+                        <i class="fas fa-users"></i> Lista de Usuarios
+                    </a>
+                </div>
+                <div class="breadcrumb-item breadcrumb-current">
+                    <i class="fas fa-edit"></i> Editar Usuario
+                </div>
+            </nav>
+        </div>
+
+        <!-- Alertas -->
+        <div class="alerts-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="custom-alert alert-{{ message.tags }} auto-hide-alert">
+                        <div class="alert-content">
+                            <i class="fas fa-check-circle alert-icon"></i>
+                            <span class="alert-message">{{ message }}</span>
+                        </div>
+                        <button type="button" class="alert-close" onclick="closeAlert(this)">×</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Formulario -->
+        <div class="form-container">
+            <form method="post" class="edit-form" id="editUserForm" action="{% url 'usuarios:editar_usuario' usuario.id %}">
+                {% csrf_token %}
+                
+                <!-- Sección: Información Personal -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-user"></i> Información Personal
+                    </h3>
+                    
+                    <div class="form-row">
+                        <!-- Campo RUT -->
+                        <div class="form-group">
+                            <label for="rut" class="form-label required">
+                                <i class="fas fa-id-card"></i> RUT
+                            </label>
+                            <input type="text" id="rut" name="rut" class="form-control" 
+                                   placeholder="12.345.678-9" maxlength="12" required
+                                   value="{{ usuario.rut }}">
+                            <div class="error-message" id="rut-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> <span id="rut-error-text">RUT inválido</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Campo Nombres -->
+                        <div class="form-group">
+                            <label for="nombres" class="form-label required">
+                                <i class="fas fa-user"></i> Nombres
+                            </label>
+                            <input type="text" id="nombres" name="nombres" class="form-control" 
+                                   placeholder="Ej: Juan Carlos" required
+                                   value="{{ usuario.nombres }}">
+                            <div class="error-message" id="nombres-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> <span id="nombres-error-text">Los nombres son requeridos</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <!-- Campo Apellidos -->
+                        <div class="form-group">
+                            <label for="apellidos" class="form-label required">
+                                <i class="fas fa-user-tag"></i> Apellidos
+                            </label>
+                            <input type="text" id="apellidos" name="apellidos" class="form-control" 
+                                   placeholder="Ej: Pérez González" required
+                                   value="{{ usuario.apellidos }}">
+                            <div class="error-message" id="apellidos-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> <span id="apellidos-error-text">Los apellidos son requeridos</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Campo Teléfono -->
+                        <div class="form-group">
+                            <label for="telefono" class="form-label">
+                                <i class="fas fa-phone"></i> Teléfono
+                            </label>
+                            <input type="text" id="telefono" name="telefono" class="form-control" 
+                                   placeholder="Ej: +56 9 1234 5678"
+                                   value="{{ usuario.telefono }}">
+                            <div class="error-message" id="telefono-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> <span id="telefono-error-text">Formato de teléfono inválido</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo Correo -->
+                    <div class="form-group full-width">
+                        <label for="correo" class="form-label required">
+                            <i class="fas fa-envelope"></i> Correo Electrónico
+                        </label>
+                        <input type="email" id="correo" name="correo" class="form-control" 
+                               placeholder="Ej: usuario@eduvia.cl" required
+                               value="{{ usuario.correo }}">
+                        <div class="error-message" id="correo-error" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i> <span id="correo-error-text">Correo electrónico inválido</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección: Información del Sistema -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-cogs"></i> Información del Sistema
+                    </h3>
+                    
+                    <div class="form-row">
+                        <!-- Campo Rol -->
+                        <div class="form-group">
+                            <label for="rol" class="form-label required">
+                                <i class="fas fa-user-shield"></i> Rol en el Sistema
+                            </label>
+                            <select id="rol" name="rol" class="form-select" required>
+                                <option value="">Seleccione un rol...</option>
+                                <option value="administrador" {% if usuario.rol == 'administrador' %}selected{% endif %}>👤 Administrador</option>
+                                <option value="profesor" {% if usuario.rol == 'profesor' %}selected{% endif %}>👨‍🏫 Profesor</option>
+                            </select>
+                            <div class="error-message" id="rol-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> <span id="rol-error-text">Debe seleccionar un rol</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Campo Estado -->
+                        <div class="form-group">
+                            <label for="estado" class="form-label required">
+                                <i class="fas fa-toggle-on"></i> Estado del Usuario
+                            </label>
+                            <select id="estado" name="estado" class="form-select" required>
+                                <option value="">Seleccione un estado...</option>
+                                <option value="active" {% if usuario.estado == 'active' %}selected{% endif %}>✅ Activo</option>
+                                <option value="inactive" {% if usuario.estado == 'inactive' %}selected{% endif %}>❌ Inactivo</option>
+                                <option value="pending" {% if usuario.estado == 'pending' %}selected{% endif %}>⏳ Pendiente</option>
+                            </select>
+                            <div class="error-message" id="estado-error" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i> <span id="estado-error-text">Debe seleccionar un estado</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo Tipo Usuario (solo para administradores) -->
+                    <div class="form-group full-width" id="tipo-usuario-group" style="display: none;">
+                        <label for="tipo-usuario" class="form-label required">
+                            <i class="fas fa-user-cog"></i> Tipo de Administrador
+                        </label>
+                        <select id="tipo-usuario" name="tipo-usuario" class="form-select">
+                            <option value="">Seleccione tipo de administrador...</option>
+                            <option value="admin" {% if usuario.tipo_usuario == 'admin' %}selected{% endif %}>🔧 Administrador del Sistema</option>
+                            <option value="regular" {% if usuario.tipo_usuario == 'regular' %}selected{% endif %}>📋 Usuario Regular</option>
+                        </select>
+                        <div class="error-message" id="tipo-usuario-error" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i> <span id="tipo-usuario-error-text">Debe seleccionar un tipo de administrador</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo Asignatura (solo para profesores) - CORREGIDO -->
+                    <div class="form-group full-width" id="asignatura-group" style="display: none;">
+                        <label for="asignatura" class="form-label required">
+                            <i class="fas fa-book"></i> Asignatura que Imparte
+                        </label>
+                        <select id="asignatura" name="asignatura" class="form-select">
+                            <option value="">Seleccione una asignatura...</option>
+                            <option value="matematicas" {% if usuario.asignatura == 'matematicas' %}selected{% endif %}>📐 Matemáticas</option>
+                            <option value="lenguaje" {% if usuario.asignatura == 'lenguaje' %}selected{% endif %}>📝 Lenguaje y Comunicación</option>
+                            <option value="ciencias" {% if usuario.asignatura == 'ciencias' %}selected{% endif %}>🔬 Ciencias Naturales</option>
+                            <option value="historia" {% if usuario.asignatura == 'historia' %}selected{% endif %}>🏛️ Historia y Geografía</option>
+                            <option value="ingles" {% if usuario.asignatura == 'ingles' %}selected{% endif %}>🇺🇸 Inglés</option>
+                            <option value="estudios_sociales" {% if usuario.asignatura == 'estudios_sociales' %}selected{% endif %}>🌍 Estudios Sociales</option>
+                            <option value="f_instrumental" {% if usuario.asignatura == 'f_instrumental' %}selected{% endif %}>🎵 F. Instrumental</option>
+                        </select>
+                        <div class="error-message" id="asignatura-error" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i> <span id="asignatura-error-text">Debe seleccionar una asignatura</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botones de acción -->
+                <div class="form-actions">
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn-eduvia btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a la Lista
+                    </a>
+                    <button type="submit" class="btn-eduvia btn-primary" id="btn-submit">
+                        <i class="fas fa-save"></i> Actualizar Usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Iniciando JavaScript del formulario de editar usuario');
+
+    // Referencias a elementos - CORREGIDO
+    const form = document.getElementById('editUserForm');
+    const rutInput = document.getElementById('rut');
+    const nombresInput = document.getElementById('nombres');
+    const apellidosInput = document.getElementById('apellidos');
+    const telefonoInput = document.getElementById('telefono');
+    const correoInput = document.getElementById('correo');
+    const rolSelect = document.getElementById('rol');
+    const estadoSelect = document.getElementById('estado');
+    const asignaturaGroup = document.getElementById('asignatura-group');
+    const asignaturaSelect = document.getElementById('asignatura'); // CORREGIDO: cambio de funcionSelect a asignaturaSelect
+
+    // Función para mostrar errores
+    function showError(fieldId, message) {
+        const errorElement = document.getElementById(fieldId + '-error');
+        const errorText = document.getElementById(fieldId + '-error-text');
+        const input = document.getElementById(fieldId);
+        
+        if (errorElement && errorText) {
+            errorText.textContent = message;
+            errorElement.style.display = 'block';
+            if (input) {
+                input.classList.add('error');
+                input.style.borderColor = '#dc3545';
+            }
+        }
+    }
+
+    // Función para ocultar errores
+    function hideError(fieldId) {
+        const errorElement = document.getElementById(fieldId + '-error');
+        const input = document.getElementById(fieldId);
+        
+        if (errorElement) {
+            errorElement.style.display = 'none';
+            if (input) {
+                input.classList.remove('error');
+                input.style.borderColor = '';
+            }
+        }
+    }
+
+    // Validación de RUT
+    function validateRUT(rut) {
+        const rutPattern = /^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/i;
+        if (!rutPattern.test(rut)) {
+            return false;
+        }
+
+        const cleanRut = rut.replace(/\./g, '').replace('-', '');
+        const body = cleanRut.slice(0, -1);
+        const dv = cleanRut.slice(-1).toUpperCase();
+
+        let sum = 0;
+        let multiplier = 2;
+
+        for (let i = body.length - 1; i >= 0; i--) {
+            sum += parseInt(body[i]) * multiplier;
+            multiplier = multiplier === 7 ? 2 : multiplier + 1;
+        }
+
+        const expectedDV = 11 - (sum % 11);
+        const calculatedDV = expectedDV === 11 ? '0' : expectedDV === 10 ? 'K' : expectedDV.toString();
+
+        return dv === calculatedDV;
+    }
+
+    // Formateo automático del RUT
+    function formatRUT(input) {
+        let value = input.value.replace(/[^\dkK]/gi, '');
+        
+        if (value.length > 1) {
+            const body = value.slice(0, -1);
+            const dv = value.slice(-1);
+            
+            let formattedBody = '';
+            for (let i = body.length - 1, j = 0; i >= 0; i--, j++) {
+                if (j > 0 && j % 3 === 0) {
+                    formattedBody = '.' + formattedBody;
+                }
+                formattedBody = body[i] + formattedBody;
+            }
+            
+            value = formattedBody + '-' + dv;
+        }
+        
+        input.value = value.toUpperCase();
+    }
+
+    // Formateo automático del teléfono
+    function formatPhone(input) {
+        let value = input.value.replace(/[^\d]/g, '');
+        
+        if (value.startsWith('56')) {
+            value = value.substring(2);
+        }
+        
+        if (value.startsWith('9')) {
+            value = value.substring(1);
+        }
+        
+        if (value.length > 8) {
+            value = value.substring(0, 8);
+        }
+        
+        if (value.length >= 4) {
+            value = value.substring(0, 4) + ' ' + value.substring(4);
+        }
+        
+        input.value = '+56 9 ' + value;
+    }
+
+    // Event listeners para validación en tiempo real
+    if (rutInput) {
+        rutInput.addEventListener('input', function() {
+            formatRUT(this);
+            if (this.value.length >= 11) {
+                if (validateRUT(this.value)) {
+                    hideError('rut');
+                } else {
+                    showError('rut', 'RUT inválido. Verifique el formato y dígito verificador.');
+                }
+            } else if (this.value.length > 0) {
+                hideError('rut');
+            }
+        });
+    }
+
+    if (telefonoInput) {
+        telefonoInput.addEventListener('input', function() {
+            formatPhone(this);
+            const phonePattern = /^\+56 9 \d{4} \d{4}$/;
+            if (this.value.length > 6) {
+                if (phonePattern.test(this.value)) {
+                    hideError('telefono');
+                } else {
+                    showError('telefono', 'Formato inválido. Use: +56 9 1234 5678');
+                }
+            } else {
+                hideError('telefono');
+            }
+        });
+    }
+
+    if (correoInput) {
+        correoInput.addEventListener('input', function() {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value.length > 0) {
+                if (emailPattern.test(this.value)) {
+                    hideError('correo');
+                } else {
+                    showError('correo', 'Ingrese un correo electrónico válido.');
+                }
+            } else {
+                hideError('correo');
+            }
+        });
+    }
+
+    // CORREGIDO: Mostrar/ocultar campos según el rol seleccionado
+    if (rolSelect) {
+        rolSelect.addEventListener('change', function() {
+            const selectedRole = this.value;
+            
+            if (selectedRole === 'profesor') {
+                asignaturaGroup.style.display = 'block';
+                asignaturaSelect.required = true; // CORREGIDO: cambio de funcionSelect a asignaturaSelect
+            } else {
+                asignaturaGroup.style.display = 'none';
+                asignaturaSelect.required = false; // CORREGIDO: cambio de funcionSelect a asignaturaSelect
+                asignaturaSelect.value = ''; // CORREGIDO: cambio de funcionSelect a asignaturaSelect
+            }
+            
+            hideError('rol');
+        });
+
+        // Ejecutar al cargar la página para mostrar los campos correctos
+        rolSelect.dispatchEvent(new Event('change'));
+    }
+
+    // Validación del formulario antes de enviar
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let isValid = true;
+            
+            // Validar RUT
+            if (!rutInput.value.trim()) {
+                showError('rut', 'El RUT es requerido.');
+                isValid = false;
+            } else if (!validateRUT(rutInput.value)) {
+                showError('rut', 'RUT inválido. Verifique el formato y dígito verificador.');
+                isValid = false;
+            }
+            
+            // Validar nombres
+            if (!nombresInput.value.trim()) {
+                showError('nombres', 'Los nombres son requeridos.');
+                isValid = false;
+            } else if (nombresInput.value.trim().length < 2) {
+                showError('nombres', 'Los nombres deben tener al menos 2 caracteres.');
+                isValid = false;
+            }
+            
+            // Validar apellidos
+            if (!apellidosInput.value.trim()) {
+                showError('apellidos', 'Los apellidos son requeridos.');
+                isValid = false;
+            } else if (apellidosInput.value.trim().length < 2) {
+                showError('apellidos', 'Los apellidos deben tener al menos 2 caracteres.');
+                isValid = false;
+            }
+            
+            // Validar correo
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!correoInput.value.trim()) {
+                showError('correo', 'El correo electrónico es requerido.');
+                isValid = false;
+            } else if (!emailPattern.test(correoInput.value)) {
+                showError('correo', 'Ingrese un correo electrónico válido.');
+                isValid = false;
+            }
+            
+            // Validar teléfono (si se ingresó)
+            if (telefonoInput.value.trim() && telefonoInput.value.trim() !== '+56 9 ') {
+                const phonePattern = /^\+56 9 \d{4} \d{4}$/;
+                if (!phonePattern.test(telefonoInput.value)) {
+                    showError('telefono', 'Formato de teléfono inválido. Use: +56 9 1234 5678');
+                    isValid = false;
+                }
+            }
+            
+            // Validar rol
+            if (!rolSelect.value) {
+                showError('rol', 'Debe seleccionar un rol.');
+                isValid = false;
+            }
+            
+            // Validar estado
+            if (!estadoSelect.value) {
+                showError('estado', 'Debe seleccionar un estado.');
+                isValid = false;
+            }
+            
+            // CORREGIDO: Validar asignatura si es profesor
+            if (rolSelect.value === 'profesor') {
+                if (!asignaturaSelect.value) { // CORREGIDO: cambio de funcionSelect a asignaturaSelect
+                    showError('asignatura', 'Debe seleccionar una asignatura para los profesores.'); // CORREGIDO: cambio de funcion a asignatura
+                    isValid = false;
+                }
+            }
+            
+            if (isValid) {
+                showConfirmationAlert();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Errores en el formulario',
+                    text: 'Por favor corrija los errores marcados antes de continuar.',
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        });
+    }
+
+    // CORREGIDO: Función para mostrar alerta de confirmación
+    function showConfirmationAlert() {
+        const nombres = nombresInput.value.trim();
+        const apellidos = apellidosInput.value.trim();
+        const rut = rutInput.value;
+        const correo = correoInput.value;
+        const rol = rolSelect.value;
+        const estado = estadoSelect.value;
+        
+        let rolText = '';
+        switch(rol) {
+            case 'administrador':
+                rolText = 'Administrador';
+                break;
+            case 'profesor':
+                rolText = 'Profesor';
+                break;
+            default:
+                rolText = rol;
+        }
+        
+        let estadoText = '';
+        switch(estado) {
+            case 'active':
+                estadoText = '✅ Activo';
+                break;
+            case 'inactive':
+                estadoText = '❌ Inactivo';
+                break;
+            case 'pending':
+                estadoText = '⏳ Pendiente';
+                break;
+            default:
+                estadoText = estado;
+        }
+        
+        // CORREGIDO: Obtener asignatura
+        const asignatura = asignaturaSelect.value; // CORREGIDO: cambio de funcionSelect a asignaturaSelect
+        let asignaturaText = 'No especificada';
+        
+        if (asignatura) {
+            const asignaturaOptions = {
+                'matematicas': '📐 Matemáticas',
+                'lenguaje': '📝 Lenguaje y Comunicación',
+                'ciencias': '🔬 Ciencias Naturales',
+                'historia': '🏛️ Historia y Geografía',
+                'ingles': '🇺🇸 Inglés',
+                'estudios_sociales': '🌍 Estudios Sociales',
+                'f_instrumental': '🎵 F. Instrumental'
+            };
+            asignaturaText = asignaturaOptions[asignatura] || asignatura;
+        }
+
+        Swal.fire({
+            title: '¿Confirmar actualización?',
+            html: `
+                <div class="confirmation-details">
+                    <div class="user-summary">
+                        <h4>📝 Resumen de cambios:</h4>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <strong><i class="fas fa-user"></i> Nombre:</strong>
+                                <span>${nombres} ${apellidos}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong><i class="fas fa-id-card"></i> RUT:</strong>
+                                <span>${rut}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong><i class="fas fa-envelope"></i> Correo:</strong>
+                                <span>${correo}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong><i class="fas fa-user-shield"></i> Rol:</strong>
+                                <span>${rolText}</span>
+                            </div>
+                            <div class="detail-item">
+                                <strong><i class="fas fa-toggle-on"></i> Estado:</strong>
+                                <span>${estadoText}</span>
+                            </div>
+                            ${rol === 'profesor' ? `
+                            <div class="detail-item">
+                                <strong><i class="fas fa-book"></i> Asignatura:</strong>
+                                <span>${asignaturaText}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        Los cambios se aplicarán inmediatamente al usuario.
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-save"></i> Sí, actualizar',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            customClass: {
+                popup: 'swal-wide'
+            },
+            focusConfirm: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                submitForm();
+            }
+        });
+    }
+
+    // Función para enviar el formulario
+    function submitForm() {
+        const submitBtn = document.getElementById('btn-submit');
+        
+        // Mostrar indicador de carga
+        Swal.fire({
+            title: 'Actualizando usuario...',
+            html: '<i class="fas fa-spinner fa-spin"></i> Por favor espere mientras se guardan los cambios',
+            icon: 'info',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Deshabilitar botón de envío
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+        }
+
+        // Enviar formulario usando fetch
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Usuario actualizado exitosamente!',
+                    text: data.message,
+                    confirmButtonColor: '#28a745',
+                    confirmButtonText: 'Ir a la Lista'
+                }).then(() => {
+                    window.location.href = "{% url 'usuarios:lista_usuarios' %}";
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al actualizar usuario',
+                    text: data.message,
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: 'Entendido'
+                });
+                
+                // Rehabilitar botón de envío
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Usuario';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'Hubo un problema al comunicarse con el servidor. Intente nuevamente.',
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Entendido'
+            });
+            
+            // Rehabilitar botón de envío
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Usuario';
+            }
+        });
+    }
+
+    // Función para auto-ocultar alertas
+    function autoHideAlerts() {
+        const alerts = document.querySelectorAll('.auto-hide-alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                if (alert) {
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        if (alert.parentNode) {
+                            alert.parentNode.removeChild(alert);
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        });
+    }
+
+    // Función para cerrar alertas manualmente
+    window.closeAlert = function(button) {
+        const alert = button.closest('.custom-alert');
+        if (alert) {
+            alert.style.opacity = '0';
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 300);
+        }
+    };
+
+    // Ejecutar auto-ocultar alertas al cargar
+    autoHideAlerts();
+
+    console.log('JavaScript del formulario de editar usuario cargado correctamente');
+});
+</script>
+
+<style>
+/* Estilos específicos para SweetAlert */
+.swal-wide {
+    width: 600px !important;
+}
+
+.confirmation-details {
+    text-align: left;
+}
+
+.user-summary {
+    margin: 15px 0;
+}
+
+.details-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #007bff;
+}
+
+.detail-item strong {
+    color: #495057;
+    font-size: 0.9em;
+}
+
+.detail-item span {
+    font-weight: 500;
+    color: #212529;
+}
+
+/* Estilos para alertas personalizadas */
+.custom-alert {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: opacity 0.3s ease;
+    position: relative;
+}
+
+.custom-alert.alert-success {
+    color: #0f5132;
+    background-color: #d1eddd;
+    border-color: #badbcc;
+}
+
+.custom-alert.alert-error {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+
+.custom-alert.alert-warning {
+    color: #664d03;
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+}
+
+.custom-alert.alert-info {
+    color: #055160;
+    background-color: #cff4fc;
+    border-color: #b6effb;
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.alert-icon {
+    margin-right: 10px;
+    font-size: 1.1em;
+}
+
+.alert-message {
+    flex: 1;
+}
+
+.alert-close {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+    color: currentColor;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.alert-close:hover {
+    opacity: 1;
+}
+
+/* Estilos para campos con error */
+.form-control.error,
+.form-select.error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Estilos para mensajes de error */
+.error-message {
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.error-message i {
+    margin-right: 5px;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-section {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .swal-wide {
+        width: 95% !important;
+    }
+    
+    .details-grid {
+        gap: 8px;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .detail-item strong {
+        margin-bottom: 4px;
+    }
+}
+
+/* Mejoras de accesibilidad */
+.form-control:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-eduvia:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
+}
+
+/* Estados de carga */
+.btn-eduvia:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-eduvia:disabled:hover {
+    transform: none;
+}
+</style>
+{% endblock %}

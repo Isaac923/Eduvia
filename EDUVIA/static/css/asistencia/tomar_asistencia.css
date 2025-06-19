@@ -1,0 +1,16 @@
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.btn-group .btn-check:checked + .btn {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0,0,0,0.02);
+}

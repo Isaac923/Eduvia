@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }} - EDUVIA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/asistencia/estadisticas.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/asistencia/estadisticas.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        {{ titulo }}
+                    </h4>
+                    <small>Estadísticas generales de asistencia por año académico, asignatura y curso</small>
+                </div>
+                <div class="card-body">
+                    {% if not anos_academicos %}
+                        <div class="alert alert-warning">
+                            <h5><i class="fas fa-exclamation-triangle me-2"></i>Años Académicos Requeridos</h5>
+                            <p class="mb-2">No hay años académicos configurados. Es necesario tener años académicos para ver las estadísticas.</p>
+                            {% if request.user.is_superuser %}
+                                <p class="mb-0">Como administrador, puede configurar los años académicos en el módulo de gestión de alumnos.</p>
+                            {% else %}
+                                <p class="mb-0">Contacte al administrador para configurar los años académicos.</p>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        {% if messages %}
+                            <ul class="messages">
+                                {% for message in messages %}
+                                    <li class="{{ message.tags }}">{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        <!-- Selector de Año Académico -->
+                        {% if request.user.is_superuser %}
+                        <div class="year-selector-container mb-4">
+                            <div class="year-selector-header">
+                                <h4 class="year-selector-title">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Año Académico
+                                </h4>
+                                <div class="year-controls">
+                                    <select class="year-select" id="ano-academico-filter" name="ano_academico" onchange="cambiarAnoAcademico()">
+                                        {% for ano in anos_academicos %}
+                                            <option value="{{ ano.id }}" {% if ano.id == ano_academico_actual.id %}selected{% endif %}>
+                                                {{ ano.ano }} {% if ano.activo %}(Activo){% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="year-info">
+                                <div class="year-stat">
+                                    <i class="fas fa-calendar-check"></i>
+                                    <span>Año Seleccionado: <strong>{{ ano_academico_actual.ano }}</strong></span>
+                                </div>
+                                {% if resumen.total_registros > 0 %}
+                                <div class="year-stat">
+                                    <i class="fas fa-clipboard-check"></i>
+                                    <span>Total Registros: <strong>{{ resumen.total_registros }}</strong></span>
+                                </div>
+                                <div class="year-stat">
+                                    <i class="fas fa-percentage"></i>
+                                    <span>Promedio General: <strong>{{ resumen.promedio_asistencia }}%</strong></span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Filtros de búsqueda -->
+                        <div class="filtros-container">
+                            <form method="get" id="filtros-form">
+                                <!-- Campo oculto para año académico -->
+                                <input type="hidden" name="ano_academico" id="hidden-ano-academico" value="{{ ano_academico_actual.id }}">
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="asignatura" class="form-label">
+                                            <i class="fas fa-book me-1"></i>Asignatura
+                                        </label>
+                                        <select name="asignatura" id="asignatura" class="form-select">
+                                            <option value="">Todas las asignaturas</option>
+                                            {% for asig in asignaturas_disponibles %}
+                                                <option value="{{ asig }}" {% if filtro_asignatura == asig %}selected{% endif %}>
+                                                    {{ asig }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="curso" class="form-label">
+                                            <i class="fas fa-users me-1"></i>Curso
+                                        </label>
+                                        <select name="curso" id="curso" class="form-select">
+                                            <option value="">Todos los cursos</option>
+                                            {% for curso in cursos_disponibles %}
+                                                <!-- CORREGIDO: Usar curso.id como value -->
+                                                <option value="{{ curso.id }}" {% if filtro_curso == curso.id|stringformat:"s" %}selected{% endif %}>
+                                                    {{ curso }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">&nbsp;</label>
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-search me-2"></i>
+                                                Filtrar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Resumen general -->
+                        {% if estadisticas %}
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h6 class="card-title mb-0">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    Resumen General
+                                                </h6>
+                                                <span class="ano-academico-badge">
+                                                    <i class="fas fa-graduation-cap"></i>
+                                                    Año {{ ano_academico_actual.ano }}
+                                                </span>
+                                            </div>
+                                            <div class="row text-center">
+                                                <div class="col-md-3">
+                                                    <div class="text-primary">
+                                                        <h4>{{ resumen.total_asignaturas }}</h4>
+                                                        <small>Asignaturas</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-info">
+                                                        <h4>{{ resumen.total_registros }}</h4>
+                                                        <small>Total Registros</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-success">
+                                                        <h4>{{ resumen.promedio_asistencia }}%</h4>
+                                                        <small>Promedio Asistencia</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-warning">
+                                                        <h4>{{ resumen.total_estudiantes }}</h4>
+                                                        <small>Estudiantes Únicos</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Estadísticas por asignatura -->
+                            <div class="row">
+                                {% for item in estadisticas %}
+                                    <div class="col-md-6 col-lg-4 mb-4">
+                                        {% if item.asignatura_curso.curso.nivel == 1 %}
+                                            <div class="card border-primary shadow-sm h-100 hover-card">
+                                                <div class="card-header bg-primary text-white">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-book me-2"></i>
+                                                        {{ item.asignatura_curso.asignatura }}
+                                                    </h6>
+                                                    <small>{{ item.asignatura_curso.curso }}</small>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row text-center mb-3">
+                                                        <div class="col-6">
+                                                            <div class="border-end">
+                                                                <h4 class="text-primary mb-0">{{ item.stats.total }}</h4>
+                                                                <small class="text-muted">Total Registros</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <h4 class="text-success mb-0">{{ item.stats.porcentaje_asistencia }}%</h4>
+                                                            <small class="text-muted">Asistencia</small>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row text-center mb-3">
+                                                        <div class="col-3">
+                                                            <div class="text-success">
+                                                                <i class="fas fa-check-circle"></i>
+                                                                <div class="fw-bold">{{ item.stats.presentes }}</div>
+                                                                <small>Presentes</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-danger">
+                                                                <i class="fas fa-times-circle"></i>
+                                                                <div class="fw-bold">{{ item.stats.ausentes }}</div>
+                                                                <small>Ausentes</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-warning">
+                                                                <i class="fas fa-clock"></i>
+                                                                <div class="fw-bold">{{ item.stats.tardanzas }}</div>
+                                                                <small>Tardanzas</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-info">
+                                                                <i class="fas fa-file-medical"></i>
+                                                                <div class="fw-bold">{{ item.stats.justificados }}</div>
+                                                                <small>Justificados</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Barra de progreso -->
+                                                    <div class="mb-3">
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar bg-success" 
+                                                                 style="width: {{ item.stats.porcentaje_asistencia }}%"
+                                                                 title="Asistencia: {{ item.stats.porcentaje_asistencia }}%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Información adicional -->
+                                                    <div class="text-center">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            Profesor: 
+                                                            {% if item.asignatura_curso.profesor %}
+                                                                {{ item.asignatura_curso.profesor.nombres }} {{ item.asignatura_curso.profesor.apellidos }}
+                                                            {% else %}
+                                                                Sin asignar
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% elif item.asignatura_curso.curso.nivel == 2 %}
+                                            <div class="card border-warning shadow-sm h-100 hover-card">
+                                                <div class="card-header bg-warning text-dark">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-book me-2"></i>
+                                                        {{ item.asignatura_curso.asignatura }}
+                                                    </h6>
+                                                    <small>{{ item.asignatura_curso.curso }}</small>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row text-center mb-3">
+                                                        <div class="col-6">
+                                                            <div class="border-end">
+                                                                <h4 class="text-warning mb-0">{{ item.stats.total }}</h4>
+                                                                <small class="text-muted">Total Registros</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <h4 class="text-success mb-0">{{ item.stats.porcentaje_asistencia }}%</h4>
+                                                            <small class="text-muted">Asistencia</small>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row text-center mb-3">
+                                                        <div class="col-3">
+                                                            <div class="text-success">
+                                                                <i class="fas fa-check-circle"></i>
+                                                                <div class="fw-bold">{{ item.stats.presentes }}</div>
+                                                                <small>Presentes</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-danger">
+                                                                <i class="fas fa-times-circle"></i>
+                                                                <div class="fw-bold">{{ item.stats.ausentes }}</div>
+                                                                <small>Ausentes</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-warning">
+                                                                <i class="fas fa-clock"></i>
+                                                                <div class="fw-bold">{{ item.stats.tardanzas }}</div>
+                                                                <small>Tardanzas</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-info">
+                                                                <i class="fas fa-file-medical"></i>
+                                                                <div class="fw-bold">{{ item.stats.justificados }}</div>
+                                                                <small>Justificados</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Barra de progreso -->
+                                                    <div class="mb-3">
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar bg-success" 
+                                                                 style="width: {{ item.stats.porcentaje_asistencia }}%"
+                                                                 title="Asistencia: {{ item.stats.porcentaje_asistencia }}%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Información adicional -->
+                                                    <div class="text-center">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            Profesor: 
+                                                            {% if item.asignatura_curso.profesor %}
+                                                                {{ item.asignatura_curso.profesor.nombres }} {{ item.asignatura_curso.profesor.apellidos }}
+                                                            {% else %}
+                                                                Sin asignar
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% elif item.asignatura_curso.curso.nivel == 3 %}
+                                            <div class="card border-danger shadow-sm h-100 hover-card">
+                                                <div class="card-header bg-danger text-white">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-book me-2"></i>
+                                                        {{ item.asignatura_curso.asignatura }}
+                                                    </h6>
+                                                    <small>{{ item.asignatura_curso.curso }}</small>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row text-center mb-3">
+                                                        <div class="col-6">
+                                                            <div class="border-end">
+                                                                <h4 class="text-danger mb-0">{{ item.stats.total }}</h4>
+                                                                <small class="text-muted">Total Registros</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <h4 class="text-success mb-0">{{ item.stats.porcentaje_asistencia }}%</h4>
+                                                            <small class="text-muted">Asistencia</small>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row text-center mb-3">
+                                                        <div class="col-3">
+                                                            <div class="text-success">
+                                                                <i class="fas fa-check-circle"></i>
+                                                                <div class="fw-bold">{{ item.stats.presentes }}</div>
+                                                                <small>Presentes</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-danger">
+                                                                <i class="fas fa-times-circle"></i>
+                                                                <div class="fw-bold">{{ item.stats.ausentes }}</div>
+                                                                <small>Ausentes</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-warning">
+                                                                <i class="fas fa-clock"></i>
+                                                                <div class="fw-bold">{{ item.stats.tardanzas }}</div>
+                                                                <small>Tardanzas</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-3">
+                                                            <div class="text-info">
+                                                                <i class="fas fa-file-medical"></i>
+                                                                <div class="fw-bold">{{ item.stats.justificados }}</div>
+                                                                <small>Justificados</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Barra de progreso -->
+                                                    <div class="mb-3">
+                                                        <div class="progress" style="height: 8px;">
+                                                            <div class="progress-bar bg-success" 
+                                                                 style="width: {{ item.stats.porcentaje_asistencia }}%"
+                                                                 title="Asistencia: {{ item.stats.porcentaje_asistencia }}%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Información adicional -->
+                                                    <div class="text-center">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            Profesor: 
+                                                            {% if item.asignatura_curso.profesor %}
+                                                                {{ item.asignatura_curso.profesor.nombres }} {{ item.asignatura_curso.profesor.apellidos }}
+                                                            {% else %}
+                                                                Sin asignar
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                                <h5>No hay datos disponibles</h5>
+                                <p class="text-muted">No se encontraron registros de asistencia para los filtros seleccionados en el año {{ ano_academico_actual.ano }}.</p>
+                                <div class="mt-3">
+                                    <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-success">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Registrar Asistencia
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <div class="mt-4 d-flex gap-2 flex-wrap">
+                        <a href="{% url 'asistencia:index' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Volver al Menú Principal
+                        </a>
+                        <a href="{% url 'asistencia:ver_asistencias' %}" class="btn btn-outline-info">
+                            <i class="fas fa-eye me-2"></i>
+                            Ver Asistencias Detalladas
+                        </a>
+                        {% if ano_academico_actual %}
+                            <a href="{% url 'asistencia:seleccionar_asignatura' %}" class="btn btn-outline-success">
+                                <i class="fas fa-plus me-2"></i>
+                                Registrar Nueva Asistencia
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

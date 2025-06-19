@@ -1,0 +1,170 @@
+.hover-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.card-header {
+    border-bottom: 2px solid rgba(0,0,0,0.1);
+}
+
+.border-end {
+    border-right: 1px solid #dee2e6 !important;
+}
+
+/* Estilos para el selector de año académico */
+.year-selector-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.year-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.year-selector-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.year-selector-title i {
+    margin-right: 0.5rem;
+    color: #ffd700;
+}
+
+.year-select {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    min-width: 200px;
+}
+
+.year-select:focus {
+    background: rgba(255,255,255,0.3);
+    border-color: #ffd700;
+    box-shadow: 0 0 0 0.2rem rgba(255,215,0,0.25);
+    color: white;
+}
+
+.year-select option {
+    background: #333;
+    color: white;
+}
+
+.year-info {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.year-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+}
+
+.year-stat i {
+    color: #ffd700;
+}
+
+.ano-academico-badge {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Mejoras para filtros */
+.filtros-container {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.filtros-container .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.filtros-container .form-select,
+.filtros-container .form-control {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.filtros-container .form-select:focus,
+.filtros-container .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.messages {
+    list-style: none;
+    padding: 0;
+}
+
+.messages li {
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+.messages .success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.messages .error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+@media (max-width: 768px) {
+    .border-end {
+        border-right: none !important;
+        border-bottom: 1px solid #dee2e6 !important;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .year-selector-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .year-info {
+        justify-content: center;
+    }
+    
+    .filtros-container {
+        padding: 0.75rem;
+    }
+}
